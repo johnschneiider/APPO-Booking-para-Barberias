@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}APPO{% endblock %}</title>
+  
+  {% load static %}
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <meta name="description" content="{% block description %}APPO es una app para peluquerías que facilita la gestión de citas y turnos con un calendario intuitivo, presencia profesional y estilo minimalista.{% endblock %}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  
+  <!-- Seguridad -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- Open Graph para redes sociales -->
+  <meta property="og:title" content="{% block og_title %}APPO Citas – Administra turnos de peluquería fácilmente{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Optimiza tus citas con APPO: calendario, gestión de peluqueros y experiencia profesional para tus clientes.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:image" content="{% block og_image %}URL_de_imagen_promocional{% endblock %}">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}APPO Citas | Gestión de turnos para peluquerías{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}La app para que dueños de peluquerías manejen citas, peluqueros y calendario con estilo minimalista.{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}URL_de_imagen_promocional{% endblock %}">
+
+  <!-- Hojas de estilo -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- FullCalendar CSS -->
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+  
+  <!-- CSS Modular -->
+  <link href="{% static 'css/base/variables.css' %}" rel="stylesheet">
+  <link href="{% static 'css/base/main.css' %}" rel="stylesheet">
+  <link href="{% static 'css/base/components.css' %}" rel="stylesheet">
+  
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body style="background:#F4F3F1;color:#222;font-family:var(--font-ui);">
+  <!-- Loader global -->
+  <div id="global-loader" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2000;background:rgba(255,255,255,0.7);align-items:center;justify-content:center;">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status" aria-label="Cargando..."></div>
+  </div>
+  <!-- Toasts globales -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2100">
+    <div id="global-toast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true" style="min-width:260px;">
+      <div class="d-flex">
+        <div class="toast-body" id="global-toast-body">Mensaje</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+      </div>
+    </div>
+  </div>
+  <!-- Header -->
+  <header class="header fixed-top" id="header" role="banner" style="color:var(--color-smoke-white);">
+    <!-- Desktop header -->
+    <div class="container d-none d-md-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'inicio' %}" class="brand logo-text d-flex align-items-center">
+          <img src="{% static 'images/ui/appo-logo.png' %}" alt="APPO Logo" style="height: 40px; width: auto;">
+        </a>
+        <div id="city-selector" style="display:flex;align-items:center;gap:0.4rem;background:#fff;padding:0.35em 1em;border-radius:1.5em;box-shadow:0 2px 8px rgba(46,46,58,0.04);margin-left:1.2rem;">
+          <svg width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 21s7-7.16 7-12A7 7 0 1 0 4 9c0 4.84 7 12 7 12Z" stroke="#0d6efd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="9" r="2.5" fill="#0d6efd"/></svg>
+          <span id="user-city" style="font-weight:600;color:#0D0D0D;font-family:var(--font-ui);">Detectando...</span>
+          <svg width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left:0.2em;"><path d="M4 6l4 4 4-4" stroke="#0d6efd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <!-- Eliminar botón de modo claro/oscuro desktop -->
+        <!-- <button id="toggle-theme" class="btn d-flex align-items-center justify-content-center" title="Cambiar modo claro/oscuro" aria-label="Cambiar modo claro/oscuro">
+          <span id="theme-icon" style="font-size:1.3rem;">🌙</span>
+        </button> -->
+        <a href="{% url 'chat:lista_conversaciones' %}" class="nav-link position-relative" title="Chat">
+          <i class="bi bi-chat-dots fs-4 position-relative" id="chatIcon"></i>
+          <span id="chatCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size:0.85rem; min-width:1.2em;">0</span>
+        </a>
+        <a href="{% if is_cliente %}{% url 'clientes:notificaciones' %}
+                 {% elif is_negocio %}{% url 'negocios:notificaciones' %}
+                 {% elif is_profesional %}{% url 'profesionales:notificaciones' %}
+                 {% elif user.is_superuser or user.tipo == 'super_admin' %}{% url 'cuentas:notificaciones_super_admin' %}
+                 {% else %}#{% endif %}" class="nav-link position-relative" title="Notificaciones">
+          <i class="bi bi-bell fs-4 position-relative" id="notificacionesBell"></i>
+          <span id="notificacionesCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size:0.85rem; min-width:1.2em;">0</span>
+        </a>
+        {% if user.is_authenticated %}
+        <div class="dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle" style="color: #133A7F !important;"></i> {{ user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="{% url 'cuentas:enviar_feedback' %}"><i class="bi bi-lightbulb"></i> Dinos cómo mejorar</a></li>
+            {% if user.is_superuser or user.tipo == 'super_admin' %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:dashboard_super_admin' %}"><i class="bi bi-speedometer2"></i> Panel Super Admin</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:ejecutar_tests' %}"><i class="bi bi-bug-fill"></i> Ejecutar Tests Automáticos</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:poblar_demo' %}"><i class="bi bi-database-fill-add"></i> Poblar Base Demo</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:borrar_demo' %}"><i class="bi bi-trash-fill"></i> Borrar Base Demo</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:reiniciar_servidor' %}"><i class="bi bi-arrow-repeat"></i> Reiniciar Servidor</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:ver_logs_servidor' %}"><i class="bi bi-terminal"></i> Ver Logs Servidor</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:gestionar_rate_limiting' %}"><i class="bi bi-shield-lock"></i> Gestionar Rate Limiting</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'chat:lista_conversaciones' %}"><i class="bi bi-chat-dots"></i> Chat</a></li>
+            {% if is_cliente %}
+              <li><a class="dropdown-item" href="{% url 'clientes:mis_reservas' %}"><i class="bi bi-calendar-check"></i> Mis Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'suscripciones:cliente_suscripciones' %}"><i class="bi bi-credit-card"></i> Mis Suscripciones</a></li>
+              <!-- <li><a class="dropdown-item" href="{% url 'suscripciones:planes_disponibles' %}"><i class="bi bi-list-check"></i> Planes Dispo>nibles</a></li> -->
+              <li><a class="dropdown-item" href="{% url 'cuentas:perfil_usuario' %}"><i class="bi bi-person-circle"></i> Mi perfil</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% elif is_negocio %}
+              <li><a class="dropdown-item" href="{% url 'negocios:mis_negocios' %}"><i class="bi bi-shop me-2"></i>Mis Negocios</a></li>
+              {% if user.negocios.first %}
+                <li><a class="dropdown-item" href="{% url 'negocios:calendario_reservas' user.negocios.first.id %}"><i class="bi bi-calendar3 me-2"></i>Calendario</a></li>
+                <li><a class="dropdown-item" href="{% url 'suscripciones:negocio_suscripciones' negocio_id=user.negocios.first.id %}"><i class="bi bi-credit-card me-2"></i>Mis Suscripciones</a></li>
+                <li><a class="dropdown-item" href="{% url 'suscripciones:planes_negocio' negocio_id=user.negocios.first.id %}"><i class="bi bi-list-check me-2"></i>Planes de Suscripción</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'negocios:crear_negocio' %}"><i class="bi bi-plus-circle me-2"></i>Crear Negocio</a></li>
+              <li><a class="dropdown-item" href="{% url 'negocios:listar_dias_descanso' %}"><i class="bi bi-calendar-x"></i> Días de Descanso</a></li>
+              {% if user.negocios.first %}
+                <li><a class="dropdown-item" href="{% url 'negocios:gestionar_inasistencias' user.negocios.first.id %}"><i class="bi bi-exclamation-triangle text-warning"></i> Gestión de Inasistencias</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% elif is_profesional %}
+              <li><a class="dropdown-item" href="{% url 'profesionales:panel' %}"><i class="bi bi-person-badge"></i> Panel Profesional</a></li>
+              <li><a class="dropdown-item" href="{% url 'profesionales:gestionar_ausencias' %}"><i class="bi bi-calendar-x"></i> Mis Ausencias</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% else %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            {% if user.is_superuser or user.tipo == 'super_admin' %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:control_reservas' %}"><i class="bi bi-calendar2-check"></i> Control de Reservas</a></li>
+            {% endif %}
+            {% if is_negocio and user.negocios.first %}
+              <li><a class="dropdown-item" href="{% url 'negocios:galeria_negocio' user.negocios.first.id %}"><i class="bi bi-images"></i> Galería de imágenes</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'cuentas:ajustes' %}"><i class="bi bi-gear"></i> Ajustes</a></li>
+            <li><a class="dropdown-item" href="{% url 'cuentas:politica_datos' %}"><i class="bi bi-shield-lock"></i> Política de Tratamiento de Datos</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'account_logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="{% url 'cuentas:registro_unificado' %}" class="btn btn-primary fw-bold me-2">
+          <i class="bi bi-person-plus" style="color: white;"></i> Registrarse
+        </a>
+        <a href="{% url 'account_login' %}" class="btn btn-primary fw-bold">
+          <i class="bi bi-box-arrow-in-right" style="color: white;"></i> Iniciar Sesión
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Mobile header: logo left, luna/sol, avatar o hamburguesa -->
+    <div class="d-flex d-md-none align-items-center w-100 justify-content-between px-3" style="min-height:56px;">
+      <a href="{% url 'inicio' %}" class="brand logo-text d-flex align-items-center">
+        <img src="{% static 'images/ui/appo-logo.png' %}" alt="APPO Logo" style="height: 35px; width: auto;">
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+        <div class="dropdown d-flex align-items-center">
+          <a class="btn d-flex align-items-center justify-content-center p-0" href="#" id="userDropdownMobile" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:transparent; border:none;box-shadow:none;font-size:2rem;">
+            <i class="bi bi-person-circle" style="color: #133A7F !important;"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobile">
+            <li><a class="dropdown-item" href="{% url 'cuentas:enviar_feedback' %}"><i class="bi bi-lightbulb"></i> Dinos cómo mejorar</a></li>
+            {% if user.is_superuser or user.tipo == 'super_admin' %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:dashboard_super_admin' %}"><i class="bi bi-speedometer2"></i> Panel Super Admin</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:ejecutar_tests' %}"><i class="bi bi-bug-fill"></i> Ejecutar Tests Automáticos</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:poblar_demo' %}"><i class="bi bi-database-fill-add"></i> Poblar Base Demo</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:borrar_demo' %}"><i class="bi bi-trash-fill"></i> Borrar Base Demo</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:reiniciar_servidor' %}"><i class="bi bi-arrow-repeat"></i> Reiniciar Servidor</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:ver_logs_servidor' %}"><i class="bi bi-terminal"></i> Ver Logs Servidor</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:gestionar_rate_limiting' %}"><i class="bi bi-shield-lock"></i> Gestionar Rate Limiting</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'chat:lista_conversaciones' %}"><i class="bi bi-chat-dots"></i> Chat</a></li>
+            {% if is_cliente %}
+              <li><a class="dropdown-item" href="{% url 'clientes:mis_reservas' %}"><i class="bi bi-calendar-check"></i> Mis Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'suscripciones:cliente_suscripciones' %}"><i class="bi bi-credit-card"></i> Mis Suscripciones</a></li>
+              <!-- <li><a class="dropdown-item" href="{% url 'suscripciones:planes_disponibles' %}"><i class="bi bi-list-check"></i> Planes Disponibles</a></li>-->
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% elif is_negocio %}
+              <li><a class="dropdown-item" href="{% url 'negocios:mis_negocios' %}"><i class="bi bi-shop me-2"></i>Mis Negocios</a></li>
+              {% if user.negocios.first %}
+                <li><a class="dropdown-item" href="{% url 'negocios:calendario_reservas' user.negocios.first.id %}"><i class="bi bi-calendar3 me-2"></i>Calendario</a></li>
+                <li><a class="dropdown-item" href="{% url 'suscripciones:negocio_suscripciones' negocio_id=user.negocios.first.id %}"><i class="bi bi-credit-card me-2"></i>Mis Suscripciones</a></li>
+                <li><a class="dropdown-item" href="{% url 'suscripciones:planes_negocio' negocio_id=user.negocios.first.id %}"><i class="bi bi-list-check me-2"></i>Planes de Suscripción</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'negocios:crear_negocio' %}"><i class="bi bi-plus-circle me-2"></i>Crear Negocio</a></li>
+              <li><a class="dropdown-item" href="{% url 'negocios:listar_dias_descanso' %}"><i class="bi bi-calendar-x"></i> Días de Descanso</a></li>
+              {% if user.negocios.first %}
+                <li><a class="dropdown-item" href="{% url 'negocios:gestionar_inasistencias' user.negocios.first.id %}"><i class="bi bi-exclamation-triangle text-warning"></i> Gestión de Inasistencias</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% elif is_profesional %}
+              <li><a class="dropdown-item" href="{% url 'profesionales:panel' %}"><i class="bi bi-person-badge"></i> Panel Profesional</a></li>
+              <li><a class="dropdown-item" href="{% url 'profesionales:gestionar_ausencias' %}"><i class="bi bi-calendar-x"></i> Mis Ausencias</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% else %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:mis_tickets' %}"><i class="bi bi-ticket-detailed"></i> Mis Tickets</a></li>
+              <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            {% if user.is_superuser or user.tipo == 'super_admin' %}
+              <li><a class="dropdown-item" href="{% url 'cuentas:control_reservas' %}"><i class="bi bi-calendar2-check"></i> Control de Reservas</a></li>
+            {% endif %}
+            {% if is_negocio and user.negocios.first %}
+              <li><a class="dropdown-item" href="{% url 'negocios:galeria_negocio' user.negocios.first.id %}"><i class="bi bi-images"></i> Galería de imágenes</a></li>
+              <li><a class="dropdown-item" href="{% url 'negocios:listar_dias_descanso' %}"><i class="bi bi-calendar-x"></i> Días de Descanso</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'cuentas:ajustes' %}"><i class="bi bi-gear"></i> Ajustes</a></li>
+            <li><a class="dropdown-item" href="{% url 'cuentas:politica_datos' %}"><i class="bi bi-shield-lock"></i> Política de Tratamiento de Datos</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'account_logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <div class="dropdown d-flex align-items-center">
+          <a class="btn d-flex align-items-center justify-content-center p-0" href="#" id="userDropdownMobileGuest" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:transparent; border:none;box-shadow:none;font-size:2rem;">
+            <i class="bi bi-person-circle" style="color: #133A7F !important;"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMobileGuest">
+            <li><a class="dropdown-item" href="{% url 'account_login' %}"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a></li>
+            <li><a class="dropdown-item" href="{% url 'cuentas:registro_unificado' %}"><i class="bi bi-person-plus"></i> Crear Cuenta</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'cuentas:enviar_feedback' %}"><i class="bi bi-lightbulb"></i> Dinos cómo mejorar</a></li>
+            <li><a class="dropdown-item" href="{% url 'cuentas:politica_datos' %}"><i class="bi bi-shield-lock"></i> Política de Tratamiento de Datos</a></li>
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Mensajes de alerta -->
+  {% if messages %}
+    <div class="container mt-3" role="status" aria-live="polite">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+          <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Contenido principal -->
+  <main class="container-fluid px-0" style="background:#F4F3F1;color:#222;font-family:var(--font-ui);padding-top:80px;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto pt-4 pb-2 border-top" role="contentinfo" style="background:#F4F3F1;color:#181818;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <h5 class="mb-3" style="font-family:var(--font-serif-title);color:var(--color-mint-green);">APPO</h5>
+          <p style="color:var(--color-smoke-white);">La plataforma líder para la gestión de citas en peluquerías. Simplifica tu negocio con nuestra tecnología intuitiva.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="mb-3" style="color:var(--color-mint-green);">Enlaces Útiles</h6>
+          <ul class="footer-links list-unstyled">
+            <li><a href="{% url 'inicio' %}" style="color:var(--color-smoke-white);">Inicio</a></li>
+            <li><a href="{% url 'clientes:dashboard' %}" style="color:var(--color-smoke-white);">Buscar Negocios</a></li>
+            {% if user.is_authenticated %}
+              <li><a href="{% url 'account_logout' %}" style="color:var(--color-smoke-white);">Cerrar Sesión</a></li>
+            {% else %}
+              <li><a href="{% url 'account_login' %}" style="color:var(--color-smoke-white);">Iniciar Sesión</a></li>
+            {% endif %}
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="mb-3" style="color:var(--color-mint-green);">Contacto</h6>
+                                  <p class="mb-1" style="color:var(--color-smoke-white);"><i class="bi bi-envelope me-2"></i>soporte@appo.com.co</p>
+          <p style="color:var(--color-smoke-white);"><i class="bi bi-whatsapp me-2"></i>+54 9 11 1234-5678</p>
+        </div>
+      </div>
+      <div class="text-center small mt-3" style="color:var(--color-smoke-white);">&copy; {{ now|date:'Y' }} APPO. Todos los derechos reservados.</div>
+      <div class="text-center" style="margin-top: 0.5rem;">
+        <small style="color:var(--color-smoke-white); opacity: 0.6; font-size: 0.75rem;">
+          Creado por <a href="https://www.instagram.com/hi.soyjohn/" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #8B6914 0%, #B8860B 50%, #A0522D 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Jhon Jiménez</a> | v3.0.0
+        </small>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal de Notificaciones Global -->
+  <div class="modal fade" id="notificacionesModal" tabindex="-1" aria-labelledby="notificacionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="notificacionesModalLabel">
+            <i class="bi bi-bell me-2"></i> Notificaciones
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="notificacionesLoader" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+          <div id="notificacionesLista" class="list-group list-group-flush d-none">
+            <!-- Aquí se cargarán las notificaciones vía JS -->
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" id="csrf_token_js" value="{{ csrf_token }}">
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  
+  <!-- CSRF Token para AJAX -->
+  <script>
+    // Obtener CSRF token del input hidden (más robusto que desde cookies)
+    const csrftoken = document.getElementById('csrf_token_js')?.value || '';
+
+    // Configurar headers para AJAX
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      }
+    });
+
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+      const header = document.getElementById('header');
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+
+    // Auto-hide alerts after 5 seconds (excluyendo alertas de confirmación de reserva)
+    document.addEventListener('DOMContentLoaded', function() {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function(alert) {
+        // Excluir alertas de confirmación de reserva
+        if (alert.closest('.card-body') && alert.querySelector('.alert-heading') && 
+            (alert.querySelector('.alert-heading').textContent.includes('Detalles de tu reserva') ||
+             alert.querySelector('.alert-heading').textContent.includes('Información importante'))) {
+          return; // No ocultar estas alertas
+        }
+        setTimeout(function() {
+          const bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
+        }, 5000);
+      });
+    });
+
+    // Loading states for buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      const forms = document.querySelectorAll('form');
+      forms.forEach(function(form) {
+        // Excluir el formulario de chat individual
+        if (form.id === 'message-form') return;
+        form.addEventListener('submit', function() {
+          const submitBtn = form.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Procesando...';
+          }
+        });
+      });
+    });
+
+    // Elemento para feedback
+    let feedbackAlert = null;
+    function mostrarFeedback(mensaje, tipo) {
+      if (!feedbackAlert) {
+        feedbackAlert = document.createElement('div');
+        feedbackAlert.className = 'alert mt-2';
+        document.getElementById('notificacionesLista').parentElement.prepend(feedbackAlert);
+      }
+      feedbackAlert.className = 'alert mt-2 alert-' + (tipo === 'success' ? 'success' : 'danger');
+      feedbackAlert.innerText = mensaje;
+      feedbackAlert.style.display = 'block';
+      setTimeout(() => { feedbackAlert.style.display = 'none'; }, 3000);
+    }
+
+    // Al hacer fetch para aceptar/rechazar:
+    async function responderMatricula(solicitudId, accion) {
+      const url = `/negocios/api/matricula/${solicitudId}/${accion}/`;
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.ok) {
+          mostrarFeedback('Acción realizada con éxito.', 'success');
+          // Recargar notificaciones para reflejar el cambio
+          cargarNotificaciones();
+        } else {
+          mostrarFeedback(data.error || 'Ocurrió un error.', 'error');
+        }
+      } catch (e) {
+        mostrarFeedback('Error de red o servidor.', 'error');
+      }
+    }
+  </script>
+
+  <script>
+function setUserCity(city) {
+  const citySpan = document.getElementById('user-city');
+  if (citySpan) citySpan.textContent = city;
+}
+function detectCity() {
+  if (!navigator.geolocation) {
+    setUserCity('Ubicación no disponible');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const apiKey = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg';
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=es`;
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        let city = 'Ciudad no detectada';
+        if (data.results && data.results.length > 0) {
+          const components = data.results[0].address_components;
+          for (let comp of components) {
+            if (comp.types.includes('locality')) {
+              city = comp.long_name;
+              break;
+            }
+          }
+          // Fallback: buscar administrative_area_level_1 o 2
+          if (city === 'Ciudad no detectada') {
+            for (let comp of components) {
+              if (comp.types.includes('administrative_area_level_1') || comp.types.includes('administrative_area_level_2')) {
+                city = comp.long_name;
+                break;
+              }
+            }
+          }
+        }
+        setUserCity(city);
+      })
+      .catch(() => setUserCity('Error de ubicación'));
+  }, function() {
+    setUserCity('Permiso denegado');
+  });
+}
+document.addEventListener('DOMContentLoaded', detectCity);
+</script>
+
+  {% block extra_js %}
+  <script src="{% static 'js/base/notificaciones.js' %}"></script>
+  {% endblock %}
+  
+  <!-- Script de actividades de usuario (para no autenticados) -->
+  {% if not user.is_authenticated %}
+  <script src="{% static 'js/base/actividad_usuario.js' %}"></script>
+  {% endif %}
+  <script>
+    // Loader global
+    function showLoader() { document.getElementById('global-loader').style.display = 'flex'; }
+    function hideLoader() { document.getElementById('global-loader').style.display = 'none'; }
+    // Toast global
+    function showToast(msg, type='primary') {
+      const toast = document.getElementById('global-toast');
+      const body = document.getElementById('global-toast-body');
+      toast.className = 'toast align-items-center text-bg-' + type + ' border-0';
+      body.textContent = msg;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
+  </script>
+  <script>
+// Cambiar tema claro/oscuro para desktop y mobile
+function setTheme(mode) {
+  const btns = [document.getElementById('toggle-theme'), document.getElementById('toggle-theme-mobile')];
+  if (mode === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-icon').textContent = '☀️';
+    if(document.getElementById('theme-icon-mobile')) document.getElementById('theme-icon-mobile').textContent = '☀️';
+    btns.forEach(btn => { if(btn) btn.style.border = 'none'; });
+    localStorage.setItem('theme', 'light');
+  } else {
+    document.body.classList.remove('light-mode');
+    document.getElementById('theme-icon').textContent = '🌙';
+    if(document.getElementById('theme-icon-mobile')) document.getElementById('theme-icon-mobile').textContent = '🌙';
+            btns.forEach(btn => { if(btn) btn.style.border = 'none'; });
+    localStorage.setItem('theme', 'dark');
+  }
+}
+document.getElementById('toggle-theme').addEventListener('click', function() {
+  const isLight = document.body.classList.contains('light-mode');
+  setTheme(isLight ? 'dark' : 'light');
+});
+if(document.getElementById('toggle-theme-mobile')) {
+  document.getElementById('toggle-theme-mobile').addEventListener('click', function() {
+    const isLight = document.body.classList.contains('light-mode');
+    setTheme(isLight ? 'dark' : 'light');
+  });
+}
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') setTheme('light');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+/* Estilos para la página de configuración de políticas de inasistencias */
+
+.configuracion-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 2rem 0;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.formulario-configuracion {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+.formulario-configuracion .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.formulario-configuracion .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.formulario-configuracion .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.formulario-configuracion .input-group-text {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-left: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.formulario-configuracion .form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Checkboxes personalizados */
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.form-check-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Botón de guardar */
+.btn-guardar-configuracion {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-guardar-configuracion:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    color: white;
+}
+
+/* Panel de información */
+.panel-informacion {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.panel-informacion h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.panel-informacion ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.panel-informacion li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-informacion li:last-child {
+    border-bottom: none;
+}
+
+.panel-informacion i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Estadísticas actuales */
+.estadisticas-actuales {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.estadisticas-actuales .card-header {
+    background: #007bff;
+    color: white;
+    border: none;
+    font-weight: 600;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.estadisticas-actuales h4 {
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.estadisticas-actuales small {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Recomendaciones */
+.recomendaciones {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.recomendaciones h6 {
+    color: #856404;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.recomendaciones li {
+    color: #856404;
+    margin-bottom: 0.25rem;
+}
+
+.recomendaciones i {
+    color: #28a745;
+    margin-right: 0.5rem;
+}
+
+/* Validación de formulario */
+.formulario-configuracion .form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.formulario-configuracion .invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .formulario-configuracion {
+        padding: 1.5rem;
+    }
+    
+    .configuracion-header {
+        padding: 1.5rem 0;
+    }
+    
+    .btn-guardar-configuracion {
+        width: 100%;
+        margin-top: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.panel-informacion,
+.estadisticas-actuales {
+    animation: slideInRight 0.6s ease-out;
+}
+
+/* Tooltips para campos */
+.campo-con-tooltip {
+    position: relative;
+}
+
+.campo-con-tooltip .form-text {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.campo-con-tooltip:hover .form-text {
+    opacity: 1;
+}
+
+/* Estados de carga */
+.btn-guardar-configuracion:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-guardar-configuracion .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+} 

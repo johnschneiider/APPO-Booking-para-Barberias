@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Completar Perfil Profesional - Appo{% endblock %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-7 col-lg-6 col-xl-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="logo mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <img src="{% static 'images/ui/appo-logo.png' %}" alt="Appo Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <h2 class="fw-bold text-black mb-2">Completa tu Perfil Profesional</h2>
+                        <p class="text-muted">Cuéntanos sobre tu experiencia y habilidades</p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {% if field.name == 'servicios' %}
+                                <!-- Sección de Servicios con Switches -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium mb-3">
+                                        <i class="bi bi-scissors me-2 text-primary"></i>{{ field.label }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="servicios-container">
+                                        {% for servicio in field.field.queryset %}
+                                            <div class="servicio-item d-flex align-items-center justify-content-between p-3 mb-2 border rounded-3" data-servicio-id="{{ servicio.id }}">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="servicio-icon me-3">
+                                                        <i class="bi bi-scissors text-primary fs-5"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1 text-black fw-bold">{{ servicio.nombre }}</h6>
+                                                        <small class="text-black">{{ servicio.descripcion|truncatechars:50 }}</small>
+                                                    </div>
+                                                </div>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input servicio-switch" type="checkbox" 
+                                                           id="servicio_{{ servicio.id }}" 
+                                                           name="servicios" 
+                                                           value="{{ servicio.id }}"
+                                                           style="transform: scale(1.2);">
+                                                    <label class="form-check-label" for="servicio_{{ servicio.id }}"></label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted small mt-2">{{ field.help_text|safe }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <!-- Campos normales -->
+                                <div class="mb-4">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-medium">
+                                        {{ field.label }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted small mt-2">{{ field.help_text|safe }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill mb-2">
+                            <i class="bi bi-check-circle me-2" style="color: #FFFFFF;"></i>Guardar Perfil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para la sección de servicios */
+.servicios-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.servicio-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.servicio-item:hover {
+    background: #e3f2fd;
+    border-color: #2196f3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+}
+
+.servicio-item.active {
+    background: #e8f5e8;
+    border-color: #4caf50 !important;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.servicio-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.servicio-item.active .servicio-icon {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+
+/* Estilos para los switches */
+.form-check-input:checked {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
+
+.form-check-input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+}
+
+/* Scrollbar personalizado */
+.servicios-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.servicios-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.servicios-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.servicios-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animación para los switches */
+.form-check-input {
+    transition: all 0.3s ease;
+}
+
+/* Asegurar que el texto de los servicios sea negro */
+.servicio-item h6,
+.servicio-item small {
+    color: #000000 !important;
+}
+
+.servicio-item.active h6,
+.servicio-item.active small {
+    color: #000000 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .servicio-item {
+        padding: 1rem !important;
+    }
+    
+    .servicio-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .servicio-item h6 {
+        font-size: 0.9rem;
+        color: #000000 !important;
+    }
+    
+    .servicio-item small {
+        font-size: 0.75rem;
+        color: #000000 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener todos los switches de servicios
+    const servicioSwitches = document.querySelectorAll('.servicio-switch');
+    const servicioItems = document.querySelectorAll('.servicio-item');
+    
+    // Función para actualizar el estado visual del servicio
+    function updateServicioState(switchElement, itemElement) {
+        if (switchElement.checked) {
+            itemElement.classList.add('active');
+        } else {
+            itemElement.classList.remove('active');
+        }
+    }
+    
+    // Agregar event listeners a cada switch
+    servicioSwitches.forEach((switchElement, index) => {
+        const itemElement = servicioItems[index];
+        
+        // Actualizar estado inicial
+        updateServicioState(switchElement, itemElement);
+        
+        // Event listener para cambios en el switch
+        switchElement.addEventListener('change', function() {
+            updateServicioState(this, itemElement);
+        });
+        
+        // Event listener para hacer clic en toda la fila del servicio
+        itemElement.addEventListener('click', function(e) {
+            // No activar si se hace clic directamente en el switch
+            if (e.target !== switchElement && !switchElement.contains(e.target)) {
+                switchElement.checked = !switchElement.checked;
+                updateServicioState(switchElement, itemElement);
+            }
+        });
+    });
+    
+    // Contador de servicios seleccionados
+    function updateServiciosCount() {
+        const selectedCount = document.querySelectorAll('.servicio-switch:checked').length;
+        const totalCount = servicioSwitches.length;
+        
+        // Actualizar el texto de ayuda si existe
+        const helpText = document.querySelector('.servicios-container').nextElementSibling;
+        if (helpText && helpText.classList.contains('form-text')) {
+            helpText.innerHTML = `Selecciona uno o más servicios que ofreces. <strong>${selectedCount} de ${totalCount} seleccionados</strong>`;
+        }
+    }
+    
+    // Actualizar contador inicialmente y en cada cambio
+    updateServiciosCount();
+    servicioSwitches.forEach(switchElement => {
+        switchElement.addEventListener('change', updateServiciosCount);
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,32 @@
+Recordatorio Urgente de Cita - APPO
+
+¡Hola {{ cliente.first_name|default:cliente.username }}!
+
+🚨 ¡IMPORTANTE!
+Tu cita en {{ negocio.nombre }} está programada para EN 3 HORAS.
+
+📋 DETALLES DE TU CITA:
+📅 Fecha: {{ fecha_formateada }}
+🕐 Hora: {{ hora_formateada }}
+🏢 Negocio: {{ negocio.nombre }}
+{% if profesional %}👨‍💼 Profesional: {{ profesional.nombre_completo }}{% endif %}
+{% if reserva.servicio %}✂️ Servicio: {{ reserva.servicio.servicio.nombre }}{% endif %}
+📍 Dirección: {{ negocio.direccion }}
+
+⚡ ACCIONES RÁPIDAS:
+• Confirma que puedes llegar a tiempo
+• Si necesitas cancelar, contacta inmediatamente al negocio
+• Prepara todo lo que necesites llevar
+
+¿Necesitas cancelar o reagendar?
+Visita: {{ request.scheme }}://{{ request.get_host }}{% url 'clientes:mis_reservas' }}
+
+Contacto de emergencia:
+Si necesitas cancelar urgentemente, contacta directamente a {{ negocio.nombre }}.
+
+¡Nos vemos pronto!
+El equipo de {{ negocio.nombre }}
+
+---
+Este es un recordatorio automático de APPO - Tu plataforma de reservas
+Si no deseas recibir estos recordatorios, puedes desactivarlos en tu perfil. 

@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            
+            <!-- Encabezado con breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'negocios:mis_negocios' %}" class="text-decoration-none">Mis Negocios</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Configuración</li>
+                </ol>
+            </nav>
+            
+            <!-- Tarjeta principal -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0 text-white">
+                            <i class="bi bi-gear-fill me-2 text-white"></i> Configurar: {{ negocio.nombre }}
+                        </h2>
+                        <span class="badge bg-white text-primary fs-6">Premium</span>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="formulario-filas">
+                            {% for field in form %}
+                            <div class="fila-input">
+                                <div class="mb-4">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-medium mb-3">
+                                        {{ field.label }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    {% if field.name == 'logo' or field.name == 'imagen_portada' %}
+                                        <!-- Campo de archivo con vista previa -->
+                                        <div class="file-input-group">
+                                            {{ field }}
+                                            {% if field.value %}
+                                            <div class="mt-3 text-center">
+                                                <img src="{{ field.value.url }}" alt="Vista previa" class="img-thumbnail mt-2" style="max-height: 120px;">
+                                                <p class="small text-muted mt-2">Imagen actual</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'servicios' %}
+                                        <!-- Campo de servicios - ocultar el widget por defecto -->
+                                        <div style="display: none;">
+                                            {{ field }}
+                                        </div>
+                                    {% else %}
+                                        <!-- Campo normal -->
+                                        {{ field }}
+                                    {% endif %}
+                                    
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted small mt-2">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Sección de Servicios -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0 text-dark">
+                                            <i class="bi bi-scissors text-dark me-2"></i>Servicios que ofrece el negocio
+                                        </h5>
+                                        <p class="text-muted small mb-0 mt-2">Selecciona los servicios que tu negocio ofrece. Puedes desmarcar los que no ofreces.</p>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if servicios_negocio %}
+                                        <div class="servicios-lista">
+                                            {% for sn in servicios_negocio %}
+                                            <div class="servicio-fila d-flex align-items-center justify-content-between p-3 border-bottom {% if sn.activo %}border-primary bg-primary bg-opacity-5{% else %}border-light{% endif %}">
+                                                <div class="form-check d-flex align-items-center flex-grow-1">
+                                                    <input class="form-check-input me-3" 
+                                                           type="checkbox" 
+                                                           name="servicios" 
+                                                           id="servicio_{{ sn.id }}" 
+                                                           value="{{ sn.id }}" 
+                                                           {% if sn.activo %}checked{% endif %}>
+                                                    <div class="servicio-info">
+                                                        <label class="form-check-label fw-semibold text-dark mb-0 d-block" for="servicio_{{ sn.id }}">
+                                                            {{ sn.servicio.nombre }}
+                                                        </label>
+                                                        {% if sn.precio %}
+                                                        <small class="text-muted">${{ sn.precio }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="badge {% if sn.activo %}bg-primary{% else %}bg-secondary{% endif %} px-3 py-2">
+                                                        {% if sn.activo %}✓ Activo{% else %}○ Inactivo{% endif %}
+                                                    </span>
+                                                    <button type="button" 
+                                                            class="btn btn-sm {% if sn.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}" 
+                                                            onclick="toggleServicio({{ sn.id }})"
+                                                            title="{% if sn.activo %}Desactivar{% else %}Activar{% endif %} servicio">
+                                                        <i class="bi bi-{% if sn.activo %}x-lg{% else %}check-lg{% endif %}"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="bi bi-scissors fs-1 text-muted opacity-25 mb-3"></i>
+                                            <p class="text-muted">No hay servicios configurados para este negocio</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                            <a href="{% url 'negocios:mis_negocios' %}" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="bi bi-arrow-left me-2"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-check-circle-fill me-2"></i> Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Sección avanzada -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-sliders text-primary me-2"></i> Configuración avanzada
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-danger text-start py-3">
+                            <i class="bi bi-trash-fill me-2"></i> Eliminar este negocio
+                        </a>
+                        <a href="#" class="btn btn-outline-primary text-start py-3">
+                            <i class="bi bi-graph-up me-2"></i> Estadísticas avanzadas
+                        </a>
+                        <a href="#" class="btn btn-outline-primary text-start py-3">
+                            <i class="bi bi-credit-card me-2"></i> Configuración de pagos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos premium -->
+<style>
+    :root {
+        --primary: #6e48aa;
+        --primary-dark: #4b2d7f;
+        --secondary: #9d50bb;
+        --accent: #d4af37;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    }
+    
+    .card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(110, 72, 170, 0.15) !important;
+    }
+    
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+    
+    .form-control {
+        border-radius: 0.75rem !important;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(110, 72, 170, 0.15);
+    }
+    
+    .btn-primary {
+        background: var(--gradient-primary);
+        border: none;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(110, 72, 170, 0.3);
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--primary);
+        font-weight: 500;
+    }
+    
+    .file-input-group {
+        position: relative;
+    }
+    
+    /* Estilos específicos para el título y icono del header */
+    .card-header h2 {
+        color: white !important;
+    }
+    
+    .card-header h2 i {
+        color: white !important;
+    }
+    
+    .card-header .text-white {
+        color: white !important;
+    }
+    
+    /* Estilos para formulario en filas uniformes */
+    .formulario-filas {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .fila-input {
+        width: 100%;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 0;
+    }
+    
+    .fila-input:last-of-type {
+        border-bottom: none;
+    }
+    
+    .fila-input .form-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+    }
+    
+    .fila-input .form-control,
+    .fila-input .form-select,
+    .fila-input textarea {
+        width: 100%;
+        height: 45px;
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .fila-input textarea {
+        height: auto;
+        min-height: 45px;
+        resize: vertical;
+    }
+    
+    .fila-input .form-control:focus,
+    .fila-input .form-select:focus,
+    .fila-input textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+    
+    .fila-input .form-text {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .fila-input .invalid-feedback {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Estilos específicos para campos de archivo */
+    .fila-input .file-input-group {
+        position: relative;
+    }
+    
+    .fila-input input[type="file"] {
+        height: 45px;
+        padding: 0.5rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .fila-input input[type="file"]:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        background-color: #fff;
+    }
+    
+    /* Hover effect para las filas */
+    .fila-input:hover {
+        background-color: rgba(13, 110, 253, 0.02);
+        border-radius: 0.5rem;
+        margin: 0 -0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Responsive para móviles */
+    @media (max-width: 768px) {
+        .fila-input {
+            min-height: 70px;
+            padding: 0.75rem 0;
+        }
+        
+        .fila-input .form-control,
+        .fila-input .form-select,
+        .fila-input textarea {
+            height: 40px;
+            font-size: 0.9rem;
+            padding: 0.6rem 0.8rem;
+        }
+        
+        .fila-input textarea {
+            min-height: 40px;
+        }
+        
+        .fila-input .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+    }
+    
+    /* Estilos para la sección de servicios - diseño de tabla */
+    .servicios-lista {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .servicio-fila {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-bottom: 1px solid #dee2e6 !important;
+        min-height: 60px;
+    }
+    
+    .servicio-fila:last-child {
+        border-bottom: none !important;
+    }
+    
+    .servicio-fila:hover {
+        background-color: rgba(13, 110, 253, 0.05) !important;
+        transform: translateX(5px);
+    }
+    
+    /* Servicios activos - azul claro */
+    .servicio-fila.border-primary {
+        background-color: rgba(13, 110, 253, 0.08) !important;
+        border-left: 4px solid #0d6efd !important;
+    }
+    
+    /* Servicios inactivos - gris claro */
+    .servicio-fila.border-light {
+        background-color: #ffffff;
+        border-left: 4px solid #dee2e6;
+    }
+    
+    .servicio-fila .form-check-input {
+        transform: scale(1.2);
+        border-width: 2px;
+    }
+    
+    .servicio-fila .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .servicio-fila .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-width: 2px;
+        min-width: 40px;
+    }
+    
+    .servicio-fila .badge {
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+    
+    .servicio-fila .form-check-label {
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+    
+    .servicio-info {
+        flex-grow: 1;
+    }
+    
+    .servicio-info small {
+        font-size: 0.85rem;
+    }
+    
+    /* Mejorar contraste de texto */
+    .servicio-fila .text-dark {
+        color: #212529 !important;
+    }
+    
+    .servicio-fila .text-muted {
+        color: #6c757d !important;
+    }
+    
+    /* Responsive para móviles */
+    @media (max-width: 768px) {
+        .servicio-fila {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        
+        .servicio-fila .d-flex {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .servicio-fila .btn-sm {
+            min-width: auto;
+        }
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .card-body {
+            padding: 2rem !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.75rem !important;
+        }
+        
+        .col-md-6 {
+            width: 100% !important;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .card-header {
+            padding: 1.25rem !important;
+        }
+        
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        
+        .d-flex {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- Validación del formulario -->
+<script>
+    (function() {
+        'use strict';
+        
+        const form = document.querySelector('.needs-validation');
+        
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Enfocar el primer campo con error
+                const invalidField = form.querySelector('.is-invalid');
+                if (invalidField) {
+                    setTimeout(() => {
+                        invalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
+        
+        // Resetear validación al escribir
+        form.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+    })();
+    
+    // Función para toggle de servicios
+    function toggleServicio(servicioId) {
+        const checkbox = document.getElementById(`servicio_${servicioId}`);
+        const servicioFila = checkbox.closest('.servicio-fila');
+        const badge = servicioFila.querySelector('.badge');
+        const button = servicioFila.querySelector('button');
+        const icon = button.querySelector('i');
+        
+        // Toggle del checkbox
+        checkbox.checked = !checkbox.checked;
+        
+        // Actualizar estilos visuales
+        if (checkbox.checked) {
+            // Servicio activo - azul
+            servicioFila.classList.remove('border-light');
+            servicioFila.classList.add('border-primary', 'bg-primary', 'bg-opacity-5');
+            badge.classList.remove('bg-secondary');
+            badge.classList.add('bg-primary');
+            badge.textContent = '✓ Activo';
+            button.classList.remove('btn-outline-success');
+            button.classList.add('btn-outline-danger');
+            icon.classList.remove('bi-check-lg');
+            icon.classList.add('bi-x-lg');
+            button.title = 'Desactivar servicio';
+        } else {
+            // Servicio inactivo - gris
+            servicioFila.classList.remove('border-primary', 'bg-primary', 'bg-opacity-5');
+            servicioFila.classList.add('border-light');
+            badge.classList.remove('bg-primary');
+            badge.classList.add('bg-secondary');
+            badge.textContent = '○ Inactivo';
+            button.classList.remove('btn-outline-danger');
+            button.classList.add('btn-outline-success');
+            icon.classList.remove('bi-x-lg');
+            icon.classList.add('bi-check-lg');
+            button.title = 'Activar servicio';
+        }
+    }
+    
+    // Hacer que el clic en la fila también toggle el servicio
+    document.querySelectorAll('.servicio-fila').forEach(fila => {
+        fila.addEventListener('click', function(e) {
+            // Solo si no se hace clic en el botón o checkbox
+            if (!e.target.closest('button') && !e.target.closest('input[type="checkbox"]')) {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                const servicioId = checkbox.id.replace('servicio_', '');
+                toggleServicio(servicioId);
+            }
+        });
+    });
+</script>
+{% endblock %}

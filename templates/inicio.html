@@ -1,0 +1,1706 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}APPO | Reservas Exclusivas para Peluquerías de Lujo{% endblock %}
+
+{% block content %}
+
+
+<!-- Hero Section -->
+<section class="hero-section-custom d-flex flex-column justify-content-center align-items-center text-center min-vh-100 position-relative p-0" style="padding-top:0;background:#fff;color:#181818;font-family:var(--font-ui);">
+    <div class="hero-bg-gradient position-absolute top-0 start-0 w-100 h-100" style="z-index:0;background:linear-gradient(135deg,#f8fafc 60%,#e0e7ef 100%);"></div>
+
+    <div class="container position-relative" style="z-index:1;">
+        <h1 class="hero-title fw-bold mb-4 text-center w-100 mx-auto animated-hero-title"
+        style="font-family: var(--font-ui); color: #181818; margin-top: 3.5rem; font-size: 70px; font-weight: 500;">
+      Reserva con tus peluquerías<br />
+      <span id="frase-rotativa">¡agenda en segundos!</span>
+    </h1>
+    
+    <style>
+      .hero-title {
+        white-space: normal !important;
+        overflow: visible !important;
+        word-break: break-word;
+      }
+    
+      @media (max-width: 992px) {
+        .hero-title {
+          font-size: 42px !important;
+          padding: 0 1rem;
+        }
+      }
+    
+      @media (max-width: 768px) {
+        .hero-title {
+          font-size: 42px !important;
+        }
+      }
+    
+      @media (max-width: 480px) {
+        .hero-title {
+          font-size: 35px !important;
+        }
+      }
+      
+      /* Animación para las frases rotativas */
+      #frase-rotativa {
+        transition: opacity 0.5s ease-in-out;
+        opacity: 1;
+      }
+      
+      #frase-rotativa.fade-out {
+        opacity: 0;
+      }
+      
+
+    </style>
+    
+    
+
+<br><br>
+<!-- Buscador principal elevado (responsive) -->
+<section class="search-bar-section position-relative w-100 d-flex justify-content-center" style="z-index: 10; margin-top: -30px;">
+    <div class="container" style="max-width: 400px;">
+      <div class="search-bar-elevated-custom search-bar-modern d-flex flex-column gap-3 p-4"
+           style="background: #fff; border-radius: 1.5rem; box-shadow: 0 0 12px rgba(0,0,0,0.06); border: 1px solid #e0e0e0;">
+
+  
+        <!-- Ubicación -->
+        <div class="search-input-group d-flex align-items-center position-relative"
+             style="background: #fff; border: 1px solid #dcdcdc; border-radius: 0.75rem; padding: 0.7rem 1rem; gap: 0.5rem;">
+          <i class="bi bi-geo-alt text-muted" style="font-size: 1.2rem;"></i>
+          <input type="text" id="ubicacion-autocomplete" placeholder="Ubicación actual" autocomplete="off"
+                 class="form-control border-0 bg-transparent shadow-none px-0"
+                 style="font-size: 0.95rem; min-width: 0;" />
+          <div id="sugerencias-ubicacion" class="list-group position-absolute w-100 mt-1"
+               style="z-index: 1000; left: 0; top: 100%; border-radius: 0.75rem; background: white;"></div>
+          <input type="hidden" id="ubicacion-ciudad" name="ciudad" />
+          <input type="hidden" id="ubicacion-barrio" name="barrio" />
+          <input type="hidden" id="ubicacion-lat" name="lat" />
+          <input type="hidden" id="ubicacion-lng" name="lng" />
+        </div>
+
+            <!-- Servicio -->
+        <div class="search-input-group d-flex align-items-center position-relative"
+            style="background: #fff; border: 1px solid #dcdcdc; border-radius: 0.75rem; padding: 0.7rem 1rem; gap: 0.5rem;">
+            <i class="bi bi-search text-muted" style="font-size: 1.2rem;"></i>
+            <input type="text" id="servicio-autocomplete" placeholder="Todos los tratamientos" autocomplete="off"
+                class="form-control border-0 bg-transparent shadow-none px-0"
+                style="font-size: 0.95rem; min-width: 0;" />
+            <div id="sugerencias-servicio" class="list-group position-absolute w-100 mt-1"
+                style="z-index: 1000; left: 0; top: 100%; border-radius: 0.75rem; background: white; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+  
+        <!-- Negocio -->
+        <div class="search-input-group d-flex align-items-center position-relative"
+             style="background: #fff; border: 1px solid #dcdcdc; border-radius: 0.75rem; padding: 0.7rem 1rem; gap: 0.5rem;">
+          <i class="bi bi-shop text-muted" style="font-size: 1.2rem;"></i>
+          <input type="text" id="negocio-autocomplete" placeholder="Cualquier peluquería" autocomplete="off"
+                 class="form-control border-0 bg-transparent shadow-none px-0"
+                 style="font-size: 0.95rem; min-width: 0;" />
+          <div id="sugerencias-negocio" class="list-group position-absolute w-100 mt-1"
+               style="z-index: 1000; left: 0; top: 100%; border-radius: 0.75rem; background: white; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+  
+        <!-- Botón -->
+        <button id="btn-buscar-mobile"
+                class="btn fw-bold text-white"
+                style="background: #133A7F; color: #FFFFFF; border-radius: 0.75rem; font-size: 1rem; padding: 0.7rem;"
+                type="button"
+                onclick="buscarNegocios(); console.log('Botón mobile clickeado');">
+          Buscar tu Peluquería
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  
+  
+
+
+
+
+
+<!-- Contenedor para resultados de búsqueda dinámica -->
+<div id="resultados-busqueda" class="mt-4" style="display: none;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0" id="titulo-resultados">Resultados de búsqueda</h3>
+                    <button id="limpiar-busqueda" class="btn btn-outline-secondary btn-sm" onclick="limpiarResultadosBusqueda()">
+                        <i class="bi bi-x-circle me-1"></i>Limpiar
+                    </button>
+                </div>
+                <div id="negocios-resultados" class="d-flex gap-3 overflow-auto flex-nowrap">
+                    <!-- Los negocios se cargarán aquí dinámicamente -->
+                </div>
+                <div id="sin-resultados" class="text-center py-4" style="display: none;">
+                    <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron negocios con los criterios de búsqueda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <div class="mt-5 mb-4">
+            <span class="fw-bold" style="font-size:1.5rem; letter-spacing:1px;color:var(--color-mint-green);font-family:var(--font-ui);">{{ total_reservas|intcomma }}</span>
+            <span style="font-size:1.2rem; color:#222; ">citas reservadas</span>
+        </div>
+    </div>
+</section>
+
+{% if user.is_authenticated and is_cliente %}
+<section class="inicio-cliente-section py-5">
+  <div class="container">
+    <!-- Próximas citas -->
+    {% if tiene_proximas_reservas %}
+    <div class="row mb-4 carrusel-cnt">
+      <div class="col-12">
+        <h3 class="fw-bold mb-3">Próximas citas</h3>
+        <div class="d-flex gap-4 overflow-auto flex-nowrap">
+          {% for reserva in proximas_reservas %}
+            <a href="{% url 'clientes:detalle_peluquero' reserva.peluquero.id %}" class="text-decoration-none" style="color:inherit;">
+              <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+                {% if reserva.peluquero.portada %}
+                  <img src="{{ reserva.peluquero.portada.url }}" alt="{{ reserva.peluquero.nombre }}" class="object-fit-cover w-100" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                    <i class="bi bi-shop fs-1 text-muted"></i>
+                  </div>
+                {% endif %}
+                <div class="negocio-nombre">{{ reserva.peluquero.nombre }}</div>
+                <div class="negocio-rating">{{ reserva.peluquero.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ reserva.peluquero.total_resenias }})</span></div>
+                <div class="negocio-direccion">{{ reserva.peluquero.direccion }}</div>
+                {% if reserva.peluquero.categoria %}
+                  <span class="negocio-badge">{{ reserva.peluquero.categoria }}</span>
+                {% else %}
+                  <span class="negocio-badge">Salón de belleza</span>
+                {% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Citas reservadas -->
+    {% if reservas_cliente %}
+    <div class="row mb-4 carrusel-cnt">
+      <div class="col-12">
+        <h3 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2"></i>Mis citas reservadas</h3>
+        <div class="d-flex gap-4 overflow-auto flex-nowrap">
+          {% for reserva in reservas_cliente %}
+            <a href="{% url 'clientes:detalle_peluquero' reserva.peluquero.id %}" class="text-decoration-none" style="color:inherit;">
+              <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+                {% if reserva.peluquero.portada %}
+                  <img src="{{ reserva.peluquero.portada.url }}" alt="{{ reserva.peluquero.nombre }}" class="object-fit-cover w-100" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                    <i class="bi bi-shop fs-1 text-muted"></i>
+                  </div>
+                {% endif %}
+                <div class="negocio-nombre">{{ reserva.peluquero.nombre }}</div>
+                <div class="negocio-rating">{{ reserva.peluquero.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ reserva.peluquero.total_resenias }})</span></div>
+                <div class="negocio-direccion">{{ reserva.peluquero.direccion }}</div>
+                <div class="small text-muted mb-1">{{ reserva.fecha|date:"d/m/Y" }} - {{ reserva.hora_inicio|time:"H:i" }}</div>
+                {% if reserva.peluquero.categoria %}
+                  <span class="negocio-badge">{{ reserva.peluquero.categoria }}</span>
+                {% else %}
+                  <span class="negocio-badge">Salón de belleza</span>
+                {% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Visto recientemente -->
+    {% if tiene_negocios_vistos %}
+    <div class="row mb-4 carrusel-cnt">
+      <div class="col-12">
+        <h3 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Visto recientemente</h3>
+        <div class="d-flex gap-4 overflow-auto flex-nowrap">
+          {% for negocio in negocios_vistos %}
+            <a href="{% url 'clientes:detalle_peluquero' negocio.id %}" class="text-decoration-none" style="color:inherit;">
+              <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+                {% if negocio.portada %}
+                  <img src="{{ negocio.portada.url }}" alt="{{ negocio.nombre }}" class="object-fit-cover w-100" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                    <i class="bi bi-shop fs-1 text-muted"></i>
+                  </div>
+                {% endif %}
+                <div class="negocio-nombre">{{ negocio.nombre }}</div>
+                <div class="negocio-rating">{{ negocio.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ negocio.total_resenias }})</span></div>
+                <div class="negocio-direccion">{{ negocio.direccion }}</div>
+                {% if negocio.categoria %}
+                  <span class="negocio-badge">{{ negocio.categoria }}</span>
+                {% else %}
+                  <span class="negocio-badge">Salón de belleza</span>
+                {% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recomendado para ti -->
+    {% if tiene_recomendados %}
+    <div class="row mb-4 carrusel-cnt">
+      <div class="col-12">
+        <h3 class="fw-bold mb-3"><i class="bi bi-stars me-2"></i>Recomendado para ti</h3>
+        <div class="d-flex gap-4 overflow-auto flex-nowrap">
+          {% for negocio in negocios_recomendados %}
+            <a href="{% url 'clientes:detalle_peluquero' negocio.id %}" class="text-decoration-none" style="color:inherit;">
+              <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+                {% if negocio.portada %}
+                  <img src="{{ negocio.portada.url }}" alt="{{ negocio.nombre }}" class="object-fit-cover w-100" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                    <i class="bi bi-shop fs-1 text-muted"></i>
+                  </div>
+                {% endif %}
+                <div class="negocio-nombre">{{ negocio.nombre }}</div>
+                <div class="negocio-rating">{{ negocio.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ negocio.total_resenias }})</span></div>
+                <div class="negocio-direccion">{{ negocio.direccion }}</div>
+                {% if negocio.categoria %}
+                  <span class="negocio-badge">{{ negocio.categoria }}</span>
+                {% else %}
+                  <span class="negocio-badge">Salón de belleza</span>
+                {% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Carrusel de negocios general y top valorados -->
+{% if todos_negocios %}
+<section class="negocios-section py-5" style="background:#F4F3F1;">
+  <div class="container">
+    <h2 class="fw-bold mb-4 text-center" style="color:#222;">Explora nuestros negocios</h2>
+    <div class="negocios-carrusel-container carrusel-cnt">
+      <div class="negocios-carrusel d-flex gap-3 overflow-auto flex-nowrap">
+        {% for negocio in todos_negocios %}
+          <a href="{% url 'clientes:detalle_peluquero' negocio.id %}" class="text-decoration-none" style="color:inherit;">
+            <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+              {% if negocio.portada %}
+                <img src="{{ negocio.portada.url }}" class="object-fit-cover w-100" alt="{{ negocio.nombre }}" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                  <i class="bi bi-shop fs-1 text-muted"></i>
+                </div>
+              {% endif %}
+              <div class="negocio-nombre">{{ negocio.nombre }}</div>
+              <div class="negocio-rating">{{ negocio.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ negocio.total_resenias }})</span></div>
+              <div class="negocio-direccion">{{ negocio.direccion }}</div>
+              {% if negocio.categoria %}
+                <span class="negocio-badge">{{ negocio.categoria }}</span>
+              {% else %}
+                <span class="negocio-badge">Salón de belleza</span>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if top_negocios %}
+<section class="top-negocios-section py-5" style="background:#F4F3F1;">
+  <div class="container">
+    <h2 class="fw-bold mb-4 text-center" style="color:#222;">Los mejor valorados</h2>
+    <div class="top-negocios-carrusel-container carrusel-cnt">
+      <div class="top-negocios-carrusel d-flex gap-3 overflow-auto flex-nowrap">
+        {% for negocio in top_negocios %}
+          <a href="{% url 'clientes:detalle_peluquero' negocio.id %}" class="text-decoration-none" style="color:inherit;">
+            <div class="card negocio-card flex-shrink-0" style="min-width:320px;max-width:320px;">
+              {% if negocio.portada %}
+                <img src="{{ negocio.portada.url }}" class="object-fit-cover w-100" alt="{{ negocio.nombre }}" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+                  <i class="bi bi-shop fs-1 text-muted"></i>
+                </div>
+              {% endif %}
+              <div class="negocio-nombre">{{ negocio.nombre }}</div>
+              <div class="negocio-rating">{{ negocio.rating|floatformat:1 }} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">({{ negocio.total_resenias }})</span></div>
+              <div class="negocio-direccion">{{ negocio.direccion }}</div>
+              {% if negocio.categoria %}
+                <span class="negocio-badge">{{ negocio.categoria }}</span>
+              {% else %}
+                <span class="negocio-badge">Salón de belleza</span>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if not user.is_authenticated or not is_cliente %}
+<!-- Sección original de características para no clientes -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-4" style="color:#181818;font-family:var(--font-ui);">
+                    ¿Por qué elegir APPO?
+                </h2>
+                <p class="lead mb-5" style="color:#181818;font-family:var(--font-ui);">
+                    La plataforma más avanzada para peluquerías que buscan la excelencia
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="feature-card text-center p-4 h-100" style="background:#F4F3F1;color:#181818;border-radius:1rem;">
+                    <div class="feature-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-4 icon-inteligente">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">Gestión Inteligente</h4>
+                    <p class="feature-desc">
+                        Sistema de reservas automático que optimiza tu agenda y maximiza tus ingresos
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card text-center p-4 h-100" style="background:#F4F3F1;color:#181818;border-radius:1rem;">
+                    <div class="feature-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-4 icon-premium">
+                        <i class="bi bi-star fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">Experiencia Premium</h4>
+                    <p class="feature-desc">
+                        Interfaz elegante que refleja la calidad de tu negocio y mejora la satisfacción del cliente
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card text-center p-4 h-100" style="background:#F4F3F1;color:#181818;border-radius:1rem;">
+                    <div class="feature-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-4 icon-analytics">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 feature-title">Analytics Avanzados</h4>
+                    <p class="feature-desc">
+                        Métricas detalladas para tomar decisiones informadas y hacer crecer tu negocio
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+
+<!-- Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent !important;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent !important;
+}
+
+.hero-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-card {
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Search Bar */
+.search-bar {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-bar::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    z-index: -1;
+    border-radius: 20px;
+    opacity: 0.3;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%), 
+                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    opacity: 0.1;
+}
+
+.cta-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .search-bar-elevated {
+        display: none !important;
+    }
+    .search-bar-mobile {
+        display: flex !important;
+    }
+}
+
+/* Estilos para resultados de búsqueda */
+#resultados-busqueda {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 24px rgba(80,80,120,0.08);
+    margin-top: 2rem;
+    padding: 2rem;
+}
+
+#resultados-busqueda .negocio-card {
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 24px rgba(80,80,120,0.08);
+    transition: box-shadow 0.2s, transform 0.2s;
+    border: none;
+    overflow: hidden;
+    background: #fff;
+    padding: 1rem;
+}
+
+#resultados-busqueda .negocio-card:hover {
+    box-shadow: 0 8px 32px rgba(80,80,120,0.18);
+    transform: translateY(-4px) scale(1.02);
+}
+
+#resultados-busqueda .negocio-nombre {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #222;
+    margin: 0.5rem 0;
+}
+
+#resultados-busqueda .negocio-rating {
+    font-size: 0.95rem;
+    color: #ffc107;
+    margin-bottom: 0.3rem;
+}
+
+#resultados-busqueda .negocio-direccion {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+#resultados-busqueda .negocio-badge {
+    background: var(--color-mint-green);
+    color: var(--color-black-deep);
+    padding: 0.3rem 0.8rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+#resultados-busqueda .negocio-distancia {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.3rem;
+}
+
+#resultados-busqueda .negocio-distancia i {
+    color: var(--color-mint-green);
+    margin-right: 0.2rem;
+}
+@media (min-width: 768px) {
+    .search-bar-mobile {
+        display: none !important;
+    }
+}
+/* Hover ovalado para labels de la barra de búsqueda */
+@media (min-width: 768px) {
+    .search-bar-elevated label.form-label {
+        transition: background 0.2s, color 0.2s;
+        border-radius: 2rem;
+        padding: 0.25rem 1.2rem 0.25rem 1.2rem;
+        cursor: pointer;
+    }
+    .search-bar-elevated label.form-label:hover {
+        background: #f3f4f6;
+        color: #3b82f6;
+    }
+    .search-bar-elevated .btn-search {
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    .search-bar-elevated .btn-search:hover {
+        background: #d81b60 !important;
+        box-shadow: 0 6px 20px rgba(216,27,96,0.18);
+    }
+}
+
+/* Barra de búsqueda avanzada mejorada */
+.search-bar-elevated-custom {
+    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10);
+    border: none !important;
+    min-height: 44px !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+.search-bar-elevated-custom .form-label {
+    margin-bottom: 0.2rem !important;
+    font-size: 0.93rem;
+}
+.search-bar-elevated-custom .form-control {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 1rem;
+    min-height: 32px !important;
+    height: 32px !important;
+}
+.search-bar-elevated-custom .form-control:focus {
+    box-shadow: none !important;
+    border: none !important;
+}
+.search-bar-elevated-custom .vr {
+    border-left: 1.5px solid #e0e0e0 !important;
+    height: 40px !important;
+    margin: 0 0.5rem !important;
+    align-self: stretch !important;
+}
+.search-bar-elevated-custom .d-flex.flex-column {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+.search-bar-elevated-custom input::placeholder {
+    color: #b0b0b0;
+    font-size: 0.98rem;
+}
+.search-bar-elevated-custom {
+    border-bottom: none !important;
+}
+.search-bar-mobile {
+    box-shadow: 0 4px 16px rgba(80, 60, 120, 0.10);
+    border: 2px solid #f3eafd;
+    font-size: 1.1rem;
+    transition: box-shadow 0.2s;
+}
+
+@media (max-width: 576px) {
+    .hero-section-custom {
+        padding-top: 1.2rem !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .hero-section-custom h1 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 1.2rem !important;
+        font-size: 2rem !important;
+        line-height: 1.15;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    .search-bar-section {
+        margin-top: -10px !important;
+        margin-bottom: 0 !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .search-bar-mobile {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+    }
+    .mt-5 {
+        margin-top: 1.2rem !important;
+    }
+    .mb-4 {
+        margin-bottom: 1.2rem !important;
+    }
+    .d-flex.justify-content-center {
+        margin-bottom: 0.8rem !important;
+    }
+    /* Ajuste para el menú hamburguesa */
+    .navbar-toggler {
+        margin-right: 0.5rem !important;
+        margin-left: 0.2rem !important;
+    }
+}
+</style>
+<style>
+/* Forzar estilos de la barra de búsqueda avanzada con máxima especificidad */
+.search-bar-elevated-custom input.form-control,
+.search-bar-elevated-custom input.form-control:focus,
+.search-bar-elevated-custom .form-control,
+.search-bar-elevated-custom .form-control:focus {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0.2rem 0.5rem !important;
+    font-size: 1rem !important;
+    min-height: 26px !important;
+    height: 26px !important;
+    border-radius: 0.7rem !important;
+    outline: none !important;
+    color: #222 !important;
+}
+.search-bar-elevated-custom .form-label {
+    margin-bottom: 0.1rem !important;
+    font-size: 0.93rem !important;
+}
+.search-bar-elevated-custom .vr {
+    border-left: 1.5px solid #e0e0e0 !important;
+    height: 100% !important;
+    margin: 0 0.5rem !important;
+    align-self: stretch !important;
+}
+.search-bar-elevated-custom input::placeholder {
+    color: #b0b0b0 !important;
+    font-size: 0.98rem !important;
+    opacity: 1 !important;
+}
+.search-bar-elevated-custom {
+    border: none !important;
+    border-bottom: none !important;
+    min-height: 38px !important;
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10) !important;
+}
+</style>
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg&libraries=places&v=weekly" async defer></script>
+<script src="https://unpkg.com/@googlemaps/places-autocomplete-element@latest/dist/index.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Frases rotativas para el título principal
+  const frases = [
+    'o descubre tu favorita',
+    'en tu ciudad',
+    'con los mejores estilistas',
+    'al mejor precio',
+    '¡agenda en segundos!'
+  ];
+  let fraseIndex = 0;
+  const el = document.getElementById('frase-rotativa');
+  let isFading = false;
+  function rotarFrase() {
+    if (!el || isFading) return;
+    isFading = true;
+    // Fade out
+    el.classList.add('fade-out');
+    setTimeout(() => {
+      fraseIndex = (fraseIndex + 1) % frases.length;
+      el.textContent = frases[fraseIndex];
+      // Fade in
+      el.classList.remove('fade-out');
+      setTimeout(() => { isFading = false; }, 500);
+    }, 500);
+  }
+  setInterval(rotarFrase, 3000);
+});
+</script>
+<script>
+const API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg';
+function setupUbicacionAutocomplete(inputId, sugerenciasId, ciudadId, barrioId, latId, lonId) {
+    const input = document.getElementById(inputId);
+    const sugerenciasDiv = document.getElementById(sugerenciasId);
+    const ciudadInput = document.getElementById(ciudadId);
+    const barrioInput = document.getElementById(barrioId);
+    const latInput = document.getElementById(latId);
+    const lonInput = document.getElementById(lonId);
+    let seleccionValida = false;
+    let timeout = null;
+    let placeIdSeleccionado = null;
+    function limpiarCampos() {
+        ciudadInput.value = '';
+        barrioInput.value = '';
+        latInput.value = '';
+        lonInput.value = '';
+        seleccionValida = false;
+        placeIdSeleccionado = null;
+    }
+    async function buscarSugerencias(query) {
+        if (!query || query.length < 3) {
+            sugerenciasDiv.innerHTML = '';
+            return;
+        }
+        
+        // Usar nuestro proxy del backend para evitar CORS
+        const url = `/clientes/api/google-places-autocomplete/?input=${encodeURIComponent(query)}`;
+        
+        try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+            
+            if (data.predictions && data.predictions.length > 0) {
+                sugerenciasDiv.innerHTML = '';
+                data.predictions.forEach(pred => {
+                    let main = pred.structured_formatting ? pred.structured_formatting.main_text : '';
+                    let secondary = pred.structured_formatting ? pred.structured_formatting.secondary_text : '';
+                    let depto = '';
+                    
+                    if (secondary && secondary.includes(',')) {
+                        const parts = secondary.split(',');
+                        secondary = parts[0].trim();
+                        depto = parts.slice(1).join(',').trim();
+                    }
+                    
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action px-3 py-3 text-start border-0';
+                    item.style.cssText = 'transition: all 0.2s ease; border-bottom: 1px solid #f8f9fa;';
+                    item.innerHTML = `
+                        <div class='fw-bold mb-1' style='font-size: 0.95rem; color: #0D0D0D !important;'>${main}</div>
+                        <div class='small mb-1' style='font-size: 0.85rem; color: #0D0D0D !important;'>${secondary}</div>
+                        <div class='small' style='font-size: 0.8rem; color: #0D0D0D !important;'>${depto}</div>
+                    `;
+                    item.onmouseenter = function() {
+                        this.style.backgroundColor = '#f8f9fa';
+                        this.style.transform = 'translateX(2px)';
+                    };
+                    item.onmouseleave = function() {
+                        this.style.backgroundColor = 'white';
+                        this.style.transform = 'translateX(0)';
+                    };
+                    item.onclick = () => seleccionarSugerencia(pred, `${main}, ${secondary}${depto ? ', ' + depto : ''}`);
+                    sugerenciasDiv.appendChild(item);
+                });
+            } else {
+                sugerenciasDiv.innerHTML = '';
+            }
+        } catch (err) {
+            console.error('Error en autocompletado:', err);
+            sugerenciasDiv.innerHTML = '';
+        }
+    }
+    async function seleccionarSugerencia(pred, textoMostrado) {
+        sugerenciasDiv.innerHTML = '';
+        
+        // Debug: mostrar qué estamos recibiendo
+        console.log('Pred recibido:', pred);
+        console.log('Texto mostrado:', textoMostrado);
+        
+        // Con la API clásica, el placeId está directamente en pred.place_id
+        let placeId = pred.place_id;
+        
+        console.log('PlaceId extraído:', placeId);
+        
+        let texto = textoMostrado;
+        if (!placeId) {
+            console.error('No se pudo obtener placeId');
+            limpiarCampos();
+            return;
+        }
+        
+        input.value = texto;
+        placeIdSeleccionado = placeId;
+        
+        // Obtener detalles del lugar usando nuestro proxy del backend
+        const url = `/clientes/api/google-places-details/?place_id=${encodeURIComponent(placeId)}`;
+        console.log('URL para obtener detalles:', url);
+        
+        try {
+            const resp = await fetch(url);
+            console.log('Respuesta de Google Places:', resp.status);
+            
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+            }
+            
+            const data = await resp.json();
+            console.log('Datos de Google Places:', data);
+            
+            let ciudad = '';
+            let barrio = '';
+            let lat = '';
+            let lon = '';
+            
+            if (data.result && data.result.geometry && data.result.geometry.location) {
+                lat = data.result.geometry.location.lat;
+                lon = data.result.geometry.location.lng;
+            }
+            if (data.result && data.result.address_components) {
+                data.result.address_components.forEach(function(component) {
+                    if (component.types.includes('locality')) {
+                        ciudad = component.long_name;
+                    }
+                    if (component.types.includes('sublocality') || component.types.includes('neighborhood')) {
+                        barrio = component.long_name;
+                    }
+                });
+            }
+            
+            console.log('Valores extraídos:', { ciudad, barrio, lat, lon });
+            
+            console.log('=== DEBUG CAMPOS ===');
+            console.log('ciudadInput:', ciudadInput);
+            console.log('barrioInput:', barrioInput);
+            console.log('latInput:', latInput);
+            console.log('lonInput:', lonInput);
+            
+            ciudadInput.value = ciudad;
+            barrioInput.value = barrio;
+            latInput.value = lat;
+            lonInput.value = lon;
+            seleccionValida = true;
+            
+            console.log('=== DESPUÉS DE ASIGNAR ===');
+            console.log('Lat asignada:', latInput.value);
+            console.log('Lon asignada:', lonInput.value);
+            console.log('Campos actualizados. Lat:', latInput.value, 'Lon:', lonInput.value);
+        } catch (err) {
+            console.error('Error obteniendo detalles del lugar:', err);
+            limpiarCampos();
+        }
+    }
+    input.addEventListener('input', function() {
+        limpiarCampos();
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => buscarSugerencias(input.value), 400);
+    });
+    document.addEventListener('click', function(e) {
+        if (sugerenciasDiv && !sugerenciasDiv.contains(e.target) && e.target !== input) {
+            sugerenciasDiv.innerHTML = '';
+        }
+    });
+}
+// Inicializar para desktop y mobile
+setupUbicacionAutocomplete('ubicacion-autocomplete', 'sugerencias-ubicacion', 'ubicacion-ciudad', 'ubicacion-barrio', 'ubicacion-lat', 'ubicacion-lng');
+// Autocompletado mejorado para servicios
+const servicioInput = document.getElementById('servicio-autocomplete');
+const sugerenciasServicioDiv = document.getElementById('sugerencias-servicio');
+
+function setupServicioAutocompleteMejorado() {
+    if (!servicioInput || !sugerenciasServicioDiv) return;
+    
+    let timeout = null;
+    
+    async function buscarServicios(query) {
+        if (!query || query.length < 1) {
+            sugerenciasServicioDiv.innerHTML = '';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/clientes/api/autocompletar-servicios-mejorado/?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.sugerencias && data.sugerencias.length > 0) {
+                sugerenciasServicioDiv.innerHTML = '';
+                data.sugerencias.forEach(servicio => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action px-3 py-3 text-start border-0';
+                    item.style.cssText = 'transition: all 0.2s ease; border-bottom: 1px solid #f8f9fa; color: #0D0D0D !important; font-weight: 500 !important; font-size: 0.95rem !important;';
+                    item.innerHTML = `<div class='fw-bold' style='font-size: 0.95rem; color: #0D0D0D !important;'>${servicio.nombre}</div>`;
+                    
+                    item.onmouseenter = function() {
+                        this.style.backgroundColor = '#f8f9fa';
+                        this.style.transform = 'translateX(2px)';
+                    };
+                    
+                    item.onmouseleave = function() {
+                        this.style.backgroundColor = 'white';
+                        this.style.transform = 'translateX(0)';
+                    };
+                    
+                    item.onclick = () => {
+                        servicioInput.value = servicio.nombre;
+                        sugerenciasServicioDiv.innerHTML = '';
+                    };
+                    
+                    sugerenciasServicioDiv.appendChild(item);
+                });
+            } else {
+                sugerenciasServicioDiv.innerHTML = '';
+            }
+        } catch (err) {
+            console.error('Error en autocompletado de servicios:', err);
+            sugerenciasServicioDiv.innerHTML = '';
+        }
+    }
+    
+    servicioInput.addEventListener('input', function() {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => buscarServicios(this.value), 300);
+    });
+    
+    // Cerrar sugerencias si se hace click fuera
+    document.addEventListener('click', function(e) {
+        if (sugerenciasServicioDiv && !sugerenciasServicioDiv.contains(e.target) && e.target !== servicioInput) {
+            sugerenciasServicioDiv.innerHTML = '';
+        }
+    });
+}
+
+// Inicializar autocompletado de servicios
+setupServicioAutocompleteMejorado();
+// Autocompletado de negocios
+const negociosList = document.getElementById('negocios-list');
+function fetchNegocios(query = '') {
+    const lat = document.getElementById('ubicacion-lat').value;
+    const lon = document.getElementById('ubicacion-lng').value;
+    const servicio = document.getElementById('servicio-autocomplete').value;
+    let url = `/clientes/api/autocompletar-negocios/?q=${encodeURIComponent(query)}`;
+    if (lat && lon) {
+        url += `&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+    }
+    if (servicio) {
+        url += `&servicio=${encodeURIComponent(servicio)}`;
+    }
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            negociosList.innerHTML = '';
+            (data.negocios || []).forEach(negocio => {
+                const option = document.createElement('option');
+                option.value = negocio.nombre;
+                negociosList.appendChild(option);
+            });
+        });
+}
+// Esta función ya no se necesita porque usamos setupNegocioAutocomplete
+// if (negocioInput && negociosList) {
+//     negocioInput.addEventListener('input', function() {
+//         fetchNegocios(negocioInput.value);
+//     });
+//     negocioInput.addEventListener('focus', function() {
+//         fetchNegocios('');
+//     });
+// }
+
+
+// Autocompletado mejorado para negocios
+function setupNegocioAutocomplete(inputId, sugerenciasId) {
+    const input = document.getElementById(inputId);
+    const sugerenciasDiv = document.getElementById(sugerenciasId);
+    let timeout = null;
+    
+    async function buscarNegocios(query) {
+        if (!query || query.length < 1) {
+            sugerenciasDiv.innerHTML = '';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/clientes/api/autocompletar-negocios/?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.sugerencias && data.sugerencias.length > 0) {
+                sugerenciasDiv.innerHTML = '';
+                data.sugerencias.forEach(negocio => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action px-3 py-3 text-start border-0';
+                    item.style.cssText = 'transition: all 0.2s ease; border-bottom: 1px solid #f8f9fa; color: #0D0D0D !important; font-weight: 500 !important; font-size: 0.95rem !important;';
+                    item.innerHTML = `
+                        <div class='fw-bold mb-1' style='font-size: 0.95rem; color: #0D0D0D !important;'>${negocio.nombre}</div>
+                        <div class='small' style='font-size: 0.85rem; color: #0D0D0D !important;'>${negocio.direccion}</div>
+                    `;
+                    
+                    item.onmouseenter = function() {
+                        this.style.backgroundColor = '#f8f9fa';
+                        this.style.transform = 'translateX(2px)';
+                    };
+                    
+                    item.onmouseleave = function() {
+                        this.style.backgroundColor = 'white';
+                        this.style.transform = 'translateX(0)';
+                    };
+                    
+                    item.onclick = () => {
+                        input.value = negocio.nombre;
+                        sugerenciasDiv.innerHTML = '';
+                    };
+                    
+                    sugerenciasDiv.appendChild(item);
+                });
+            } else {
+                sugerenciasDiv.innerHTML = '';
+            }
+        } catch (err) {
+            console.error('Error en autocompletado de negocios:', err);
+            sugerenciasDiv.innerHTML = '';
+        }
+    }
+    
+    input.addEventListener('input', function() {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => buscarNegocios(input.value), 300);
+    });
+    
+    // Cerrar sugerencias si se hace click fuera
+    document.addEventListener('click', function(e) {
+        if (sugerenciasDiv && !sugerenciasDiv.contains(e.target) && e.target !== input) {
+            sugerenciasDiv.innerHTML = '';
+        }
+    });
+}
+
+// Inicializar autocompletados
+setupNegocioAutocomplete('negocio-autocomplete', 'sugerencias-negocio');
+setupNegocioAutocomplete('negocio-autocomplete-mobile', 'sugerencias-negocio-mobile');
+
+// Búsqueda inteligente y combinada con AJAX
+function buscarNegocios() {
+    console.log('Función buscarNegocios ejecutada');
+    
+    const ubicacionInput = document.getElementById('ubicacion-autocomplete');
+    const lat = document.getElementById('ubicacion-lat').value;
+    const lon = document.getElementById('ubicacion-lng').value;
+    const servicio = document.getElementById('servicio-autocomplete').value;
+    const negocio = document.getElementById('negocio-autocomplete').value;
+    
+    console.log('=== DEBUG CAMPOS EN BUSCAR NEGOCIOS ===');
+    console.log('ubicacionInput:', ubicacionInput);
+    console.log('Campo lat:', document.getElementById('ubicacion-lat'));
+    console.log('Campo lon:', document.getElementById('ubicacion-lng'));
+    console.log('Valor lat leído:', lat);
+    console.log('Valor lon leído:', lon);
+    
+    console.log('Valores de búsqueda:', {
+        ubicacion: ubicacionInput ? ubicacionInput.value : 'no encontrado',
+        lat: lat,
+        lon: lon,
+        servicio: servicio,
+        negocio: negocio
+    });
+    
+    // Construir parámetros de búsqueda
+    const params = new URLSearchParams();
+    
+    // 1. UBICACIÓN (coordenadas o texto)
+    if (lat && lon) {
+        params.append('lat', lat);
+        params.append('lon', lon);
+        console.log('Búsqueda con coordenadas por radio');
+    } else if (ubicacionInput && ubicacionInput.value) {
+        params.append('ubicacion', ubicacionInput.value);
+        console.log('Búsqueda por ubicación textual (sin coordenadas)');
+    }
+    
+    // 2. SERVICIO
+    if (servicio) {
+        params.append('servicio', servicio);
+        console.log('Búsqueda por servicio:', servicio);
+    }
+    
+    // 3. NOMBRE DE NEGOCIO
+    if (negocio) {
+        params.append('negocio', negocio);
+        console.log('Búsqueda por nombre de negocio:', negocio);
+    }
+    
+    // Determinar tipo de búsqueda
+    const tipoBusqueda = [];
+    if (lat && lon) tipoBusqueda.push('ubicación con coordenadas');
+    else if (ubicacionInput && ubicacionInput.value) tipoBusqueda.push('ubicación por texto');
+    if (servicio) tipoBusqueda.push('servicio');
+    if (negocio) tipoBusqueda.push('nombre de negocio');
+    
+    console.log('Tipo de búsqueda:', tipoBusqueda.join(' + '));
+    console.log('Parámetros de búsqueda:', params.toString());
+    
+    // Mostrar loading
+    mostrarLoadingBusqueda();
+    
+    // Realizar búsqueda AJAX
+    const url = `/clientes/api/buscar-negocios/?${params.toString()}`;
+    console.log('URL de búsqueda:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Respuesta recibida:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            ocultarLoadingBusqueda();
+            mostrarResultadosBusqueda(data);
+        })
+        .catch(error => {
+            console.error('Error en búsqueda:', error);
+            ocultarLoadingBusqueda();
+            mostrarErrorBusqueda();
+        });
+}
+
+// Función para mostrar loading
+function mostrarLoadingBusqueda() {
+    const resultadosDiv = document.getElementById('resultados-busqueda');
+    const negociosDiv = document.getElementById('negocios-resultados');
+    const sinResultadosDiv = document.getElementById('sin-resultados');
+    
+    resultadosDiv.style.display = 'block';
+    negociosDiv.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Buscando...</span>
+                </div>
+                <p class="text-muted">Buscando negocios...</p>
+            </div>
+        </div>
+    `;
+    sinResultadosDiv.style.display = 'none';
+}
+
+// Función para ocultar loading
+function ocultarLoadingBusqueda() {
+    const negociosDiv = document.getElementById('negocios-resultados');
+    negociosDiv.innerHTML = '';
+}
+
+// Función para mostrar resultados
+function mostrarResultadosBusqueda(data) {
+    const resultadosDiv = document.getElementById('resultados-busqueda');
+    const negociosDiv = document.getElementById('negocios-resultados');
+    const sinResultadosDiv = document.getElementById('sin-resultados');
+    const tituloDiv = document.getElementById('titulo-resultados');
+    
+    if (data.error) {
+        mostrarErrorBusqueda();
+        return;
+    }
+    
+    if (data.negocios && data.negocios.length > 0) {
+        // Construir título inteligente con parámetros de búsqueda
+        let titulo = `Resultados de búsqueda`;
+        const params = data.parametros_busqueda || {};
+        const tipoBusqueda = data.tipo_busqueda || {};
+        
+        // Construir descripción de la búsqueda
+        const criterios = [];
+        
+        if (params.negocio) {
+            criterios.push(`negocios que contengan "${params.negocio}"`);
+        }
+        if (params.servicio) {
+            criterios.push(`que ofrezcan "${params.servicio}"`);
+        }
+        if (params.ubicacion) {
+            criterios.push(`en ${params.ubicacion}`);
+        } else if (params.lat && params.lon) {
+            criterios.push(`cerca de tu ubicación`);
+        }
+        
+        if (criterios.length > 0) {
+            titulo += `: ${criterios.join(' ')}`;
+        }
+        
+        // Agregar información de distancia si aplica
+        if (tipoBusqueda.por_ubicacion && params.lat && params.lon) {
+            titulo += ` (ordenados por distancia)`;
+        }
+        
+        titulo += ` (${data.total_resultados} resultados)`;
+        tituloDiv.innerHTML = `<h3 class="mb-4">${titulo}</h3>`;
+        
+        // Renderizar negocios
+        negociosDiv.innerHTML = '';
+        data.negocios.forEach(negocio => {
+            const negocioCard = crearNegocioCard(negocio);
+            negociosDiv.appendChild(negocioCard);
+        });
+        
+        resultadosDiv.style.display = 'block';
+        sinResultadosDiv.style.display = 'none';
+        
+        // Scroll suave a los resultados
+        resultadosDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        mostrarSinResultados();
+    }
+}
+
+// Función para crear tarjeta de negocio (mismo formato que la home)
+function crearNegocioCard(negocio) {
+    const card = document.createElement('a');
+    card.href = negocio.url;
+    card.className = 'text-decoration-none';
+    card.style.cssText = 'color:inherit; min-width:320px; max-width:320px; flex-shrink:0;';
+    
+    const portadaUrl = negocio.portada_url || '';
+    const imagenHtml = portadaUrl ? 
+        `<img src="${portadaUrl}" alt="${negocio.nombre}" class="object-fit-cover w-100" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">` :
+        `<div class="d-flex align-items-center justify-content-center bg-light" style="height:160px;border-top-left-radius:1.2rem;border-top-right-radius:1.2rem;">
+            <i class="bi bi-shop fs-1 text-muted"></i>
+        </div>`;
+    
+    card.innerHTML = `
+        <div class="card negocio-card">
+            ${imagenHtml}
+            <div class="negocio-nombre">${negocio.nombre}</div>
+            <div class="negocio-rating">${negocio.rating} <i class="bi bi-star-fill" style="font-size:1em;"></i> <span style="font-weight:400; color:#888;">(${negocio.total_resenias})</span></div>
+            <div class="negocio-direccion">${negocio.direccion}</div>
+            <span class="negocio-badge">${negocio.categoria}</span>
+            ${negocio.distancia ? `<div class="negocio-distancia"><i class="bi bi-geo-alt"></i> ${negocio.distancia}m</div>` : ''}
+        </div>
+    `;
+    
+    return card;
+}
+
+// Función para mostrar sin resultados
+function mostrarSinResultados() {
+    const resultadosDiv = document.getElementById('resultados-busqueda');
+    const negociosDiv = document.getElementById('negocios-resultados');
+    const sinResultadosDiv = document.getElementById('sin-resultados');
+    const tituloDiv = document.getElementById('titulo-resultados');
+    
+    tituloDiv.textContent = 'Resultados de búsqueda';
+    negociosDiv.innerHTML = '';
+    sinResultadosDiv.style.display = 'block';
+    resultadosDiv.style.display = 'block';
+}
+
+// Función para mostrar error
+function mostrarErrorBusqueda() {
+    const resultadosDiv = document.getElementById('resultados-busqueda');
+    const negociosDiv = document.getElementById('negocios-resultados');
+    const sinResultadosDiv = document.getElementById('sin-resultados');
+    const tituloDiv = document.getElementById('titulo-resultados');
+    
+    tituloDiv.textContent = 'Error en la búsqueda';
+    negociosDiv.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="text-center">
+                <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+                <p class="text-muted">Ocurrió un error al buscar. Por favor, intenta nuevamente.</p>
+            </div>
+        </div>
+    `;
+    sinResultadosDiv.style.display = 'none';
+    resultadosDiv.style.display = 'block';
+}
+
+// Función para limpiar resultados de búsqueda
+function limpiarResultadosBusqueda() {
+    const resultadosDiv = document.getElementById('resultados-busqueda');
+    resultadosDiv.style.display = 'none';
+    
+    // Limpiar campos de búsqueda
+    const ubicacionInput = document.getElementById('ubicacion-autocomplete');
+    const servicioInput = document.getElementById('servicio-autocomplete');
+    const negocioInput = document.getElementById('negocio-autocomplete');
+    
+    if (ubicacionInput) ubicacionInput.value = '';
+    if (servicioInput) servicioInput.value = '';
+    if (negocioInput) negocioInput.value = '';
+    
+    // Limpiar campos ocultos
+    const latInput = document.getElementById('ubicacion-lat');
+    const lonInput = document.getElementById('ubicacion-lng');
+    if (latInput) latInput.value = '';
+    if (lonInput) lonInput.value = '';
+}
+
+// Mostrar debug visual
+document.addEventListener('DOMContentLoaded', function() {
+    const debugDiv = document.getElementById('debug-js');
+    if (debugDiv) {
+        debugDiv.style.display = 'block';
+        setTimeout(() => {
+            debugDiv.style.display = 'none';
+        }, 3000);
+    }
+});
+
+// Asignar búsqueda al botón
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, buscando botón de búsqueda...');
+    const btnBuscar = document.getElementById('btn-buscar-desktop');
+    console.log('Botón encontrado:', btnBuscar);
+    
+    if (btnBuscar) {
+        console.log('Botón de búsqueda encontrado, agregando event listener');
+        btnBuscar.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botón de búsqueda clickeado');
+            buscarNegocios();
+        });
+        console.log('Event listener agregado al botón');
+    } else {
+        console.error('Botón de búsqueda no encontrado');
+        // Intentar con selector alternativo
+        const btnBuscarAlt = document.querySelector('.search-bar-elevated-custom .btn-pink');
+        console.log('Botón alternativo encontrado:', btnBuscarAlt);
+        if (btnBuscarAlt) {
+            console.log('Usando botón alternativo');
+            btnBuscarAlt.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Botón de búsqueda clickeado (alternativo)');
+                buscarNegocios();
+            });
+        }
+    }
+});
+
+// Video Section Styles
+document.addEventListener('DOMContentLoaded', function() {
+    const videoIframe = document.querySelector('.video-iframe');
+    const videoContainer = document.querySelector('.video-container');
+    
+    if (videoIframe && videoContainer) {
+        // Responsive height
+        const aspectRatio = 16 / 9;
+        function resizeVideo() {
+            const containerWidth = videoContainer.offsetWidth;
+            const containerHeight = containerWidth / aspectRatio;
+            videoIframe.style.height = containerHeight + 'px';
+        }
+        resizeVideo();
+        window.addEventListener('resize', resizeVideo);
+    }
+});
+</script>
+
+<style>
+/* Video Section Responsive Styles */
+.video-section {
+    background: #fff !important;
+    color: #181818 !important;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    background: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.video-iframe {
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    border: none;
+    border-radius: 1.5rem;
+    position: relative;
+    z-index: 2;
+    background: #fff;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.1);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 1.5rem;
+}
+
+.video-play-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .video-container {
+        margin: 0 1rem;
+        border-radius: 1rem;
+    }
+    
+    .video-iframe {
+        padding-bottom: 56.25%; /* Mantener 16:9 en mobile */
+        border-radius: 1rem;
+    }
+    
+    .video-section h2 {
+        font-size: 2rem;
+    }
+    
+    .video-section .lead {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .video-section h2 {
+        font-size: 1.75rem;
+    }
+    
+    .video-section .lead {
+        font-size: 1rem;
+    }
+}
+
+/* Light mode adjustments */
+.light-mode .video-section {
+    background: #fff !important;
+    color: #181818 !important;
+}
+
+.light-mode .video-container {
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+</style>
+<style>
+/* Unificación de estilo para todas las tarjetas de negocios */
+.negocio-card, .top-negocio-card, .proxima-cita-card, .inicio-cliente-section .card, .inicio-cliente-section .list-group-item {
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: none !important;
+    border-radius: 1.2rem !important;
+    background: #fff !important;
+    padding: 1.1rem 1.2rem 1.2rem 1.2rem !important;
+    margin-bottom: 0.3rem;
+    color: #222 !important;
+}
+.negocio-card .card, .top-negocio-card .card {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+.negocio-card .card-img-top, .top-negocio-card .card-img-top, .object-fit-cover {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-top-left-radius: 1.2rem;
+    border-top-right-radius: 1.2rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.negocio-card .negocio-nombre, .top-negocio-card .negocio-nombre, .fw-bold {
+    font-size: 1.15rem;
+    font-weight: 500 !important;
+    margin-bottom: 0.2rem;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.negocio-card .negocio-rating, .top-negocio-card .negocio-rating {
+    font-size: 1.01rem;
+    color: #222;
+    font-weight: 400;
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.negocio-card .negocio-direccion, .top-negocio-card .negocio-direccion, .small, .text-muted {
+    font-size: 0.97rem;
+    color: #888 !important;
+    margin-bottom: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.negocio-card .negocio-badge, .top-negocio-card .negocio-badge {
+    display: inline-block;
+    background: #f5f5f5;
+    color: #555;
+    font-size: 0.92rem;
+    border-radius: 0.7rem;
+    padding: 0.18em 0.9em;
+    font-weight: 500;
+    margin-top: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Ocultar scrollbar horizontal visualmente */
+.negocios-carrusel, .top-negocios-carrusel, .inicio-cliente-section .d-flex.overflow-auto {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+.negocios-carrusel::-webkit-scrollbar, .top-negocios-carrusel::-webkit-scrollbar, .inicio-cliente-section .d-flex.overflow-auto::-webkit-scrollbar {
+    display: none;
+}
+</style>
+<style>
+.carrusel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  font-size: 1.5rem;
+  color: #222;
+  opacity: 0.92;
+}
+.carrusel-nav-btn:active {
+  background: #f7f7ff;
+  border-color: #bdbdbd;
+}
+.carrusel-nav-btn.carrusel-nav-left { left: -18px; }
+.carrusel-nav-btn.carrusel-nav-right { right: -18px; }
+.carrusel-nav-btn[disabled] { opacity: 0.3; pointer-events: none; }
+.carrusel-nav-btn svg { pointer-events: none; }
+.carrusel-cnt { position: relative; }
+</style>
+<script>
+function setupCarruselNav(containerSelector, carruselSelector) {
+  document.querySelectorAll(containerSelector).forEach(function(container) {
+    const carrusel = container.querySelector(carruselSelector);
+    if (!carrusel) return;
+    // Crear botones
+    let btnLeft = document.createElement('button');
+    btnLeft.className = 'carrusel-nav-btn carrusel-nav-left';
+    btnLeft.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>';
+    let btnRight = document.createElement('button');
+    btnRight.className = 'carrusel-nav-btn carrusel-nav-right';
+    btnRight.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+    btnLeft.style.display = 'none';
+    btnRight.style.display = 'none';
+    container.appendChild(btnLeft);
+    container.appendChild(btnRight);
+    // Función para actualizar visibilidad
+    function updateBtns() {
+      btnLeft.style.display = carrusel.scrollLeft > 10 ? 'flex' : 'none';
+      btnRight.style.display = (carrusel.scrollWidth - carrusel.clientWidth - carrusel.scrollLeft) > 10 ? 'flex' : 'none';
+    }
+    // Scroll suave
+    btnLeft.onclick = function() {
+      carrusel.scrollBy({ left: -carrusel.clientWidth * 0.8, behavior: 'smooth' });
+    };
+    btnRight.onclick = function() {
+      carrusel.scrollBy({ left: carrusel.clientWidth * 0.8, behavior: 'smooth' });
+    };
+    // Actualizar al hacer scroll
+    carrusel.addEventListener('scroll', updateBtns);
+    // Actualizar al cargar
+    setTimeout(updateBtns, 300);
+    // Actualizar al redimensionar
+    window.addEventListener('resize', updateBtns);
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  setupCarruselNav('.negocios-carrusel-container', '.negocios-carrusel');
+  setupCarruselNav('.top-negocios-carrusel-container', '.top-negocios-carrusel');
+  setupCarruselNav('.inicio-cliente-section .row.mb-4', '.d-flex.overflow-auto');
+});
+</script>
+{% endblock %}
+
+<!-- Script para cargar negocios vistos recientemente desde localStorage -->
+{% if not user.is_authenticated %}
+<script src="{% static 'js/base/cargar_recientes.js' %}"></script>
+{% endif %}
+{% endblock %} 

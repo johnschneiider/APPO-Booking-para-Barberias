@@ -1,0 +1,1422 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/planes_disponibles.css' %}" rel="stylesheet">
+<style>
+/* Estilos minimalistas y limpios */
+.planes-disponibles-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 0;
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Header simplificado */
+.planes-disponibles-header {
+    background: white;
+    color: #1a202c;
+    padding: 3rem 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.planes-disponibles-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #2d3748;
+}
+
+.planes-disponibles-subtitle {
+    font-size: 1.1rem;
+    color: #718096;
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+/* Estadísticas simplificadas */
+.header-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-item-header {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Botones de acción simplificados */
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.header-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #4a5568;
+    transition: all 0.2s ease;
+}
+
+.header-actions .btn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+/* Grid de planes simplificado */
+.planes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Tarjetas de plan minimalistas */
+.plan-card-disponible {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.plan-card-disponible:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Header de plan simplificado */
+.plan-header-disponible {
+    background: #f7fafc;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.negocio-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.negocio-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+    background: #edf2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #718096;
+    font-size: 1.2rem;
+}
+
+.negocio-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.negocio-details h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.3rem;
+}
+
+.negocio-ubicacion {
+    color: #718096;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.negocio-categoria {
+    margin-bottom: 0.5rem;
+}
+
+.categoria-badge {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.destacado-badge {
+    background: #f6ad55;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+/* Contenido del plan simplificado */
+.plan-content-disponible {
+    padding: 1.5rem;
+    background: white;
+}
+
+.plan-nombre {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.8rem;
+}
+
+.plan-descripcion {
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+/* Precios simplificados */
+.plan-precio-disponible {
+    background: #f7fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.precio-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.precio-monto {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.precio-periodo {
+    color: #718096;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.descuento-badge {
+    background: #fc8181;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.precio-total {
+    background: #667eea;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.precio-total-header {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.precio-total-monto {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.precio-ahorro {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+.precio-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.feature-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: white;
+}
+
+.feature-item span {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* Duración del plan */
+.plan-duracion-disponible {
+    text-align: center;
+    padding: 0.75rem;
+    background: #edf2f7;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Beneficios del plan */
+.plan-beneficios-disponible {
+    margin-bottom: 1.5rem;
+}
+
+.plan-beneficios-disponible h6 {
+    color: #2d3748;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.plan-beneficios-disponible ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-beneficios-disponible li {
+    padding: 0.25rem 0;
+    color: #718096;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.plan-beneficios-disponible li:last-child {
+    border-bottom: none;
+}
+
+.mas-beneficios {
+    color: #667eea;
+    font-weight: 500;
+    font-style: italic;
+}
+
+/* Estadísticas del plan */
+.plan-stats-disponible {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #718096;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1rem;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.sin-calificacion {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Botones de acción simplificados */
+.plan-acciones-disponible {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: #f7fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.plan-acciones-disponible .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.btn-suscribirse {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.btn-suscribirse:hover {
+    background: #5a67d8;
+    border-color: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.btn-outline-primary:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: #718096;
+    border-color: #718096;
+}
+
+.btn-outline-secondary:hover {
+    background: #718096;
+    color: white;
+}
+
+/* Alerta de cupos */
+.plan-alerta {
+    background: #fed7d7;
+    color: #c53030;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    border: 1px solid #feb2b2;
+}
+
+/* Filtros simplificados */
+.filtros-avanzados {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 0 1.5rem 2rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.filtros-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.filtros-header h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.filtros-header p {
+    color: #718096;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.filtros-container label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.85rem;
+}
+
+.filtros-container .form-control,
+.filtros-container .form-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.filtros-container .form-control:focus,
+.filtros-container .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.filtros-acciones {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.filtros-acciones .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.filtros-acciones .btn-primary {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.filtros-acciones .btn-primary:hover {
+    background: #5a67d8;
+    border-color: #5a67d8;
+}
+
+.filtros-acciones .btn-outline-secondary,
+.filtros-acciones .btn-outline-success,
+.filtros-acciones .btn-outline-info {
+    background: transparent;
+    color: #718096;
+    border-color: #e2e8f0;
+}
+
+.filtros-acciones .btn-outline-secondary:hover,
+.filtros-acciones .btn-outline-success:hover,
+.filtros-acciones .btn-outline-info:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+/* Paginación simplificada */
+.pagination {
+    margin: 2rem 0;
+    justify-content: center;
+}
+
+.pagination .page-item .page-link {
+    padding: 0.75rem 1rem;
+    margin: 0 0.125rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    color: #718096;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.pagination .page-item .page-link:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.pagination .page-item.active .page-link {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Estado vacío simplificado */
+.no-planes-disponibles {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: 12px;
+    margin: 2rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.empty-state h3 {
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.empty-state p {
+    color: #718096;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+/* Modales simplificados */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    background: #f7fafc;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    background: #f7fafc;
+}
+
+/* Responsive simplificado */
+@media (max-width: 768px) {
+    .planes-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .header-stats {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+    
+    .filtros-avanzados {
+        margin: 0 1rem 1.5rem 1rem;
+        padding: 1.5rem;
+    }
+    
+    .filtros-acciones {
+        flex-direction: column;
+    }
+    
+    .filtros-acciones .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .planes-disponibles-title {
+        font-size: 2rem;
+    }
+    
+    .header-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .plan-stats-disponible {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="planes-disponibles-container">
+    <div class="planes-disponibles-header">
+        <div class="header-content">
+            <h1 class="planes-disponibles-title">Planes de Suscripción</h1>
+            <p class="planes-disponibles-subtitle">Descubre increíbles beneficios con nuestros planes mensuales</p>
+            
+            <!-- Estadísticas simplificadas -->
+            <div class="header-stats">
+                <div class="stat-item-header">
+                    <span class="stat-number">{{ planes.count|default:"0" }}</span>
+                    <span class="stat-label">Planes Disponibles</span>
+                </div>
+                <div class="stat-item-header">
+                    <span class="stat-number">4.8</span>
+                    <span class="stat-label">Calificación Promedio</span>
+                </div>
+                <div class="stat-item-header">
+                    <span class="stat-number">2.5k+</span>
+                    <span class="stat-label">Clientes Satisfechos</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn" onclick="mostrarFiltros()">Mostrar Filtros</button>
+            <button class="btn" onclick="ordenarPor()">Ordenar</button>
+        </div>
+    </div>
+
+    <div class="filtros-avanzados" id="filtrosAvanzados" style="display: none;">
+        <div class="filtros-header">
+            <h3>Filtros Avanzados</h3>
+            <p>Personaliza tu búsqueda para encontrar el plan perfecto</p>
+        </div>
+        
+        <div class="filtros-container">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-3 mb-3">
+                    <label for="categoria-filtro">Categoría</label>
+                    <select id="categoria-filtro" class="form-select" onchange="aplicarFiltros()">
+                        <option value="">Todas las categorías</option>
+                        <option value="peluqueria">Peluquería</option>
+                        <option value="estetica">Estética</option>
+                        <option value="spa">Spa</option>
+                        <option value="belleza">Belleza</option>
+                        <option value="bienestar">Bienestar</option>
+                        <option value="masajes">Masajes</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="nutricion">Nutrición</option>
+                    </select>
+                </div>
+                
+                <div class="col-12 col-md-6 col-lg-3 mb-3">
+                    <label for="ubicacion-filtro">Ubicación</label>
+                    <input type="text" id="ubicacion-filtro" class="form-control" placeholder="Ciudad o barrio" onkeyup="aplicarFiltros()">
+                </div>
+                
+                <div class="col-6 col-md-6 col-lg-2 mb-3">
+                    <label for="precio-min-filtro">Precio mínimo</label>
+                    <input type="number" id="precio-min-filtro" class="form-control" placeholder="Min" onchange="aplicarFiltros()">
+                </div>
+                
+                <div class="col-6 col-md-6 col-lg-2 mb-3">
+                    <label for="precio-max-filtro">Precio máximo</label>
+                    <input type="number" id="precio-max-filtro" class="form-control" placeholder="Max" onchange="aplicarFiltros()">
+                </div>
+                
+                <div class="col-12 col-md-6 col-lg-2 mb-3">
+                    <label for="duracion-filtro">Duración</label>
+                    <select id="duracion-filtro" class="form-select" onchange="aplicarFiltros()">
+                        <option value="">Cualquier duración</option>
+                        <option value="1">1 mes</option>
+                        <option value="3">3 meses</option>
+                        <option value="6">6 meses</option>
+                        <option value="12">12 meses</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filtros-acciones">
+                <button type="button" class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltros()">Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="planes-grid-container">
+        <div class="planes-grid" id="planesGrid">
+            {% for plan in planes %}
+            <div class="plan-card-disponible" 
+                 data-categoria="{{ plan.negocio.categoria }}" 
+                 data-ubicacion="{{ plan.negocio.ciudad }}"
+                 data-precio="{{ plan.precio_mensual }}"
+                 data-duracion="{{ plan.duracion_meses }}">
+                
+                <div class="plan-header-disponible">
+                    <div class="negocio-info">
+                        <div class="negocio-avatar">
+                            {% if plan.negocio.logo %}
+                            <img src="{{ plan.negocio.logo.url }}" alt="{{ plan.negocio.nombre }}">
+                            {% else %}
+                            <div>🏢</div>
+                            {% endif %}
+                        </div>
+                        <div class="negocio-details">
+                            <h4>{{ plan.negocio.nombre }}</h4>
+                            <p class="negocio-ubicacion">{{ plan.negocio.ciudad }}, {{ plan.negocio.provincia }}</p>
+                            <p class="negocio-categoria">
+                                <span class="categoria-badge">{{ plan.negocio.get_categoria_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if plan.destacado %}
+                    <div class="destacado-badge">Destacado</div>
+                    {% endif %}
+                </div>
+                
+                <div class="plan-content-disponible">
+                    <h3 class="plan-nombre">{{ plan.nombre }}</h3>
+                    <p class="plan-descripcion">{{ plan.descripcion|truncatewords:15 }}</p>
+                    
+                    <div class="plan-precio-disponible">
+                        <div class="precio-principal">
+                            <div class="precio-info">
+                                <span class="precio-monto">${{ plan.precio_mensual }}</span>
+                                <span class="precio-periodo">/mes</span>
+                            </div>
+                            {% if plan.descuento_servicios %}
+                            <div class="descuento-badge">{{ plan.descuento_servicios }}% OFF</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if plan.duracion_meses > 1 %}
+                        <div class="precio-total">
+                            <div class="precio-total-header">Total por {{ plan.duracion_meses }} meses:</div>
+                            <div class="precio-total-amount">
+                                <span class="precio-total-monto">$<span class="precio-total-calculado" data-precio="{{ plan.precio_mensual }}" data-duracion="{{ plan.duracion_meses }}"></span></span>
+                                <span class="precio-ahorro">Ahorras ${{ plan.precio_mensual|add:"-100" }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="precio-features">
+                            <div class="feature-item">
+                                <span>Sin costos ocultos</span>
+                            </div>
+                            <div class="feature-item">
+                                <span>Cancelación gratuita</span>
+                            </div>
+                            <div class="feature-item">
+                                <span>Facturación mensual</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-duracion-disponible">
+                        <span>{{ plan.duracion_meses }} mes{{ plan.duracion_meses|pluralize:"es" }}</span>
+                    </div>
+                    
+                    {% if plan.beneficios.all %}
+                    <div class="plan-beneficios-disponible">
+                        <h6>Beneficios incluidos:</h6>
+                        <ul>
+                            {% for beneficio in plan.beneficios.all|slice:":3" %}
+                            <li>{{ beneficio.descripcion|truncatechars:30 }}</li>
+                            {% endfor %}
+                            {% if plan.beneficios.count > 3 %}
+                            <li class="mas-beneficios">{{ plan.beneficios.count|add:"-3" }} beneficios más</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="plan-stats-disponible">
+                    <div class="stat-item">
+                        <span class="stat-label">Suscriptores</span>
+                        <span class="stat-value">{{ plan.total_suscriptores|default:"0" }}</span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-label">Calificación</span>
+                        <span class="stat-value">
+                            {% if plan.negocio.calificacion_promedio %}
+                            ⭐ {{ plan.negocio.calificacion_promedio|floatformat:1 }}
+                            {% else %}
+                            <span class="sin-calificacion">Sin calificar</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-label">Disponibles</span>
+                        <span class="stat-value">
+                            {% if plan.max_suscripciones %}
+                            {{ plan.suscripciones_disponibles|default:"∞" }}
+                            {% else %}
+                            ∞
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="plan-acciones-disponible">
+                    <button class="btn btn-suscribirse" onclick="suscribirse({{ plan.id }})">Suscribirse</button>
+                    <button class="btn btn-outline-primary" onclick="verDetallesPlan({{ plan.id }})">Ver Detalles</button>
+                    <button class="btn btn-outline-secondary" onclick="contactarNegocio({{ plan.negocio.id }})">Contactar</button>
+                </div>
+                
+                {% if plan.suscripciones_disponibles <= 5 and plan.max_suscripciones %}
+                <div class="plan-alerta">
+                    ¡Solo quedan {{ plan.suscripciones_disponibles }} cupos disponibles!
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-planes-disponibles">
+                <div class="empty-state">
+                    <h3>No se encontraron planes</h3>
+                    <p>Intenta ajustar los filtros o buscar en otra ubicación.</p>
+                    <button class="btn btn-primary" onclick="limpiarFiltros()">Limpiar Filtros</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal de Detalles del Plan -->
+    <div class="modal fade" id="detallesPlanModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles del Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detallesPlanModalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Suscripción -->
+    <div class="modal fade" id="suscripcionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Suscripción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="suscripcionModalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ordenamiento -->
+    <div class="modal fade" id="ordenamientoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ordenar Planes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="ordenamiento-opciones">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordenamiento" id="orden-precio-asc" value="precio_asc">
+                            <label class="form-check-label" for="orden-precio-asc">Precio: Menor a Mayor</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordenamiento" id="orden-precio-desc" value="precio_desc">
+                            <label class="form-check-label" for="orden-precio-desc">Precio: Mayor a Menor</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordenamiento" id="orden-popularidad" value="popularidad">
+                            <label class="form-check-label" for="orden-popularidad">Más Populares</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordenamiento" id="orden-calificacion" value="calificacion">
+                            <label class="form-check-label" for="orden-calificacion">Mejor Calificados</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordenamiento" id="orden-nuevos" value="nuevos">
+                            <label class="form-check-label" for="orden-nuevos">Más Recientes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="aplicarOrdenamiento()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {% if planes.has_other_pages %}
+    <nav aria-label="Navegación de planes">
+        <ul class="pagination justify-content-center">
+            {% if planes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ planes.previous_page_number }}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            {% for num in planes.paginator.page_range %}
+            {% if planes.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > planes.number|add:'-3' and num < planes.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if planes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ planes.next_page_number }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+<script>
+// Funciones simplificadas
+document.addEventListener('DOMContentLoaded', function() {
+    calcularPreciosTotales();
+    inicializarOptimizacionesMoviles();
+});
+
+function inicializarOptimizacionesMoviles() {
+    // Detectar si es dispositivo móvil
+    const esMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (esMobile) {
+        console.log('Dispositivo móvil detectado, aplicando optimizaciones...');
+        
+        // Optimizar experiencia táctil
+        optimizarExperienciaTactil();
+        
+        // Mejorar filtros en móviles
+        optimizarFiltrosMoviles();
+        
+        // Optimizar modales para móviles
+        optimizarModalesMoviles();
+        
+        // Mejorar scroll en móviles
+        optimizarScrollMoviles();
+    }
+}
+
+function optimizarExperienciaTactil() {
+    // Aumentar área táctil para elementos interactivos
+    const elementosTactiles = document.querySelectorAll('.btn, .plan-card-disponible, .stat-item-header');
+    
+    elementosTactiles.forEach(elemento => {
+        elemento.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.98)';
+            this.style.transition = 'transform 0.1s ease';
+        });
+        
+        elemento.addEventListener('touchend', function() {
+            this.style.transform = 'scale(1)';
+        });
+        
+        elemento.addEventListener('touchcancel', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Mejorar feedback táctil para botones
+    const botones = document.querySelectorAll('.btn');
+    botones.forEach(boton => {
+        boton.addEventListener('touchstart', function() {
+            this.style.opacity = '0.8';
+        });
+        
+        boton.addEventListener('touchend', function() {
+            this.style.opacity = '1';
+        });
+    });
+}
+
+function optimizarFiltrosMoviles() {
+    const filtros = document.getElementById('filtrosAvanzados');
+    const botonFiltros = document.querySelector('button[onclick="mostrarFiltros()"]');
+    
+    if (filtros && botonFiltros) {
+        // Cerrar filtros automáticamente en móviles después de aplicar
+        const botonAplicar = document.querySelector('button[onclick="aplicarFiltros()"]');
+        if (botonAplicar) {
+            botonAplicar.addEventListener('click', function() {
+                setTimeout(() => {
+                    if (window.innerWidth <= 768) {
+                        filtros.style.display = 'none';
+                        botonFiltros.textContent = 'Mostrar Filtros';
+                        
+                        // Hacer scroll suave hacia los resultados
+                        const planesGrid = document.getElementById('planesGrid');
+                        if (planesGrid) {
+                            planesGrid.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }
+                    }
+                }, 500);
+            });
+        }
+        
+        // Cerrar filtros al hacer scroll en móviles
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            if (filtros.style.display === 'block' && window.innerWidth <= 768) {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    filtros.style.display = 'none';
+                    botonFiltros.textContent = 'Mostrar Filtros';
+                }, 1000);
+            }
+        });
+    }
+}
+
+function optimizarModalesMoviles() {
+    // Optimizar modales para pantallas pequeñas
+    const modales = document.querySelectorAll('.modal');
+    
+    modales.forEach(modal => {
+        modal.addEventListener('show.bs.modal', function() {
+            if (window.innerWidth <= 768) {
+                const modalBody = this.querySelector('.modal-body');
+                if (modalBody) {
+                    // Ajustar altura máxima para móviles
+                    const maxHeight = window.innerHeight * 0.7;
+                    modalBody.style.maxHeight = maxHeight + 'px';
+                    modalBody.style.overflowY = 'auto';
+                }
+                
+                // Centrar modal en pantallas pequeñas
+                const modalDialog = this.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.style.margin = '0.5rem';
+                    modalDialog.style.maxWidth = 'calc(100% - 1rem)';
+                }
+            }
+        });
+    });
+}
+
+function optimizarScrollMoviles() {
+    // Mejorar scroll suave en móviles
+    const enlacesInternos = document.querySelectorAll('a[href^="#"]');
+    
+    enlacesInternos.forEach(enlace => {
+        enlace.addEventListener('click', function(e) {
+            e.preventDefault();
+            const objetivo = document.querySelector(this.getAttribute('href'));
+            if (objetivo) {
+                objetivo.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+        });
+    });
+    
+    // Optimizar scroll para elementos con overflow
+    const elementosScroll = document.querySelectorAll('.modal-body, .filtros-avanzados');
+    elementosScroll.forEach(elemento => {
+        elemento.style.webkitOverflowScrolling = 'touch';
+        elemento.style.overflowScrolling = 'touch';
+    });
+}
+
+function calcularPreciosTotales() {
+    const elementosPrecioTotal = document.querySelectorAll('.precio-total-calculado');
+    
+    elementosPrecioTotal.forEach(function(elemento) {
+        const precio = parseFloat(elemento.getAttribute('data-precio'));
+        const duracion = parseInt(elemento.getAttribute('data-duracion'));
+        
+        if (!isNaN(precio) && !isNaN(duracion)) {
+            const precioTotal = precio * duracion;
+            elemento.textContent = precioTotal.toLocaleString('es-CO');
+        }
+    });
+}
+
+function mostrarFiltros() {
+    const filtros = document.getElementById('filtrosAvanzados');
+    const isVisible = filtros.style.display === 'block';
+    
+    if (isVisible) {
+        filtros.style.display = 'none';
+        event.target.textContent = 'Mostrar Filtros';
+    } else {
+        filtros.style.display = 'block';
+        event.target.textContent = 'Ocultar Filtros';
+        
+        // En móviles, hacer scroll suave hacia los filtros
+        if (window.innerWidth <= 768) {
+            setTimeout(() => {
+                filtros.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+        }
+    }
+}
+
+function ordenarPor() {
+    const modal = new bootstrap.Modal(document.getElementById('ordenamientoModal'));
+    modal.show();
+}
+
+function aplicarFiltros() {
+    console.log('Aplicando filtros...');
+    
+    const boton = event.target.closest('button');
+    if (boton) {
+        const textoOriginal = boton.textContent;
+        boton.textContent = 'Aplicando...';
+        boton.disabled = true;
+        
+        // Simular aplicación de filtros
+        setTimeout(() => {
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+            
+            // Mostrar confirmación visual
+            boton.classList.add('btn-success');
+            setTimeout(() => {
+                boton.classList.remove('btn-success');
+            }, 1000);
+            
+            // En móviles, cerrar filtros automáticamente
+            if (window.innerWidth <= 768) {
+                document.getElementById('filtrosAvanzados').style.display = 'none';
+                const botonFiltros = document.querySelector('button[onclick="mostrarFiltros()"]');
+                if (botonFiltros) {
+                    botonFiltros.textContent = 'Mostrar Filtros';
+                }
+            }
+        }, 1000);
+    }
+}
+
+function limpiarFiltros() {
+    // Limpiar todos los campos de filtros
+    const camposFiltros = [
+        'categoria-filtro',
+        'ubicacion-filtro',
+        'precio-min-filtro',
+        'precio-max-filtro',
+        'duracion-filtro'
+    ];
+    
+    camposFiltros.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+            campo.value = '';
+        }
+    });
+    
+    // Mostrar confirmación visual
+    const boton = event.target.closest('button');
+    if (boton) {
+        const textoOriginal = boton.textContent;
+        boton.textContent = 'Limpiado';
+        boton.classList.add('btn-success');
+        
+        setTimeout(() => {
+            boton.textContent = textoOriginal;
+            boton.classList.remove('btn-success');
+        }, 1500);
+    }
+}
+
+function aplicarOrdenamiento() {
+    console.log('Aplicando ordenamiento...');
+    
+    const boton = event.target.closest('button');
+    if (boton) {
+        const textoOriginal = boton.textContent;
+        boton.textContent = 'Aplicado';
+        boton.classList.add('btn-success');
+        
+        setTimeout(() => {
+            boton.textContent = textoOriginal;
+            boton.classList.remove('btn-success');
+        }, 1500);
+    }
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('ordenamientoModal'));
+    modal.hide();
+}
+
+function suscribirse(planId) {
+    console.log('Suscribirse al plan:', planId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('suscripcionModal'));
+    const modalBody = document.getElementById('suscripcionModalBody');
+    
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <h4>Confirmar Suscripción</h4>
+                <p>¿Estás seguro de que quieres suscribirte a este plan?</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="confirmarSuscripcion(${planId})">Confirmar Suscripción</button>
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    modal.show();
+}
+
+function confirmarSuscripcion(planId) {
+    console.log('Suscripción confirmada para el plan:', planId);
+    
+    const modalBody = document.getElementById('suscripcionModalBody');
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <h4>¡Suscripción Exitosa!</h4>
+                <p>Te has suscrito correctamente al plan.</p>
+                <button class="btn btn-primary" data-bs-dismiss="modal">Continuar</button>
+            </div>
+        `;
+    }
+}
+
+function verDetallesPlan(planId) {
+    console.log('Ver detalles del plan:', planId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('detallesPlanModal'));
+    const modalBody = document.getElementById('detallesPlanModalBody');
+    
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <h4>Detalles del Plan</h4>
+                <p>Aquí se mostrarían los detalles completos del plan seleccionado.</p>
+                <button class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        `;
+    }
+    
+    modal.show();
+}
+
+function contactarNegocio(negocioId) {
+    console.log('Contactar negocio:', negocioId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('detallesPlanModal'));
+    const modalBody = document.getElementById('detallesPlanModalBody');
+    
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <h4>Contactar Negocio</h4>
+                <p>Selecciona cómo quieres contactar al negocio:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success">Llamar</button>
+                    <button class="btn btn-primary">Email</button>
+                    <button class="btn btn-info">Ubicación</button>
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    modal.show();
+}
+
+// Optimizaciones adicionales para dispositivos móviles
+window.addEventListener('resize', function() {
+    // Recalcular layout cuando cambie el tamaño de la ventana
+    if (window.innerWidth <= 768) {
+        // Ajustar filtros si están abiertos
+        const filtros = document.getElementById('filtrosAvanzados');
+        if (filtros && filtros.style.display === 'block') {
+            // Cerrar filtros en pantallas muy pequeñas
+            if (window.innerWidth <= 480) {
+                filtros.style.display = 'none';
+                const botonFiltros = document.querySelector('button[onclick="mostrarFiltros()"]');
+                if (botonFiltros) {
+                    botonFiltros.textContent = 'Mostrar Filtros';
+                }
+            }
+        }
+    }
+});
+
+// Optimizar para cambios de orientación en móviles
+window.addEventListener('orientationchange', function() {
+    setTimeout(() => {
+        // Recalcular precios totales después del cambio de orientación
+        calcularPreciosTotales();
+        
+        // Ajustar layout de filtros si es necesario
+        if (window.innerWidth <= 768) {
+            const filtros = document.getElementById('filtrosAvanzados');
+            if (filtros && filtros.style.display === 'block') {
+                // Hacer scroll hacia los filtros después del cambio de orientación
+                setTimeout(() => {
+                    filtros.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 300);
+            }
+        }
+    }, 100);
+});

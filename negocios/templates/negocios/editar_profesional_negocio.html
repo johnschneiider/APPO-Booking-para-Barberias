@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load dict_utils %}
+{% block title %}Editar Profesional - {{ profesional.nombre_completo }}{% endblock %}
+{% block content %}
+<style>
+/* Estilos para los switches de días */
+.form-check-input[type="checkbox"]:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-check-input[type="checkbox"]:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40,167,69,0.25);
+}
+
+/* Estilos para los inputs de tiempo */
+.horario-inicio, .horario-fin {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.horario-inicio:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.25rem rgba(0,123,255,0.25);
+}
+
+.horario-fin:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40,167,69,0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .horario-inicio, .horario-fin {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+    }
+}
+</style>
+<div class="container py-4">
+    <h2 class="mb-4">Editar Horario y Servicios de {{ profesional.nombre_completo }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <!-- Asignar servicios al profesional -->
+        <div class="card mb-4 shadow-sm" style="border: 1.5px solid var(--color-mint-green);">
+            <div class="card-header" style="background: var(--color-mint-green); color: var(--color-black-deep);">
+                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Servicios que puede prestar</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Selecciona los servicios que este profesional puede ofrecer en tu negocio:</p>
+                {% if servicios_negocio %}
+                <div class="row">
+                    {% for s in servicios_negocio %}
+                    <div class="col-12 col-md-6 col-lg-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="servicios" id="servicio_{{ s.id }}" value="{{ s.id }}" {% if s.servicio.id in servicios_asignados %}checked{% endif %}>
+                            <label class="form-check-label" for="servicio_{{ s.id }}">
+                                <strong>{{ s.servicio.nombre }}</strong>
+                                <br><small class="text-muted">{{ s.duracion }} min - ${{ s.precio }}</small>
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    No hay servicios configurados en este negocio. 
+                    <a href="{% url 'negocios:gestionar_servicios' negocio.id %}" class="alert-link">Configura los servicios primero</a>.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Asignar horario a todos los días -->
+        <div class="card mb-4 shadow-sm border-primary">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Asignar mismo horario a todos los días</h5>
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label for="all_inicio" class="form-label">Hora de inicio</label>
+                        <input type="time" id="all_inicio" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="all_fin" class="form-label">Hora de fin</label>
+                        <input type="time" id="all_fin" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-4 d-grid">
+                        <button type="button" class="btn btn-primary mt-3 mt-md-0" onclick="asignarHorarioTodos()">
+                            Asignar a todos los días
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horarios por día - Una fila por día -->
+        <div class="card mb-4 shadow-sm border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-calendar3 me-2"></i>Horarios de Trabajo por Día</h5>
+            </div>
+            <div class="card-body p-0">
+                {% for dia in dias_semana %}
+                    <div class="border-bottom p-4 {% if forloop.last %}border-0{% endif %}">
+                        <div class="row align-items-center">
+                            <div class="col-12 col-md-3 mb-3 mb-md-0">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="dias" id="dia_{{ dia }}" value="{{ dia }}" {% if dia in horario_actual %}checked{% endif %} style="transform: scale(1.3);">
+                                    <label class="form-check-label fw-bold fs-5 ms-2" for="dia_{{ dia }}">{{ dia }}</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-9">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold text-primary">
+                                            <i class="bi bi-play-circle me-1"></i>Hora de inicio
+                                        </label>
+                                        {% if dia in horario_actual %}
+                                            <input type="time" class="form-control horario-inicio" name="inicio_{{ dia }}" value="{{ horario_actual|lookup:dia|lookup:'inicio' }}" step="900">
+                                        {% else %}
+                                            <input type="time" class="form-control horario-inicio" name="inicio_{{ dia }}" value="09:00" step="900">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold text-success">
+                                            <i class="bi bi-stop-circle me-1"></i>Hora de fin
+                                        </label>
+                                        {% if dia in horario_actual %}
+                                            <input type="time" class="form-control horario-fin" name="fin_{{ dia }}" value="{{ horario_actual|lookup:dia|lookup:'fin' }}" step="900">
+                                        {% else %}
+                                            <input type="time" class="form-control horario-fin" name="fin_{{ dia }}" value="17:00" step="900">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Selecciona los horarios de trabajo para este día
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-lg px-4" style="background: var(--color-mint-green); color: var(--color-black-deep); border: none;">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Función para asignar horario a todos los días
+function asignarHorarioTodos() {
+    const inicio = document.getElementById('all_inicio').value;
+    const fin = document.getElementById('all_fin').value;
+    
+    if (!inicio || !fin) {
+        alert('Por favor selecciona tanto la hora de inicio como la de fin');
+        return;
+    }
+    
+    // Asignar a todos los inputs de tiempo
+    document.querySelectorAll('.horario-inicio').forEach(input => {
+        input.value = inicio;
+    });
+    document.querySelectorAll('.horario-fin').forEach(input => {
+        input.value = fin;
+    });
+    
+    // Marcar todos los checkboxes de días
+    document.querySelectorAll('input[type="checkbox"][name="dias"]').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    
+    // Mostrar mensaje de confirmación
+    alert(`Horario ${inicio} - ${fin} asignado a todos los días`);
+}
+
+// Validación de horarios
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar validación a los inputs de tiempo
+    document.querySelectorAll('.horario-inicio, .horario-fin').forEach(input => {
+        input.addEventListener('change', function() {
+            const dia = this.name.split('_')[1];
+            const inicioInput = document.querySelector(`input[name="inicio_${dia}"]`);
+            const finInput = document.querySelector(`input[name="fin_${dia}"]`);
+            
+            if (inicioInput.value && finInput.value) {
+                if (inicioInput.value >= finInput.value) {
+                    alert('La hora de inicio debe ser anterior a la hora de fin');
+                    if (this === inicioInput) {
+                        finInput.focus();
+                    } else {
+                        inicioInput.focus();
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

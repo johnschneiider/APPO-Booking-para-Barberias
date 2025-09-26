@@ -1,0 +1,23 @@
+# Configuración de WhatsApp Business API de Meta - PRUEBAS
+# ========================================================
+
+# Habilitar WhatsApp Meta API
+META_WHATSAPP_ENABLED=True
+
+# ID del número de teléfono de WhatsApp Business (del curl que te dieron)
+META_WHATSAPP_PHONE_NUMBER_ID=820173994505603
+
+# Token de acceso de WhatsApp Business API (tu token)
+META_WHATSAPP_ACCESS_TOKEN=EAATS2umJcBMBPaMuSWbNzZC3sRYoKsDcavdJ8p79x7T3l7Ak2yp3uqhdlax1ji7lky3AY4UB1ucS7MjKUtrJvGSPcqxswlIGZCKjeAF1qRWpCv2LIrdvcJyCVa1iAWyFmZBzGX4RvayzsA2ZAqsqVyRNZATw6ZBEN93ZCT3yXzNr0yjXvQL4m7oBzfe1Lq83UFrx0eEZAalK6IKsRDzfZC8ITWzHggHg3M8H7fqcNfhR5KsSq9QZDZD
+
+# Token de verificación para webhooks (puedes usar cualquier string)
+META_WHATSAPP_VERIFY_TOKEN=melissa_whatsapp_verify_2024
+
+# Secreto del webhook (opcional pero recomendado)
+META_WHATSAPP_WEBHOOK_SECRET=melissa_webhook_secret_2024
+
+# URL del webhook (ajusta tu dominio)
+META_WHATSAPP_WEBHOOK_URL=https://tu-dominio.com/clientes/meta-whatsapp/webhook/
+
+# Configuración de la API (versión del curl)
+META_WHATSAPP_API_VERSION=v22.0

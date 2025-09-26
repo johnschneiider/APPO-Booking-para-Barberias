@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Cliente - Appo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/clientes/dashboard.css' %}" rel="stylesheet">
+<style>
+:root {
+  --primary-color: #A8E6CF;
+  --primary-hover: #3CB371;
+  --secondary-color: #F5F5F5;
+  --accent-color: #A8E6CF;
+  --text-primary: #0D0D0D;
+  --text-secondary: #666666;
+  --border-color: #DDE6E8;
+  --neutral-text: #0D0D0D;
+  --neutral-muted: #666666;
+}
+
+.dashboard-stats-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.2rem;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+.dashboard-stats .stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  text-align: center;
+}
+.dashboard-stats .stat-pill {
+  display: inline-block;
+  min-width: 38px;
+  padding: 0.3em 1.1em;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--secondary-color);
+  color: var(--text-primary);
+  margin-bottom: 0.3em;
+  border: 1.5px solid var(--border-color);
+  font-family: var(--font-ui), sans-serif;
+}
+.dashboard-stats .stat-pill.total {
+  background: var(--primary-color);
+  color: var(--text-primary);
+  border-color: var(--primary-hover);
+}
+.dashboard-stats .stat-pill.pendientes {
+  background: #fff4f4;
+  color: #b80000;
+  border-color: #ffd6d6;
+}
+.dashboard-stats .stat-pill.completadas {
+  background: var(--primary-color);
+  color: var(--text-primary);
+  border-color: var(--primary-hover);
+}
+.dashboard-stats .stat-desc {
+  font-size: 0.98rem;
+  color: var(--neutral-muted);
+  font-family: var(--font-ui), sans-serif;
+  margin-bottom: 0.7em;
+  max-width: 140px;
+}
+.dashboard-stats-title {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: right;
+}
+.dashboard-hero-content h1, .dashboard-hero-content h2, .dashboard-hero-content h3 {
+  font-family: var(--font-ui), sans-serif !important;
+  color: var(--text-primary) !important;
+}
+/* Cambiar fuente global en el dashboard */
+.dashboard-main *:not(i):not(svg) {
+  font-family: var(--font-ui), sans-serif !important;
+}
+.card-body h5.fw-bold {
+  color: var(--text-primary) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid dashboard-main">
+    <!-- Header del Dashboard -->
+    <div class="row dashboard-hero mb-4 pb-2 border-bottom" style="background:#fff;border-radius:1.2rem;">
+        <div class="col-md-8 dashboard-hero-content py-4 ps-4">
+            <h1 class="display-5 fw-bold mb-2">¡Hola, {{ user.username }}!</h1>
+            <p class="mb-0 opacity-75 fs-5" style="color:var(--text-primary);">Encuentra los mejores servicios de peluquería cerca de ti</p>
+        </div>
+        <div class="col-md-4 d-flex flex-column align-items-end justify-content-center pe-4">
+            <div class="dashboard-stats-title">Tus reservas</div>
+            <div class="dashboard-stats-row dashboard-stats">
+                <div class="stat-box">
+                    <span class="stat-pill total">{{ total_reservas }}</span>
+                    <div class="stat-desc">Total de reservas que has realizado</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-pill pendientes">{{ reservas_pendientes }}</span>
+                    <div class="stat-desc">Reservas que aún están pendientes de realizarse</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-pill completadas">{{ reservas_completadas }}</span>
+                    <div class="stat-desc">Reservas que ya han sido completadas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <form method="GET" class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Buscar servicios</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
+                                    </span>
+                                    <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" 
+                                           placeholder="Buscar por nombre de negocio, peluquero o ubicación...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100 py-3">
+                                    <i class="bi bi-search me-2"></i>Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Lista de negocios -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Negocios disponibles</h2>
+                    <span class="badge bg-primary fs-6">{{ negocios_info.count }} encontrados</span>
+                </div>
+
+                {% if negocios_info %}
+                    <div class="row g-4">
+                        {% for info in negocios_info %}
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm border-0 hover-shadow p-2" style="border-radius:1.2rem;background:#fff;border:1px solid var(--border-color);">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">
+                                        {% if info.negocio.logo %}
+                                            <img src="{{ info.negocio.logo.url }}" class="rounded-circle me-3 border border-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center border border-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-shop fs-4 text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                        </a>
+                                        <div class="flex-grow-1">
+                                            <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="text-decoration-none text-dark">
+                                                <h5 class="fw-bold mb-1">{{ info.negocio.nombre }}</h5>
+                                            </a>
+                                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ info.negocio.direccion }}</p>
+                                            <div class="d-flex align-items-center mb-1">
+                                                <div class="text-warning me-2">
+                                                    {% for i in "12345" %}
+                                                        {% if info.calificacion_promedio >= i %}
+                                                            <i class="bi bi-star-fill"></i>
+                                                        {% elif info.calificacion_promedio > i|add:"-1" %}
+                                                            <i class="bi bi-star-half"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-star"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                                <small class="text-muted">({{ info.calificacion_promedio }})
+                                                    {% if info.calificacion_cantidad > 0 %}- {{ info.calificacion_cantidad }} calificaciones{% else %}- 0 calificaciones{% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold mb-2">Profesionales disponibles:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for profesional in info.profesionales|slice:":3" %}
+                                                <div class="d-flex align-items-center bg-white rounded-3 shadow-sm px-2 py-1" style="min-width:0;">
+                                                    {% if profesional.foto_perfil %}
+                                                        <img src="{{ profesional.foto_perfil.url }}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="lh-1">
+                                                        <span class="fw-semibold" style="font-size:1rem;">{{ profesional.nombre_completo }}</span><br>
+                                                        <span class="text-muted small">{{ profesional.especialidad|default:"Profesional" }}</span>
+                                                    </div>
+                                                    <a href="{% url 'profesionales:panel' %}?id={{ profesional.id }}" class="btn btn-link btn-sm ms-2 p-0" title="Ver perfil"><i class="bi bi-eye"></i></a>
+                                                    <a href="{% url 'clientes:crear_calificacion' info.negocio.id profesional.id %}" class="btn btn-link btn-sm ms-1 p-0" title="Calificar"><i class="bi bi-star"></i></a>
+                                                </div>
+                                            {% endfor %}
+                                            {% if info.profesionales|length > 3 %}
+                                                <span class="badge bg-secondary">+{{ info.profesionales|length|add:"-3" }} más</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn w-100 mt-2" style="color:var(--text-primary) !important; font-weight:600; border:none !important; background:linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);">Reservar</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-search display-1 text-muted mb-3"></i>
+                        <h3 class="text-muted">No se encontraron negocios</h3>
+                        <p class="text-muted">Intenta con otros términos de búsqueda</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar con reservas recientes -->
+            <div class="col-lg-4">
+                <!-- Reservas recientes -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-transparent border-0">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-calendar-check me-2"></i>Mis reservas recientes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if reservas_usuario %}
+                            {% for reserva in reservas_usuario %}
+                            <div class="d-flex align-items-center mb-3 p-3 bg-light rounded-3">
+                                <div class="flex-shrink-0">
+                                    {% if reserva.peluquero.avatar %}
+                                        <img src="{{ reserva.peluquero.avatar.url }}" class="rounded-circle" 
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-person text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-1">{{ reserva.peluquero.nombre }}</h6>
+                                    <p class="text-muted small mb-1">{{ reserva.fecha|date:"d/m/Y" }} - {{ reserva.hora_inicio|time:"H:i" }}</p>
+                                    <span class="badge bg-{% if reserva.estado == 'pendiente' %}warning{% elif reserva.estado == 'confirmado' %}success{% else %}secondary{% endif %}">
+                                        {{ reserva.get_estado_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'clientes:mis_reservas' %}" class="btn btn-outline-primary btn-sm">
+                                    Ver todas mis reservas
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                                <p class="text-muted">No tienes reservas aún</p>
+                                <a href="{% url 'clientes:lista_negocios' %}" class="btn btn-primary btn-sm">
+                                    Hacer mi primera reserva
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Mis calificaciones -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent border-0">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-star me-2"></i>Mis calificaciones
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if calificaciones_usuario %}
+                            {% for calificacion in calificaciones_usuario %}
+                            <div class="d-flex align-items-start mb-3 p-3 bg-light rounded-3">
+                                <div class="flex-shrink-0">
+                                    {% if calificacion.profesional.avatar %}
+                                        <img src="{{ calificacion.profesional.avatar.url }}" class="rounded-circle" 
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-star text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-1">{{ calificacion.profesional.nombre_completo }}</h6>
+                                    <p class="text-muted small mb-1">{{ calificacion.negocio.nombre }}</p>
+                                    <div class="mb-2">
+                                        <span class="text-warning">
+                                            {% for i in "12345" %}
+                                                {% if calificacion.puntaje >= i %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% elif calificacion.puntaje > i|add:"-1" %}
+                                                    <i class="bi bi-star-half"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="ms-2 text-muted small">{{ calificacion.puntaje }}/5</span>
+                                    </div>
+                                    {% if calificacion.comentario %}
+                                        <p class="text-muted small mb-1">{{ calificacion.comentario|truncatechars:50 }}</p>
+                                    {% endif %}
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'clientes:editar_calificacion' calificacion.id %}" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'clientes:eliminar_calificacion' calificacion.id %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Mostrando las 5 calificaciones más recientes</small>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-star display-4 text-muted mb-3"></i>
+                                <p class="text-muted">No has calificado ningún servicio aún</p>
+                                <small class="text-muted">Las calificaciones aparecerán aquí después de completar reservas</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+body {
+  background: var(--secondary-color);
+}
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
+  border-radius: 1.2rem;
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(168, 230, 207, 0.15);
+}
+.dashboard-hero-content {
+  flex: 1 1 0%;
+}
+.dashboard-hero .welcome-title {
+  font-family: var(--font-serif-title);
+  color: var(--text-primary);
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+.dashboard-hero .welcome-desc {
+  font-family: var(--font-sans-content);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+.dashboard-hero .dashboard-stats {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.2rem;
+  margin-left: 2.5rem;
+}
+.dashboard-hero .stat-box {
+  min-width: 120px;
+  min-height: 90px;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  box-shadow: 0 2px 8px rgba(46,46,58,0.04);
+}
+.dashboard-hero .stat-total {
+  background: var(--primary-color);
+  color: var(--text-primary);
+}
+.dashboard-hero .stat-pendientes {
+  background: #fff4f4;
+  color: #b80000;
+}
+.dashboard-hero .stat-completadas {
+  background: var(--primary-hover);
+  color: var(--text-primary);
+}
+.dashboard-hero .stat-box .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.dashboard-hero .stat-box .stat-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Buscador y cards */
+.search-section, .card, .buscador-card, .recent-reservations-card {
+  background: #fff !important;
+  border-radius: 1.1rem;
+  box-shadow: 0 2px 12px rgba(46,46,58,0.07);
+  border: 1px solid var(--border-color);
+}
+
+.search-section {
+  padding: 2rem 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+input, select, textarea {
+  background: #fff;
+  border: 1.5px solid var(--border-color);
+  border-radius: 0.6rem;
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  padding: 0.5em 1em;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-hover);
+  outline: none;
+}
+
+.buscador-btn {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: var(--text-primary);
+  border-radius: 2rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  border: none;
+  padding: 0.7em 2.2em;
+  transition: all 0.3s ease;
+}
+.buscador-btn:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
+}
+
+/* Etiquetas y badges */
+.badge-encontrados {
+  background: var(--primary-hover);
+  color: var(--text-primary);
+  border-radius: 1em;
+  font-size: 1rem;
+  padding: 0.3em 1.1em;
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+.badge-pendientes {
+  background: #fff4f4;
+  color: #b80000;
+}
+.badge-completadas {
+  background: var(--primary-color);
+  color: var(--text-primary);
+}
+
+/* Botones */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  border: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+/* Cards de negocios */
+.card[style*="background:var(--color-warm-sand)"] {
+  background: #fff !important;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+.card[style*="background:var(--color-warm-sand)"]:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(168, 230, 207, 0.2);
+}
+
+/* Botón de reservar en las cards */
+.btn[style*="background:#f4f6f8"] {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border: none !important;
+  transition: all 0.3s ease;
+}
+.btn[style*="background:#f4f6f8"]:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
+}
+
+@media (max-width: 900px) {
+  .dashboard-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.2rem 0.7rem;
+  }
+  .dashboard-hero .dashboard-stats {
+    margin-left: 0;
+    margin-top: 1.2rem;
+    gap: 0.7rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .dashboard-hero .stat-box {
+    min-width: 100px;
+    min-height: 70px;
+  }
+}
+@media (max-width: 600px) {
+  .dashboard-hero .dashboard-stats {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(168, 230, 207, 0.2) !important;
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,17 @@
+# Variables de entorno para producción APPO
+# Copia este archivo como .env en tu VPS
+SECRET_KEY=django-insecure-production-key-change-this-immediately
+DEBUG=False
+ALLOWED_HOSTS=appo.com.co,www.appo.com.co,92.113.39.100,localhost,127.0.0.1
+
+# Database Configuration
+POSTGRES_DB=vitalmix
+POSTGRES_USER=vitaluser
+POSTGRES_PASSWORD=vitalpass
+DATABASE_URL=postgresql://vitaluser:vitalpass@db:5432/vitalmix
+
+# Redis Configuration
+REDIS_URL=redis://redis:6379/0
+
+# Docker Configuration
+USING_DOCKER=yes 

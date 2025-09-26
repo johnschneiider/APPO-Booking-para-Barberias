@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Reserva - Melissa{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reserva-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .reserva-info {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .btn-whatsapp {
+        background: #25D366;
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        margin: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-whatsapp:hover {
+        background: #128C7E;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-danger-whatsapp {
+        background: #e74c3c;
+    }
+    
+    .btn-danger-whatsapp:hover {
+        background: #c0392b;
+    }
+    
+    .restriction-notice {
+        background: #f39c12;
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        text-align: center;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 12px 15px;
+        font-size: 16px;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .time-info {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 10px 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Información de la reserva -->
+            <div class="reserva-card">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-calendar-alt"></i> Editar Reserva
+                </h2>
+                
+                <div class="reserva-info">
+                    <h4><i class="fas fa-user"></i> {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}</h4>
+                    <p><i class="fas fa-building"></i> <strong>Negocio:</strong> {{ reserva.peluquero.nombre }}</p>
+                    <p><i class="fas fa-calendar"></i> <strong>Fecha actual:</strong> {{ reserva.fecha|date:"d/m/Y" }}</p>
+                    <p><i class="fas fa-clock"></i> <strong>Hora actual:</strong> {{ reserva.hora_inicio|time:"H:i" }}</p>
+                    {% if reserva.servicio %}
+                    <p><i class="fas fa-cut"></i> <strong>Servicio:</strong> {{ reserva.servicio.servicio.nombre }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Información de tiempo restante -->
+                <div class="time-info">
+                    <h5><i class="fas fa-hourglass-half"></i> Tiempo restante para la cita</h5>
+                    <p class="mb-0">
+                        {% if tiempo_restante.days > 0 %}
+                            {{ tiempo_restante.days }} día{{ tiempo_restante.days|pluralize }} y {{ tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0 }} hora{{ tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0|pluralize }}
+                        {% else %}
+                            {{ tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0 }} hora{{ tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0|pluralize }} y {{ tiempo_restante.seconds|floatformat:0|div:60|floatformat:0|sub:tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0|mul:60|floatformat:0 }} minuto{{ tiempo_restante.seconds|floatformat:0|div:60|floatformat:0|sub:tiempo_restante.seconds|floatformat:0|div:3600|floatformat:0|mul:60|floatformat:0|pluralize }}
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Restricciones -->
+                {% if not puede_cancelar %}
+                <div class="restriction-notice">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>No se puede cancelar</strong> - Menos de 1 hora para la cita
+                </div>
+                {% endif %}
+                
+                {% if not puede_reagendar %}
+                <div class="restriction-notice">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>No se puede reagendar</strong> - Menos de 30 minutos para la cita
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Formulario de edición -->
+            {% if puede_reagendar %}
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Reagendar Cita</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.fecha.id_for_label }}">Nueva Fecha</label>
+                                    {{ form.fecha }}
+                                    {% if form.fecha.errors %}
+                                        <div class="text-danger">{{ form.fecha.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.hora_inicio.id_for_label }}">Nueva Hora</label>
+                                    {{ form.hora_inicio }}
+                                    {% if form.hora_inicio.errors %}
+                                        <div class="text-danger">{{ form.hora_inicio.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.servicio.id_for_label }}">Servicio</label>
+                                    {{ form.servicio }}
+                                    {% if form.servicio.errors %}
+                                        <div class="text-danger">{{ form.servicio.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.profesional.id_for_label }}">Profesional</label>
+                                    {{ form.profesional }}
+                                    {% if form.profesional.errors %}
+                                        <div class="text-danger">{{ form.profesional.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.notas.id_for_label }}">Notas (opcional)</label>
+                            {{ form.notas }}
+                            {% if form.notas.errors %}
+                                <div class="text-danger">{{ form.notas.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Botones de acción -->
+            <div class="text-center mt-4">
+                {% if puede_cancelar %}
+                <button type="button" class="btn-danger-whatsapp btn-whatsapp" 
+                        onclick="cancelarReserva({{ reserva.id }})">
+                    <i class="fas fa-times"></i> Cancelar Reserva
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'clientes:mis_reservas' %}" class="btn-whatsapp">
+                    <i class="fas fa-list"></i> Ver Mis Reservas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Cancelación</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres cancelar esta reserva?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No, mantener</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">Sí, cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cancelarReserva(reservaId) {
+    $('#confirmModal').modal('show');
+    
+    $('#confirmCancel').off('click').on('click', function() {
+        $.ajax({
+            url: '/clientes/cancelar-reserva-whatsapp/' + reservaId + '/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Reserva cancelada exitosamente.');
+                    window.location.href = '{% url "clientes:mis_reservas" %}';
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            },
+            error: function() {
+                alert('Error interno del servidor.');
+            }
+        });
+        $('#confirmModal').modal('hide');
+    });
+}
+</script>
+{% endblock %}
+

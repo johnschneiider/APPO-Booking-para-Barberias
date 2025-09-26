@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ negocio.nombre }} - Detalle{% endblock %}
+
+<!-- DEBUG: Template detalle_peluquero.html cargado correctamente -->
+<div class="alert alert-info" role="alert" style="margin: 10px;">
+    <strong>DEBUG:</strong> Template detalle_peluquero.html cargado correctamente
+    <br>Negocio: {{ negocio.nombre }} (ID: {{ negocio.id }})
+    <br>Usuario: {{ user.username }}
+    <br>URL actual: {{ request.path }}
+</div>
+
+{% block extra_css %}
+<style>
+:root {
+  --primary-color: #133A7F;
+  --primary-hover: #1E40AF;
+  --secondary-color: #F4F3F1;
+  --accent-color: #133A7F;
+  --text-primary: #0D0D0D;
+  --text-secondary: #666666;
+  --border-color: #DDE6E8;
+  --neutral-text: #0D0D0D;
+  --neutral-muted: #666666;
+}
+body, .container, .card, .form-card, .equipo-circular, .pro-card, .pro-nombre, .pro-puesto, .pro-rating, .list-unstyled, .btn, .card-title, .fw-bold, .fw-semibold, .fw-normal, .fw-light, .h1, .h2, .h3, .h4, .h5, .h6, p, a, span, li, ul, div {
+  color: var(--neutral-text) !important;
+}
+.text-muted, .small, small {
+  color: var(--neutral-muted) !important;
+}
+
+/* Asegurar que todos los textos sean legibles */
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  color: var(--text-primary) !important;
+}
+
+p, span, div, a {
+  color: var(--text-primary) !important;
+}
+
+.text-muted {
+  color: var(--neutral-muted) !important;
+}
+.card, .form-card {
+  background: #fff !important;
+  color: var(--text-primary) !important;
+}
+.equipo-circular {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.equipo-circular .pro-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 110px;
+  max-width: 120px;
+}
+.equipo-circular .avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-color);
+  background: #fff;
+  margin-bottom: 0.3rem;
+}
+.equipo-circular .pro-nombre {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.1rem;
+}
+.equipo-circular .pro-puesto {
+  font-size: 0.85rem;
+  color: var(--primary-hover);
+  text-align: center;
+  margin-bottom: 0.1rem;
+}
+.equipo-circular .pro-rating {
+  font-size: 0.95rem;
+  color: var(--primary-color);
+  background: var(--secondary-color);
+  border-radius: 1em;
+  padding: 0.1em 0.7em;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+.bg-app-gradient, body {
+  background: var(--secondary-color);
+}
+.btn-primary, .btn-primary:focus, .btn-primary:active {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #FFFFFF !important;
+}
+.btn-primary:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(19, 58, 127, 0.3);
+}
+.btn-outline-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+.btn-outline-primary:hover {
+  background-color: var(--primary-color) !important;
+  color: #FFFFFF !important;
+}
+.text-primary, .text-primary-emphasis {
+  color: var(--primary-color) !important;
+}
+.text-secondary {
+  color: var(--primary-hover) !important;
+}
+.shadow-lg {
+  box-shadow: 0 8px 24px rgba(19, 58, 127, 0.15) !important;
+}
+.btn-dark, .btn-dark:focus, .btn-dark:active {
+  background: var(--primary-color) !important;
+  color: #FFFFFF !important;
+  border: none;
+}
+.btn-dark:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(19, 58, 127, 0.3);
+}
+@media (max-width: 600px) {
+  .equipo-circular { gap: 1.2rem; }
+  .equipo-circular .pro-card { min-width: 90px; max-width: 100px; }
+  .equipo-circular .avatar { width: 60px; height: 60px; }
+}
+
+/* Estilos para el dropdown de servicios */
+.dropdown-menu {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--secondary-color);
+  transform: translateX(2px);
+}
+
+.dropdown-item:active {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+.dropdown-toggle::after {
+  margin-left: 0.5rem;
+}
+
+/* Estilos para las tarjetas de servicios */
+.card[style*="border-left"] {
+  border-left: 4px solid var(--primary-color) !important;
+  transition: all 0.2s ease;
+}
+
+.card[style*="border-left"]:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(19, 58, 127, 0.2);
+}
+
+/* Estilos para el header de la card de reserva */
+.card-header.bg-primary {
+  background: var(--primary-color) !important;
+  color: #FFFFFF !important;
+}
+
+/* Estilos para los días disponibles */
+.card[style*="min-height: 60px"] {
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #fff 0%, var(--secondary-color) 100%);
+}
+
+.card[style*="min-height: 60px"]:hover {
+  background: var(--primary-color);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(19, 58, 127, 0.4);
+}
+
+.card[style*="min-height: 60px"]:hover span {
+  color: #FFFFFF !important;
+}
+
+.card[style*="min-height: 60px"]:hover small {
+  color: #FFFFFF !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" data-negocio-id="{{ negocio.id }}" data-negocio-nombre="{{ negocio.nombre }}">
+    <!-- Portada y logo -->
+    <div class="position-relative mb-4" style="height: 240px; border-radius: 1.5rem; overflow: hidden; background: var(--primary-color);">
+        {% if negocio.portada %}
+            <img src="{{ negocio.portada.url }}" alt="Portada de {{ negocio.nombre }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+        {% endif %}
+        <div class="position-absolute" style="left: 2rem; bottom: -40px; z-index: 2;">
+            {% if negocio.logo %}
+                <img src="{{ negocio.logo.url }}" class="shadow-lg" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 5px solid #fff; background: #fff;">
+            {% else %}
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-lg" style="width: 110px; height: 110px; font-size: 3rem; color: var(--primary-color); border: 5px solid #fff; background: #fff;">
+                    <i class="bi bi-shop"></i>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row" style="margin-top: 60px;">
+        <!-- Col principal -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <!-- Info principal -->
+                    <div class="mb-4">
+                        <h1 class="h2 mb-1">{{ negocio.nombre }}</h1>
+                        <div class="mb-2 text-muted">
+                            <i class="bi bi-geo-alt"></i> {{ negocio.direccion }}
+                        </div>
+                        <!-- Botón para ir al panel de reserva -->
+                        <div class="mb-3">
+                            <a href="{% url 'clientes:reservar_turno' negocio.id %}" class="btn btn-primary btn-lg py-3 fw-medium" style="letter-spacing:0.5px;">
+                                <i class="bi bi-calendar-plus me-1" style="color: #FFFFFF;"></i> Reservar un turno
+                            </a>
+                        </div>
+                        {% if promedio_calificacion %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="fw-bold">{{ promedio_calificacion|floatformat:1 }}</span>
+                                <span class="text-warning">&#9733;</span>
+                                <span class="fw-bold">({{ total_opiniones }})</span>
+                            </div>
+                        {% else %}
+                            <div class="text-muted mb-2">Sin calificaciones aún</div>
+                        {% endif %}
+                        <div class="mb-2">
+                                                    {% if abierto %}
+                            <span class="text-success"><i class="bi bi-circle-fill"></i> Abierto hasta las {{ hora_cierre|default:'--:--' }}</span>
+                        {% else %}
+                            <span class="text-danger"><i class="bi bi-circle-fill"></i> Cerrado</span>
+                        {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">{{ negocio.direccion }}</span>
+                            {% if negocio.ubicacion_url %}
+                                · <a href="{{ negocio.ubicacion_url }}" target="_blank">Cómo llegar</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Galería -->
+                    {% if negocio.imagenes.all %}
+                    <div class="mb-4">
+                        <div class="row g-3">
+                            {% for img in negocio.imagenes.all %}
+                            <div class="col-6 col-md-4 col-lg-3">
+                                {% if img.imagen %}
+                                    <img src="{{ img.imagen.url }}" alt="{{ img.titulo }}" class="img-fluid rounded shadow-sm" style="object-fit:cover; width:100%; height:160px;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center rounded shadow-sm" style="width:100%; height:160px; color:#aaa; font-size:2rem;">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Servicios -->
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-2">Servicios disponibles:</h4>
+                        
+                        <!-- Primeros 2 servicios -->
+                        {% for s in negocio.servicios_negocio.all|slice:":2" %}
+                        <div class="card mb-2 p-2 d-flex flex-row align-items-center justify-content-between" style="border-left: 4px solid var(--primary-color);">
+                            <div>
+                                <div class="fw-semibold">{{ s.servicio.nombre|upper }}</div>
+                                <div class="text-muted small">{{ s.duracion }} min · desde ${{ s.precio }}</div>
+                            </div>
+                            <a href="{% url 'clientes:reservar_turno' negocio.id %}?servicio={{ s.id }}" class="btn btn-outline-dark btn-sm" style="border:none;">Reservar</a>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Dropdown para servicios adicionales -->
+                        {% if negocio.servicios_negocio.all|length > 2 %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary btn-sm mt-2 dropdown-toggle" type="button" id="serviciosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:0.7rem;">
+                                Ver más servicios ({{ negocio.servicios_negocio.all|length|add:"-2" }})
+                            </button>
+                            <ul class="dropdown-menu w-100" aria-labelledby="serviciosDropdown">
+                                {% for s in negocio.servicios_negocio.all|slice:"2:" %}
+                                <li>
+                                    <div class="dropdown-item d-flex flex-row align-items-center justify-content-between p-2" style="border-left: 4px solid var(--primary-color);">
+                                        <div>
+                                            <div class="fw-semibold">{{ s.servicio.nombre|upper }}</div>
+                                            <div class="text-muted small">{{ s.duracion }} min · desde ${{ s.precio }}</div>
+                                        </div>
+                                        <a href="{% url 'clientes:reservar_turno' negocio.id %}?servicio={{ s.id }}" class="btn btn-outline-dark btn-sm" style="border:none; font-size: 0.8rem;">Reservar</a>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- Equipo -->
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-2">Equipo</h4>
+                        <div class="equipo-circular">
+                        {% for m in negocio.matriculaciones.all %}
+                            {% if m.estado == 'aprobada' %}
+                            <div class="pro-card">
+                                <a href="{% url 'profesionales:publica_profesional' m.profesional.id %}" style="text-decoration:none;">
+                                {% if m.profesional.foto_perfil %}
+                                    <img src="{{ m.profesional.foto_perfil.url }}" class="avatar" alt="{{ m.profesional.nombre_completo }}">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ m.profesional.nombre_completo|urlencode }}&background=random" class="avatar" alt="{{ m.profesional.nombre_completo }}">
+                                {% endif %}
+                                <div class="pro-rating">
+                                    {{ m.profesional.promedio_calificacion|default:'4.8' }} <span class="text-warning">&#9733;</span>
+                                </div>
+                                <div class="pro-nombre">{{ m.profesional.nombre_completo|upper }}</div>
+                                </a>
+                                <div class="pro-puesto">PUESTO #{{ forloop.counter }}</div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        </div>
+                    </div>
+                    <!-- Horario e info adicional -->
+                    <div class="mb-4 row">
+                        <div class="col-md-7">
+                            <h6 class="fw-bold mb-2">Horario de apertura</h6>
+                            <ul class="list-unstyled mb-0">
+                                {% for dia, horario in negocio.horario.items %}
+                                <li><span class="text-success"><i class="bi bi-circle-fill"></i></span> {{ dia }} <span class="ms-2">{{ horario }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="fw-bold mb-2">Información adicional</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li><i class="bi bi-check2"></i> Confirmación instantánea</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Acerca de y mapa -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2">Acerca de</h6>
+                        <p>{{ negocio.descripcion }}</p>
+                        {% if negocio.mapa_url %}
+                        <iframe src="{{ negocio.mapa_url }}" width="100%" height="250" style="border:0; border-radius:1rem;" allowfullscreen="" loading="lazy"></iframe>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Planes de Suscripción -->
+                    {% if tiene_planes_suscripcion %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-crown me-2 text-warning"></i>
+                            Planes de Suscripción Disponibles
+                        </h6>
+                        <div class="row g-3">
+                            {% for plan in planes_suscripcion %}
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0 fw-bold">{{ plan.nombre }}</h6>
+                                            {% if plan.destacado %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-star-fill me-1"></i>Destacado
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if plan.descripcion %}
+                                        <p class="card-text small text-muted mb-2">{{ plan.descripcion|truncatewords:15 }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="text-primary fw-bold fs-5">${{ plan.precio_mensual }}</div>
+                                            <small class="text-muted">/mes</small>
+                                        </div>
+                                        
+                                        {% if plan.beneficios.all %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Beneficios:</small>
+                                            <ul class="list-unstyled small mb-0">
+                                                {% for beneficio in plan.beneficios.all|slice:":3" %}
+                                                <li><i class="bi bi-check text-success me-1"></i>{{ beneficio.descripcion|truncatechars:30 }}</li>
+                                                {% endfor %}
+                                                {% if plan.beneficios.count > 3 %}
+                                                <li class="text-muted"><i class="bi bi-plus text-primary me-1"></i>{{ plan.beneficios.count|add:"-3" }} más...</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ plan.duracion_meses }} mes{{ plan.duracion_meses|pluralize:"es" }}
+                                            </small>
+                                            <a href="{% url 'suscripciones:cliente_suscripciones' %}?plan={{ plan.id }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-arrow-right me-1"></i>Ver Detalles
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'suscripciones:cliente_suscripciones' %}" class="btn btn-warning">
+                                <i class="bi bi-crown me-2"></i>
+                                Ver Todos los Planes
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Panel de reserva -->
+        <div class="col-lg-4" id="panel-reserva">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-plus me-2"></i>Reservar ahora
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Selecciona una fecha para ver los horarios disponibles</p>
+                    <!-- Aquí iría el calendario de disponibilidad -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Próximos días disponibles</h6>
+                        <div class="row row-cols-6 g-1">
+                            {% for dia in dias_disponibilidad %}
+                            {% if not dia.festivo and not dia.cerrado %}
+                            <div class="col">
+                                <a href="{% url 'clientes:reservar_turno' negocio.id %}?fecha={{ dia.fecha|date:'Y-m-d' }}" style="text-decoration:none;">
+                                    <div class="card border-0 shadow-sm d-flex flex-column align-items-center justify-content-center px-1 py-2" style="min-height: 60px; border-radius: 12px; background: linear-gradient(135deg, #fff 0%, var(--secondary-color) 100%);">
+                                        <div class="text-center w-100">
+                                            <span class="fw-bold text-primary" style="font-size:0.9em; color: var(--text-primary) !important;">{{ dia.nombre_dia|slice:":3" }}</span><br>
+                                            <small class="text-muted" style="color: var(--neutral-muted) !important;">{{ dia.fecha|date:"d" }}</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{% url 'clientes:reservar_turno' negocio.id %}" class="btn btn-dark w-100" style="border:none;">Reservar ahora</a>
+                    <div class="mt-3">
+                        <div class="text-muted small"><i class="bi bi-clock"></i> Abierto hasta las {{ hora_cierre|default:'--:--' }}</div>
+                        <div class="text-muted small"><i class="bi bi-geo-alt"></i> {{ negocio.direccion }}</div>
+                        {% if negocio.ubicacion_url %}
+                            <a href="{{ negocio.ubicacion_url }}" target="_blank">Cómo llegar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+// DEBUG: Capturar clics en botones de reserva
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DEBUG: Template detalle_peluquero.html cargado');
+    
+    // Capturar todos los botones de reserva
+    const botonesReserva = document.querySelectorAll('a[href*="reservar"]');
+    console.log('DEBUG: Botones de reserva encontrados:', botonesReserva.length);
+    
+    botonesReserva.forEach((boton, index) => {
+        console.log(`DEBUG: Botón ${index + 1}:`, boton.href);
+        
+        boton.addEventListener('click', function(e) {
+            console.log('DEBUG: Clic en botón de reserva:', this.href);
+            console.log('DEBUG: URL del botón:', this.href);
+            console.log('DEBUG: Texto del botón:', this.textContent);
+            
+            // Permitir que el enlace funcione normalmente
+            // No prevenir el comportamiento por defecto
+        });
+    });
+    
+    // Verificar si hay algún error en la consola
+    window.addEventListener('error', function(e) {
+        console.error('DEBUG: Error en la página:', e.error);
+    });
+});
+</script> 

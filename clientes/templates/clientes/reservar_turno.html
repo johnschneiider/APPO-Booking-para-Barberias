@@ -1,0 +1,1900 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+:root {
+  --color-primary: #1E40AF;
+  --color-secondary: #10B981;
+  --color-background: #F3F4F6;
+  --color-smoke-white: #6B7280;
+  --color-dark: #1E40AF;
+  --color-light: #F3F4F6;
+  --color-white: #FFFFFF;
+  --color-text-dark: #181818;
+  --color-text-light: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+}
+
+body {
+  background: var(--color-background) !important;
+  color: var(--color-text-dark) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.form-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.form-card {
+  background: var(--color-white) !important;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.form-header {
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+  padding: 2rem;
+  text-align: center;
+}
+
+.form-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #FFFFFF !important;
+}
+
+.negocio-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.negocio-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-white);
+}
+
+.negocio-logo-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-white);
+}
+
+.negocio-logo-placeholder i {
+  font-size: 1.5rem;
+  color: #FFFFFF !important;
+}
+
+/* Asegurar que todo el texto en el header azul sea blanco */
+.form-header * {
+  color: #FFFFFF !important;
+}
+
+.form-header h2,
+.form-header h3,
+.form-header h4,
+.form-header h5,
+.form-header h6,
+.form-header p,
+.form-header span,
+.form-header small,
+.form-header strong,
+.form-header b,
+.form-header i,
+.form-header .bi {
+  color: #FFFFFF !important;
+}
+
+.negocio-details h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF !important;
+}
+
+.negocio-details small {
+  opacity: 0.9;
+  font-size: 0.9rem;
+  color: #FFFFFF !important;
+}
+
+.form-body {
+  padding: 2rem;
+}
+
+.step {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.step.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.step-description {
+  text-align: center;
+  color: var(--color-smoke-white);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--color-white);
+  color: var(--color-text-dark);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.form-control:disabled {
+  background: var(--color-light);
+  cursor: not-allowed;
+}
+
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--color-white);
+  color: var(--color-text-dark);
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--color-white);
+  color: var(--color-text-dark);
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+  background: #1E3A8A;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.btn-primary i,
+.btn-primary .bi {
+  color: #FFFFFF !important;
+}
+
+/* Asegurar que todos los iconos en botones azules sean blancos */
+.btn[style*="background: var(--color-primary)"],
+.btn[style*="background-color: var(--color-primary)"],
+.btn[style*="background: #1E3A8A"],
+.btn[style*="background-color: #1E3A8A"] {
+  color: #FFFFFF !important;
+}
+
+.btn[style*="background: var(--color-primary)"] i,
+.btn[style*="background: var(--color-primary)"] .bi,
+.btn[style*="background-color: var(--color-primary)"] i,
+.btn[style*="background-color: var(--color-primary)"] .bi,
+.btn[style*="background: #1E3A8A"] i,
+.btn[style*="background: #1E3A8A"] .bi,
+.btn[style*="background-color: #1E3A8A"] i,
+.btn[style*="background-color: #1E3A8A"] .bi {
+  color: #FFFFFF !important;
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-text-light);
+}
+
+.btn-secondary:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+}
+
+.btn-outline:hover i,
+.btn-outline:hover .bi {
+  color: #FFFFFF !important;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.btn-group .btn {
+  flex: 1;
+}
+
+.progress-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.progress-step {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  margin: 0 1rem;
+  flex: 0 0 auto;
+}
+
+.progress-step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-border);
+  color: var(--color-smoke-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .progress-step-number {
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+}
+
+.progress-step.completed .progress-step-number {
+  background: var(--color-success);
+  color: var(--color-text-light);
+}
+
+.progress-step-label {
+  font-size: 0.875rem;
+  color: var(--color-smoke-white);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.progress-step.active .progress-step-label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.progress-step.completed .progress-step-label {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.progress-line {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border);
+  z-index: 1;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+  /* Estilos del calendario personalizado */
+  .calendar-container {
+    background: var(--color-white);
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  
+  .calendar-nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .calendar-nav-btn:hover {
+    background: rgba(30, 64, 175, 0.1);
+    color: var(--color-primary);
+  }
+  
+  .calendar-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    text-align: center;
+    flex: 1;
+  }
+  
+  .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .weekday {
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-smoke-white);
+    font-size: 0.875rem;
+    padding: 0.5rem 0;
+  }
+  
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+  }
+  
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  
+  .calendar-day:hover:not(.disabled) {
+    background: rgba(30, 64, 175, 0.1);
+    border-color: var(--color-primary);
+  }
+  
+  .calendar-day.selected {
+    background: var(--color-primary);
+    color: #FFFFFF !important;
+    border-color: var(--color-primary);
+  }
+  
+  .calendar-day.today {
+    background: var(--color-secondary);
+    color: #FFFFFF !important;
+    border-color: var(--color-secondary);
+  }
+  
+  .calendar-day.disabled {
+    color: var(--color-border);
+    cursor: not-allowed;
+    background: var(--color-light);
+  }
+  
+  .calendar-day.other-month {
+    color: var(--color-border);
+    background: var(--color-light);
+  }
+  
+  /* Estilos para la selección de servicios */
+  .servicios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .servicio-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--color-white);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .servicio-option:hover {
+    border-color: var(--color-primary);
+    background: rgba(30, 64, 175, 0.02);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .servicio-option.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #FFFFFF !important;
+  }
+  
+  .servicio-option.selected .servicio-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF !important;
+  }
+  
+  .servicio-option.selected .servicio-info h4,
+  .servicio-option.selected .servicio-info p {
+    color: #FFFFFF !important;
+  }
+  
+  .servicio-option.selected .servicio-price {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .servicio-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+  
+  .servicio-info {
+    flex: 1;
+  }
+  
+  .servicio-info h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+  }
+  
+  .servicio-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-smoke-white);
+  }
+  
+  .servicio-price {
+    padding: 0.5rem 1rem;
+    background: var(--color-light);
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  /* Estilos para la selección de profesionales */
+  .profesionales-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .profesional-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--color-white);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .profesional-option:hover {
+    border-color: var(--color-primary);
+    background: rgba(30, 64, 175, 0.02);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profesional-option.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #FFFFFF !important;
+  }
+  
+  .profesional-option.selected .profesional-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF !important;
+  }
+  
+  .profesional-option.selected .profesional-info h4,
+  .profesional-option.selected .profesional-info p {
+    color: #FFFFFF !important;
+  }
+  
+  .profesional-option.selected .profesional-status {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .profesional-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+  
+  .profesional-info {
+    flex: 1;
+  }
+  
+  .profesional-info h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+  }
+  
+  .profesional-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-smoke-white);
+  }
+  
+  .profesional-status {
+    padding: 0.5rem 1rem;
+    background: var(--color-success);
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: var(--color-white);
+    font-size: 0.9rem;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  /* Estilos para la selección de horarios */
+  .horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  
+  .horario-option {
+    padding: 1rem 0.75rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--color-white);
+    color: var(--color-text-dark);
+    font-weight: 600;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .horario-option:hover:not(.disabled) {
+    border-color: var(--color-primary);
+    background: rgba(30, 64, 175, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .horario-option.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #FFFFFF !important;
+  }
+  
+  .horario-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-light);
+    color: var(--color-border);
+  }
+  
+  .horario-option.disabled:hover {
+    border-color: var(--color-border);
+    background: var(--color-light);
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .horario-option .horario-time {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  
+  .horario-option .horario-duration {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+  }
+  
+  .loading-horarios {
+    text-align: center;
+    padding: 2rem;
+    grid-column: 1 / -1;
+  }
+  
+  .loading-horarios .loading-spinner {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 1rem;
+  }
+  
+  .loading-horarios p {
+    color: var(--color-smoke-white);
+    font-size: 0.9rem;
+  }
+  
+  .time-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+.time-slot {
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--color-white);
+  color: var(--color-text-dark);
+}
+
+.time-slot:hover {
+  border-color: var(--color-primary);
+  background: rgba(30, 64, 175, 0.05);
+}
+
+.time-slot.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+}
+
+.time-slot.selected i,
+.time-slot.selected .bi {
+  color: #FFFFFF !important;
+}
+
+.time-slot.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-light);
+}
+
+.time-slot.disabled:hover {
+  border-color: var(--color-border);
+  background: var(--color-light);
+}
+
+.loading {
+  display: none;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loading p {
+  color: var(--color-text-dark);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+.success-message {
+  color: var(--color-success);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+  
+  .progress-bar {
+    padding: 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .progress-step {
+    margin: 0 0.5rem;
+  }
+  
+  .progress-step-label {
+    font-size: 0.75rem;
+  }
+  
+  .form-header {
+    padding: 1.5rem;
+  }
+  
+  .form-body {
+    padding: 1.5rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .time-slots {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+  
+  .servicios-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .servicio-option {
+    padding: 0.75rem;
+  }
+  
+  .servicio-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .servicio-info h4 {
+    font-size: 1rem;
+  }
+  
+  .servicio-info p {
+    font-size: 0.8rem;
+  }
+  
+  .servicio-price {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .profesionales-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .profesional-option {
+    padding: 0.75rem;
+  }
+  
+  .profesional-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .profesional-info h4 {
+    font-size: 1rem;
+  }
+  
+  .profesional-info p {
+    font-size: 0.8rem;
+  }
+  
+  .profesional-status {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .horarios-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .horario-option {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .horario-option .horario-time {
+    font-size: 1rem;
+  }
+  
+  .horario-option .horario-duration {
+    font-size: 0.75rem;
+  }
+  
+  .calendar-container {
+    padding: 0.75rem;
+  }
+  
+  .calendar-day {
+    font-size: 0.8rem;
+  }
+  
+  .weekday {
+    font-size: 0.75rem;
+  }
+}
+</style>
+
+<div class="form-container">
+  <div class="form-card">
+    <!-- Header del formulario -->
+    <div class="form-header">
+      <h2>Reservar Turno</h2>
+      <div class="negocio-info">
+        {% if negocio.logo %}
+        <img src="{{ negocio.logo.url }}" alt="{{ negocio.nombre }}" class="negocio-logo">
+        {% else %}
+        <div class="negocio-logo-placeholder">
+          <i class="bi bi-shop"></i>
+        </div>
+        {% endif %}
+        <div class="negocio-details">
+          <h5>{{ negocio.nombre }}</h5>
+          <small>{{ negocio.direccion|default:"Sin dirección" }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress-bar">
+      <div class="progress-line">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-step active" data-step="1">
+        <div class="progress-step-number">1</div>
+        <div class="progress-step-label">Fecha</div>
+      </div>
+      <div class="progress-step" data-step="2">
+        <div class="progress-step-number">2</div>
+        <div class="progress-step-label">Servicio</div>
+      </div>
+      <div class="progress-step" data-step="3">
+        <div class="progress-step-number">3</div>
+        <div class="progress-step-label">Profesional</div>
+      </div>
+      <div class="progress-step" data-step="4">
+        <div class="progress-step-number">4</div>
+        <div class="progress-step-label">Hora</div>
+      </div>
+    </div>
+
+    <!-- Cuerpo del formulario -->
+    <div class="form-body">
+      <form method="post" id="reservaForm">
+        {% csrf_token %}
+        
+        <!-- Paso 1: Fecha -->
+        <div class="step active" id="step1">
+          <h3 class="step-title">¿Cuándo quieres tu turno?</h3>
+          <p class="step-description">Selecciona la fecha para tu reserva</p>
+          
+                     <div class="form-group">
+             <label for="fecha" class="form-label">Fecha</label>
+             <div class="calendar-container">
+               <div class="calendar-header">
+                 <button type="button" class="calendar-nav-btn" onclick="previousMonth()">
+                   <i class="bi bi-chevron-left"></i>
+                 </button>
+                 <h4 class="calendar-title" id="calendarTitle"></h4>
+                 <button type="button" class="calendar-nav-btn" onclick="nextMonth()">
+                   <i class="bi bi-chevron-right"></i>
+                 </button>
+               </div>
+               <div class="calendar-weekdays">
+                 <div class="weekday">Dom</div>
+                 <div class="weekday">Lun</div>
+                 <div class="weekday">Mar</div>
+                 <div class="weekday">Mié</div>
+                 <div class="weekday">Jue</div>
+                 <div class="weekday">Vie</div>
+                 <div class="weekday">Sáb</div>
+               </div>
+               <div class="calendar-days" id="calendarDays"></div>
+               <input type="hidden" id="fecha" name="fecha" required>
+             </div>
+             <div class="error-message" id="fechaError"></div>
+           </div>
+          
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline" disabled>Anterior</button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(1)">
+              Siguiente <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 2: Servicio -->
+        <div class="step" id="step2">
+          <h3 class="step-title">¿Qué servicio necesitas?</h3>
+          <p class="step-description">Elige el servicio que deseas recibir o continúa sin seleccionar</p>
+          
+          <div class="form-group">
+            <label class="form-label">Servicios disponibles</label>
+            <div class="servicios-grid">
+              <div class="servicio-option" data-servicio-id="" data-duracion="30">
+                <div class="servicio-icon">
+                  <i class="bi bi-question-circle"></i>
+                </div>
+                <div class="servicio-info">
+                  <h4>Déjame elegir</h4>
+                  <p>Te asignaré el servicio más apropiado</p>
+                </div>
+                <div class="servicio-price">Gratis</div>
+              </div>
+              
+              {% for servicio_negocio in form.fields.servicio.queryset %}
+              <div class="servicio-option" data-servicio-id="{{ servicio_negocio.id }}" data-duracion="{{ servicio_negocio.duracion|default:30 }}">
+                <div class="servicio-icon">
+                  {% if "corte" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-scissors"></i>
+                  {% elif "color" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-palette"></i>
+                  {% elif "peinado" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-brush"></i>
+                  {% elif "manicura" in servicio_negocio.servicio.nombre|lower or "pedicura" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-hand-index"></i>
+                  {% elif "depilación" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-droplet"></i>
+                  {% elif "barbería" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-razor"></i>
+                  {% elif "tratamiento" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-heart"></i>
+                  {% elif "maquillaje" in servicio_negocio.servicio.nombre|lower %}
+                    <i class="bi bi-magic"></i>
+                  {% else %}
+                    <i class="bi bi-star"></i>
+                  {% endif %}
+                </div>
+                <div class="servicio-info">
+                  <h4>{{ servicio_negocio.servicio.nombre }}</h4>
+                  <p>{{ servicio_negocio.duracion|default:30 }} minutos</p>
+                </div>
+                <div class="servicio-price">
+                  {% if servicio_negocio.precio %}
+                    ${{ servicio_negocio.precio }}
+                  {% else %}
+                    Consultar
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            
+            <input type="hidden" id="servicio" name="servicio" value="">
+            <div class="error-message" id="servicioError"></div>
+          </div>
+          
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline" onclick="previousStep(2)">
+              <i class="bi bi-arrow-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+              Siguiente <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 3: Profesional -->
+        <div class="step" id="step3">
+          <h3 class="step-title">¿Con quién quieres tu turno?</h3>
+          <p class="step-description">Elige tu profesional preferido o déjanos elegir por ti</p>
+          
+          <div class="form-group">
+            <label class="form-label">Profesionales disponibles</label>
+            <div class="profesionales-grid">
+              <div class="profesional-option" data-profesional-id="" data-especialidad="">
+                <div class="profesional-icon">
+                  <i class="bi bi-person-check"></i>
+                </div>
+                <div class="profesional-info">
+                  <h4>Déjame elegir</h4>
+                  <p>Te asignaré el profesional más disponible</p>
+                </div>
+                <div class="profesional-status">Disponible</div>
+              </div>
+              
+              {% for profesional in form.fields.profesional.queryset %}
+              <div class="profesional-option" data-profesional-id="{{ profesional.id }}" data-especialidad="{{ profesional.especialidad|default:'' }}">
+                <div class="profesional-icon">
+                  {% if "corte" in profesional.especialidad|lower or "cabello" in profesional.especialidad|lower %}
+                    <i class="bi bi-scissors"></i>
+                  {% elif "color" in profesional.especialidad|lower %}
+                    <i class="bi bi-palette"></i>
+                  {% elif "peinado" in profesional.especialidad|lower %}
+                    <i class="bi bi-brush"></i>
+                  {% elif "manicura" in profesional.especialidad|lower or "pedicura" in profesional.especialidad|lower %}
+                    <i class="bi bi-hand-index"></i>
+                  {% elif "depilación" in profesional.especialidad|lower %}
+                    <i class="bi bi-droplet"></i>
+                  {% elif "barbería" in profesional.especialidad|lower %}
+                    <i class="bi bi-razor"></i>
+                  {% elif "tratamiento" in profesional.especialidad|lower %}
+                    <i class="bi bi-heart"></i>
+                  {% elif "maquillaje" in profesional.especialidad|lower %}
+                    <i class="bi bi-magic"></i>
+                  {% elif "estilista" in profesional.especialidad|lower %}
+                    <i class="bi bi-star"></i>
+                  {% else %}
+                    <i class="bi bi-person-circle"></i>
+                  {% endif %}
+                </div>
+                <div class="profesional-info">
+                  <h4>{{ profesional.nombre_completo }}</h4>
+                  <p>{{ profesional.especialidad|default:"Sin especialidad" }}</p>
+                </div>
+                <div class="profesional-status">Disponible</div>
+              </div>
+              {% endfor %}
+            </div>
+            
+            <input type="hidden" id="profesional" name="profesional" value="">
+            <div class="error-message" id="profesionalError"></div>
+          </div>
+          
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline" onclick="previousStep(3)">
+              <i class="bi bi-arrow-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+              Siguiente <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 4: Hora -->
+        <div class="step" id="step4">
+          <h3 class="step-title">¿A qué hora prefieres?</h3>
+          <p class="step-description">Selecciona la hora que mejor te convenga</p>
+          
+          <div class="form-group">
+            <label class="form-label">Horarios disponibles</label>
+            <div class="horarios-grid" id="horariosGrid">
+              <div class="loading-horarios">
+                <div class="loading-spinner"></div>
+                <p>Cargando horarios disponibles...</p>
+              </div>
+            </div>
+            <input type="hidden" id="hora_inicio" name="hora_inicio" required>
+            <div class="error-message" id="horaError"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="notas" class="form-label">Notas adicionales (opcional)</label>
+            <textarea id="notas" name="notas" class="form-textarea" placeholder="Agrega cualquier detalle especial o preferencia..."></textarea>
+          </div>
+          
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline" onclick="previousStep(4)">
+              <i class="bi bi-arrow-left"></i> Anterior
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-calendar-check"></i> Confirmar Reserva
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+          <div class="loading-spinner"></div>
+          <p>Procesando tu reserva...</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+let currentDate = new Date();
+let selectedDate = null;
+
+// Inicializar el formulario
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 DOM CARGADO - Inicializando formulario...');
+  
+  updateProgress();
+  initCalendar();
+  initServicios();
+  initProfesionales();
+  initHorarios();
+  
+  // Asegurar que los botones estén en el estado correcto inicialmente
+  updateButtons(currentStep);
+  
+  // Verificar que el formulario esté correctamente configurado
+  const form = document.getElementById('reservaForm');
+  console.log('Formulario encontrado:', form);
+  console.log('Método del formulario:', form.method);
+  console.log('Action del formulario:', form.action);
+  
+  // Verificar que el event listener esté funcionando
+  console.log('Event listeners del formulario:', form);
+});
+
+function nextStep(step) {
+  console.log(`➡️ Avanzando del paso ${step} al siguiente...`);
+  
+  if (validateStep(step)) {
+    currentStep++;
+    console.log(`✅ Validación exitosa, avanzando al paso ${currentStep}`);
+    showStep(currentStep);
+    updateProgress();
+  } else {
+    console.log(`❌ Validación fallida, permaneciendo en el paso ${step}`);
+  }
+}
+
+function previousStep(step) {
+  console.log(`⬅️ Retrocediendo del paso ${step} al anterior...`);
+  
+  currentStep--;
+  console.log(`✅ Retrocediendo al paso ${currentStep}`);
+  showStep(currentStep);
+  updateProgress();
+}
+
+function showStep(step) {
+  console.log(`🔄 Mostrando paso ${step}`);
+  
+  // Ocultar todos los pasos
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  
+  // Mostrar el paso actual
+  const currentStepElement = document.getElementById(`step${step}`);
+  if (currentStepElement) {
+    currentStepElement.classList.add('active');
+    console.log(`✅ Paso ${step} mostrado correctamente`);
+  } else {
+    console.error(`❌ No se encontró el elemento del paso ${step}`);
+  }
+  
+  // Actualizar botones
+  updateButtons(step);
+  
+  // Si es el último paso, asegurar que el botón de reserva esté visible
+  if (step === totalSteps) {
+    const submitBtn = document.querySelector(`#step${step} button[type="submit"]`);
+    if (submitBtn) {
+      submitBtn.style.display = 'inline-flex';
+      console.log('✅ Botón de submit mostrado');
+    } else {
+      console.error('❌ No se encontró el botón de submit');
+    }
+  }
+}
+
+function updateProgress() {
+  const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+  const progressFill = document.getElementById('progressFill');
+  
+  console.log(`📊 Actualizando progreso: ${progress}% (paso ${currentStep})`);
+  
+  // Barra horizontal - usar width
+  if (progressFill) {
+    progressFill.style.width = progress + '%';
+    progressFill.style.height = '100%';
+    console.log('✅ Barra de progreso actualizada');
+  } else {
+    console.error('❌ No se encontró la barra de progreso');
+  }
+  
+  // Actualizar estados de los pasos
+  document.querySelectorAll('.progress-step').forEach((step, index) => {
+    const stepNumber = index + 1;
+    step.classList.remove('active', 'completed');
+    
+    if (stepNumber === currentStep) {
+      step.classList.add('active');
+    } else if (stepNumber < currentStep) {
+      step.classList.add('completed');
+    }
+  });
+  
+  console.log('✅ Estados de los pasos actualizados');
+}
+
+function updateButtons(step) {
+  console.log(`🔘 Actualizando botones del paso ${step}`);
+  
+  // Actualizar botón anterior
+  const prevBtn = document.querySelector(`#step${step} .btn-outline`);
+  if (prevBtn) {
+    prevBtn.disabled = step === 1;
+    console.log(`✅ Botón anterior del paso ${step} actualizado`);
+  } else {
+    console.log(`⚠️ No se encontró el botón anterior del paso ${step}`);
+  }
+  
+  // Actualizar botón siguiente (solo para pasos que no son el último)
+  const nextBtn = document.querySelector(`#step${step} .btn-primary`);
+  if (nextBtn && step === totalSteps) {
+    nextBtn.style.display = 'none';
+    console.log(`✅ Botón siguiente del paso ${step} ocultado (último paso)`);
+  } else if (nextBtn && step < totalSteps) {
+    nextBtn.style.display = 'inline-flex';
+    console.log(`✅ Botón siguiente del paso ${step} mostrado`);
+  } else {
+    console.log(`⚠️ No se encontró el botón siguiente del paso ${step}`);
+  }
+}
+
+function validateStep(step) {
+  let isValid = true;
+  
+  console.log(`🔍 Validando paso ${step}...`);
+  
+  switch(step) {
+         case 1:
+       if (!selectedDate) {
+         console.log('❌ Paso 1: Fecha no seleccionada');
+         showError('fechaError', 'Por favor selecciona una fecha');
+         isValid = false;
+       } else {
+         console.log('✅ Paso 1: Fecha seleccionada correctamente');
+         hideError('fechaError');
+       }
+       break;
+      
+    case 2:
+      console.log('✅ Paso 2: Servicio (opcional, siempre válido)');
+      // El servicio es opcional, siempre válido
+      hideError('servicioError');
+      break;
+      
+    case 3:
+      console.log('✅ Paso 3: Profesional (opcional, siempre válido)');
+      // El profesional es opcional, siempre válido
+      hideError('profesionalError');
+      break;
+      
+    case 4:
+      const hora = document.getElementById('hora_inicio').value;
+      if (!hora) {
+        console.log('❌ Paso 4: Hora no seleccionada');
+        showError('horaError', 'Por favor selecciona un horario disponible');
+        isValid = false;
+      } else {
+        console.log('✅ Paso 4: Hora seleccionada correctamente');
+        hideError('horaError');
+      }
+      break;
+  }
+  
+  console.log(`Resultado validación paso ${step}:`, isValid ? '✅ VÁLIDO' : '❌ INVÁLIDO');
+  return isValid;
+}
+
+function validateAllSteps() {
+  let isValid = true;
+  
+  // Validar paso 1 (fecha)
+  if (!selectedDate) {
+    showError('fechaError', 'Por favor selecciona una fecha');
+    isValid = false;
+  } else {
+    hideError('fechaError');
+  }
+  
+  // Validar paso 4 (hora)
+  const hora = document.getElementById('hora_inicio').value;
+  if (!hora) {
+    showError('horaError', 'Por favor selecciona un horario disponible');
+    isValid = false;
+  } else {
+    hideError('horaError');
+  }
+  
+  return isValid;
+}
+
+function goToFirstErrorStep() {
+  console.log('🔄 Navegando al primer paso con error...');
+  
+  // Si no hay fecha seleccionada, ir al paso 1
+  if (!selectedDate) {
+    console.log('📅 Navegando al paso 1 (fecha)');
+    currentStep = 1;
+    showStep(currentStep);
+    updateProgress();
+    return;
+  }
+  
+  // Si no hay hora seleccionada, ir al paso 4
+  const hora = document.getElementById('hora_inicio').value;
+  if (!hora) {
+    console.log('🕐 Navegando al paso 4 (hora)');
+    currentStep = 4;
+    showStep(currentStep);
+    updateProgress();
+    return;
+  }
+  
+  console.log('✅ No se encontraron errores para navegar');
+}
+
+function showError(elementId, message) {
+  console.log(`⚠️ Mostrando error en ${elementId}: ${message}`);
+  
+  const errorElement = document.getElementById(elementId);
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    console.log(`✅ Error mostrado en ${elementId}`);
+  } else {
+    console.error(`❌ No se encontró el elemento de error ${elementId}`);
+  }
+}
+
+function hideError(elementId) {
+  console.log(`✅ Ocultando error en ${elementId}`);
+  
+  const errorElement = document.getElementById(elementId);
+  if (errorElement) {
+    errorElement.style.display = 'none';
+    console.log(`✅ Error ocultado en ${elementId}`);
+  } else {
+    console.error(`❌ No se encontró el elemento de error ${elementId}`);
+  }
+}
+
+// Manejar envío del formulario
+document.getElementById('reservaForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  // Validar todos los pasos antes de enviar
+  if (validateAllSteps()) {
+    // Mostrar loading
+    document.getElementById('loading').style.display = 'block';
+    document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+    
+    // Enviar formulario
+    this.submit();
+  } else {
+    // Si hay errores, ir al primer paso con error
+    goToFirstErrorStep();
+  }
+});
+
+// Navegación con teclado
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && currentStep < totalSteps) {
+    e.preventDefault();
+    nextStep(currentStep);
+  } else if (e.key === 'Escape' && currentStep > 1) {
+    e.preventDefault();
+    previousStep(currentStep);
+  }
+});
+
+// Funciones del calendario personalizado
+function initCalendar() {
+  console.log('📅 Inicializando calendario...');
+  renderCalendar();
+  console.log('✅ Calendario inicializado correctamente');
+}
+
+function renderCalendar() {
+  console.log('🎨 Renderizando calendario...');
+  
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  
+  // Actualizar título del calendario
+  const monthNames = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
+  
+  // Obtener primer día del mes y último día
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+  
+  const calendarDays = document.getElementById('calendarDays');
+  calendarDays.innerHTML = '';
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  console.log(`📅 Renderizando mes: ${monthNames[month]} ${year}`);
+  console.log(`📅 Fecha actual: ${today.toDateString()}`);
+  
+  // Generar días del calendario
+  for (let i = 0; i < 42; i++) {
+    const currentDay = new Date(startDate);
+    currentDay.setDate(startDate.getDate() + i);
+    
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    dayElement.textContent = currentDay.getDate();
+    
+    // Verificar si es del mes actual
+    if (currentDay.getMonth() !== month) {
+      dayElement.classList.add('other-month');
+    }
+    
+    // Verificar si es hoy
+    if (currentDay.getTime() === today.getTime()) {
+      dayElement.classList.add('today');
+    }
+    
+    // Verificar si es una fecha pasada
+    if (currentDay < today) {
+      dayElement.classList.add('disabled');
+    } else {
+      // Agregar evento de clic solo para fechas válidas
+      dayElement.addEventListener('click', function() {
+        selectDate(currentDay);
+      });
+    }
+    
+    // Verificar si es la fecha seleccionada
+    if (selectedDate && currentDay.getTime() === selectedDate.getTime()) {
+      dayElement.classList.add('selected');
+    }
+    
+    calendarDays.appendChild(dayElement);
+  }
+  
+  console.log('✅ Calendario renderizado correctamente');
+}
+
+function selectDate(date) {
+  console.log(`📅 Seleccionando fecha: ${date}`);
+  
+  // Remover selección anterior
+  document.querySelectorAll('.calendar-day.selected').forEach(day => {
+    day.classList.remove('selected');
+  });
+  
+  // Seleccionar nueva fecha
+  selectedDate = date;
+  const fechaInput = document.getElementById('fecha');
+  fechaInput.value = date.toISOString().split('T')[0];
+  
+  console.log(`✅ Fecha seleccionada: ${selectedDate}`);
+  console.log(`✅ Valor del campo fecha: ${fechaInput.value}`);
+  
+  // Marcar día como seleccionado
+  const dayElements = document.querySelectorAll('.calendar-day');
+  dayElements.forEach(day => {
+    if (day.textContent == date.getDate() && !day.classList.contains('other-month')) {
+      day.classList.add('selected');
+    }
+  });
+  
+  // Ocultar error si existe
+  hideError('fechaError');
+  
+  // Actualizar horarios disponibles si ya se seleccionó profesional
+  if (document.getElementById('profesional').value) {
+    actualizarHorariosDisponibles();
+  }
+}
+
+function previousMonth() {
+  console.log('⬅️ Mes anterior...');
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  renderCalendar();
+}
+
+function nextMonth() {
+  console.log('➡️ Mes siguiente...');
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  renderCalendar();
+}
+
+// Funciones para la selección de servicios
+function initServicios() {
+  console.log('✂️ Inicializando servicios...');
+  
+  const servicioOptions = document.querySelectorAll('.servicio-option');
+  console.log(`📋 Servicios encontrados: ${servicioOptions.length}`);
+  
+  servicioOptions.forEach((option, index) => {
+    option.addEventListener('click', function() {
+      selectServicio(this);
+    });
+    console.log(`✅ Servicio ${index + 1} inicializado`);
+  });
+  
+  console.log('✅ Servicios inicializados correctamente');
+}
+
+function selectServicio(optionElement) {
+  console.log(`✂️ Seleccionando servicio: ${optionElement.getAttribute('data-servicio-id')}`);
+  
+  // Remover selección anterior
+  document.querySelectorAll('.servicio-option.selected').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  
+  // Seleccionar nueva opción
+  optionElement.classList.add('selected');
+  
+  // Actualizar campo oculto
+  const servicioInput = document.getElementById('servicio');
+  const servicioId = optionElement.getAttribute('data-servicio-id');
+  servicioInput.value = servicioId;
+  
+  console.log(`✅ Servicio seleccionado: ${servicioId}`);
+  console.log(`✅ Valor del campo servicio: ${servicioInput.value}`);
+  
+  // Ocultar error si existe
+  hideError('servicioError');
+  
+  // Actualizar horarios disponibles si ya se seleccionó fecha y profesional
+  if (selectedDate && document.getElementById('profesional').value) {
+    actualizarHorariosDisponibles();
+  }
+}
+
+// Funciones para la selección de profesionales
+function initProfesionales() {
+  console.log('👤 Inicializando profesionales...');
+  
+  const profesionalOptions = document.querySelectorAll('.profesional-option');
+  console.log(`📋 Profesionales encontrados: ${profesionalOptions.length}`);
+  
+  profesionalOptions.forEach((option, index) => {
+    option.addEventListener('click', function() {
+      selectProfesional(this);
+    });
+    console.log(`✅ Profesional ${index + 1} inicializado`);
+  });
+  
+  console.log('✅ Profesionales inicializados correctamente');
+}
+
+function selectProfesional(optionElement) {
+  console.log(`👤 Seleccionando profesional: ${optionElement.getAttribute('data-profesional-id')}`);
+  
+  // Remover selección anterior
+  document.querySelectorAll('.profesional-option.selected').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  
+  // Seleccionar nueva opción
+  optionElement.classList.add('selected');
+  
+  // Actualizar campo oculto
+  const profesionalInput = document.getElementById('profesional');
+  const profesionalId = optionElement.getAttribute('data-profesional-id');
+  profesionalInput.value = profesionalId;
+  
+  console.log(`✅ Profesional seleccionado: ${profesionalId}`);
+  console.log(`✅ Valor del campo profesional: ${profesionalInput.value}`);
+  
+  // Ocultar error si existe
+  hideError('profesionalError');
+  
+  // Actualizar horarios disponibles si ya se seleccionó fecha y servicio
+  if (selectedDate) {
+    actualizarHorariosDisponibles();
+  }
+}
+
+// Funciones para la selección de horarios
+function initHorarios() {
+  console.log('🕐 Inicializando horarios...');
+  console.log('ℹ️ Los horarios se cargarán dinámicamente cuando se seleccione fecha y profesional');
+  console.log('✅ Horarios inicializados correctamente');
+}
+
+function actualizarHorariosDisponibles() {
+  console.log(`🔄 Actualizando horarios disponibles...`);
+  
+  const fecha = selectedDate;
+  const profesionalId = document.getElementById('profesional').value;
+  const servicioId = document.getElementById('servicio').value;
+  
+  console.log(`📅 Fecha: ${fecha}`);
+  console.log(`👤 Profesional: ${profesionalId}`);
+  console.log(`✂️ Servicio: ${servicioId}`);
+  
+  if (!fecha || !profesionalId) {
+    console.log(`⚠️ No se pueden actualizar horarios: fecha=${fecha}, profesional=${profesionalId}`);
+    return;
+  }
+  
+  const horariosGrid = document.getElementById('horariosGrid');
+  horariosGrid.innerHTML = '<div class="loading-horarios"><div class="loading-spinner"></div><p>Cargando horarios disponibles...</p></div>';
+  
+  console.log(`⏳ Cargando horarios desde API...`);
+  
+  // Llamar a la API real de horarios disponibles
+  const negocioId = {{ negocio.id }};
+  const fechaFormateada = fecha.toISOString().split('T')[0];
+  const duracion = servicioId ? obtenerDuracionServicio(servicioId) : 30;
+  
+  const url = `/clientes/api/horarios-disponibles/${negocioId}/?fecha=${fechaFormateada}&profesional_id=${profesionalId}&duracion=${duracion}`;
+  
+  fetch(url)
+    .then(response => {
+      console.log(`📡 Respuesta de API: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(`✅ Datos recibidos de API:`, data);
+      renderizarHorariosReales(data);
+    })
+    .catch(error => {
+      console.error(`❌ Error cargando horarios:`, error);
+      mostrarErrorHorarios('Error al cargar horarios disponibles. Intenta nuevamente.');
+    });
+}
+
+function renderizarHorariosReales(data) {
+  console.log(`🎯 Renderizando horarios reales desde API...`);
+  
+  const horariosGrid = document.getElementById('horariosGrid');
+  horariosGrid.innerHTML = '';
+  
+  // Verificar si es festivo
+  if (data.festivo) {
+    horariosGrid.innerHTML = `
+      <div class="no-horarios" style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--color-smoke-white);">
+        <i class="bi bi-calendar-x" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+        <p>No hay horarios disponibles en días festivos</p>
+        <small>Selecciona otro día para continuar</small>
+      </div>
+    `;
+    return;
+  }
+  
+  const horariosDisponibles = data.disponibles || [];
+  console.log(`📋 Horarios disponibles desde API: ${horariosDisponibles.length}`);
+  
+  if (horariosDisponibles.length === 0) {
+    horariosGrid.innerHTML = `
+      <div class="no-horarios" style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--color-smoke-white);">
+        <i class="bi bi-clock" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+        <p>No hay horarios disponibles para esta fecha</p>
+        <small>Intenta con otra fecha o contacta al negocio</small>
+      </div>
+    `;
+    return;
+  }
+  
+  // Renderizar horarios reales
+  horariosDisponibles.forEach(horario => {
+    const horarioElement = document.createElement('div');
+    const horaInicio = horario.inicio;
+    const duracion = horario.duracion || 30;
+    
+    horarioElement.className = 'horario-option';
+    horarioElement.setAttribute('data-hora', horaInicio);
+    
+    horarioElement.addEventListener('click', function() {
+      selectHorario(this);
+    });
+    
+    horarioElement.innerHTML = `
+      <div class="horario-time">${horaInicio}</div>
+      <div class="horario-duration">${duracion} min</div>
+    `;
+    
+    horariosGrid.appendChild(horarioElement);
+  });
+  
+  console.log(`✅ Horarios reales renderizados correctamente`);
+}
+
+function mostrarErrorHorarios(mensaje) {
+  console.log(`❌ Mostrando error de horarios: ${mensaje}`);
+  
+  const horariosGrid = document.getElementById('horariosGrid');
+  horariosGrid.innerHTML = `
+    <div class="error-horarios" style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--color-error);">
+      <i class="bi bi-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+      <p>${mensaje}</p>
+      <button type="button" class="btn btn-outline" onclick="actualizarHorariosDisponibles()" style="margin-top: 1rem;">
+        <i class="bi bi-arrow-clockwise"></i> Reintentar
+      </button>
+    </div>
+  `;
+}
+
+function obtenerDuracionServicio(servicioId) {
+  console.log(`⏱️ Obteniendo duración del servicio: ${servicioId}`);
+  
+  if (!servicioId) {
+    console.log(`⚠️ Sin servicio seleccionado, duración por defecto: 30 minutos`);
+    return 30;
+  }
+  
+  const servicioOption = document.querySelector(`[data-servicio-id="${servicioId}"]`);
+  if (servicioOption) {
+    const duracion = parseInt(servicioOption.getAttribute('data-duracion')) || 30;
+    console.log(`✅ Duración del servicio ${servicioId}: ${duracion} minutos`);
+    return duracion;
+  }
+  
+  console.log(`⚠️ Servicio no encontrado, duración por defecto: 30 minutos`);
+  return 30;
+}
+
+function selectHorario(optionElement) {
+  console.log(`🕐 Seleccionando horario: ${optionElement.getAttribute('data-hora')}`);
+  
+  // Remover selección anterior
+  document.querySelectorAll('.horario-option.selected').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  
+  // Seleccionar nueva opción
+  optionElement.classList.add('selected');
+  
+  // Actualizar campo oculto
+  const horaInput = document.getElementById('hora_inicio');
+  const hora = optionElement.getAttribute('data-hora');
+  horaInput.value = hora;
+  
+  console.log(`✅ Horario seleccionado: ${hora}`);
+  console.log(`✅ Valor del campo hora_inicio: ${horaInput.value}`);
+  
+  // Ocultar error si existe
+  hideError('horaError');
+}
+</script>
+
+{% endblock %}

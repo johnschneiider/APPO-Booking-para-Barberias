@@ -1,0 +1,34 @@
+¡Reserva Confirmada! - APPO
+
+¡Hola {{ cliente.first_name|default:cliente.username }}!
+
+¡Excelente! Tu reserva en {{ negocio.nombre }} ha sido confirmada exitosamente.
+
+📋 Detalles de tu reserva:
+📅 Fecha: {{ fecha_formateada }}
+🕐 Hora: {{ hora_formateada }}
+🏢 Negocio: {{ negocio.nombre }}
+{% if profesional %}👨‍💼 Profesional: {{ profesional.nombre_completo }}{% endif %}
+{% if reserva.servicio %}✂️ Servicio: {{ reserva.servicio.servicio.nombre }}{% endif %}
+📍 Dirección: {{ negocio.direccion }}
+🆔 Número de reserva: #{{ reserva.id }}
+
+📱 Próximos pasos:
+- Recibirás un recordatorio 1 día antes de tu cita
+- Recibirás otro recordatorio 3 horas antes
+- Si necesitas cambiar algo, puedes hacerlo desde tu perfil
+
+💡 Consejos para tu cita:
+- Llega 10 minutos antes de tu hora programada
+- Trae una foto de referencia si tienes algo específico en mente
+- Si necesitas cancelar, hazlo con al menos 24 horas de anticipación
+
+¿Necesitas gestionar tu reserva?
+https://appo.com.co/mis-reservas/
+
+¡Te esperamos!
+El equipo de {{ negocio.nombre }}
+
+---
+Este es un email automático de APPO - Tu plataforma de reservas
+Si tienes alguna pregunta, contacta directamente a {{ negocio.nombre }} 

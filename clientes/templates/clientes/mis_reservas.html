@@ -1,0 +1,1163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Reservas - Appo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/clientes/reservas.css' %}" rel="stylesheet">
+<style>
+.mis-reservas-main *:not(i):not(svg) {
+  font-family: var(--font-ui), sans-serif !important;
+}
+
+    .reserva-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .reserva-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .badge-estado {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .badge-estado.pendiente {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .badge-estado.confirmado {
+        background-color: #198754;
+        color: white !important;
+    }
+    
+    .badge-estado.completado {
+        background-color: #0d6efd;
+        color: white !important;
+    }
+    
+    .badge-estado.cancelado {
+        background-color: #dc3545;
+        color: white !important;
+    }
+    
+    /* Estilos para la tabla de historial unificado */
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa !important;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    .reserva-row {
+        transition: all 0.2s ease;
+    }
+    
+    .reserva-row:hover {
+        background-color: #e3f2fd !important;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .table-primary {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .table-primary th {
+        border-color: #2196f3;
+        font-weight: 600;
+    }
+    
+    /* Colores específicos por estado en las filas */
+    .reserva-row[data-reserva-estado="pendiente"]:hover {
+        background-color: #fff3cd !important;
+        border-left-color: #ffc107;
+    }
+    
+    .reserva-row[data-reserva-estado="confirmado"]:hover {
+        background-color: #d1edff !important;
+        border-left-color: #198754;
+    }
+    
+    .reserva-row[data-reserva-estado="completado"]:hover {
+        background-color: #e8f5e8 !important;
+        border-left-color: #0d6efd;
+    }
+    
+    .reserva-row[data-reserva-estado="cancelado"]:hover {
+        background-color: #ffeaea !important;
+        border-left-color: #dc3545;
+    }
+    
+    /* Animación para las filas */
+    .reserva-row {
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Estilos para el botón de ver detalles */
+    .btn-outline-primary {
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Estilos responsive para móviles */
+    .reserva-card-mobile {
+        display: none;
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #2196f3;
+        transition: all 0.3s ease;
+    }
+
+    .reserva-card-mobile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .reserva-card-mobile .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .reserva-card-mobile .card-body {
+        padding: 0;
+    }
+
+    .reserva-card-mobile .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+    }
+
+    .reserva-card-mobile .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .reserva-card-mobile .info-value {
+        color: #212529;
+        font-size: 0.875rem;
+        text-align: right;
+        max-width: 60%;
+        word-wrap: break-word;
+    }
+
+    .reserva-card-mobile .estado-badge {
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    /* Ocultar tabla en móviles, mostrar cards */
+    @media (max-width: 768px) {
+        .table-responsive {
+            display: none;
+        }
+        
+        .reserva-card-mobile {
+            display: block;
+        }
+        
+        .container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Mostrar tabla en pantallas grandes, ocultar cards */
+    @media (min-width: 769px) {
+        .reserva-card-mobile {
+            display: none;
+        }
+        
+        .table-responsive {
+            display: block;
+        }
+    }
+
+    /* Ajustes para pantallas muy pequeñas */
+    @media (max-width: 480px) {
+        .reserva-card-mobile {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .reserva-card-mobile .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .reserva-card-mobile .info-value {
+            text-align: left;
+            max-width: 100%;
+            margin-top: 0.25rem;
+        }
+        
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 mis-reservas-main">
+    <h2 class="mb-4">Mis Reservas</h2>
+    
+    <!-- Historial de Reservas -->
+    {% if total_reservas > 0 %}
+    <div class="mb-4">
+        <h4 class="text-primary">
+            <i class="bi bi-clock-history me-2"></i>Historial de Reservas
+        </h4>
+        
+        <!-- Vista de tabla para pantallas grandes -->
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Peluquero</th>
+                        <th>Profesional</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas_pendientes %}
+                    <tr class="reserva-row" 
+                        style="cursor: pointer;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#reservaModal" 
+                        data-reserva-id="{{ reserva.id }}"
+                        data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                        data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                        data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                        data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                        data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                        data-reserva-estado="{{ reserva.estado }}">
+                        <td>
+                            <strong>{{ reserva.peluquero.nombre }}</strong>
+                        </td>
+                        <td>
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td>
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-estado confirmado">
+                                Confirmado
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% for reserva in reservas_confirmadas %}
+                    <tr class="reserva-row" 
+                        style="cursor: pointer;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#reservaModal" 
+                        data-reserva-id="{{ reserva.id }}"
+                        data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                        data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                        data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                        data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                        data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                        data-reserva-estado="{{ reserva.estado }}">
+                        <td>
+                            <strong>{{ reserva.peluquero.nombre }}</strong>
+                        </td>
+                        <td>
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td>
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-estado {{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% for reserva in reservas_completadas %}
+                    <tr class="reserva-row" 
+                        style="cursor: pointer;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#reservaModal" 
+                        data-reserva-id="{{ reserva.id }}"
+                        data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                        data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                        data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                        data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                        data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                        data-reserva-estado="{{ reserva.estado }}">
+                        <td>
+                            <strong>{{ reserva.peluquero.nombre }}</strong>
+                        </td>
+                        <td>
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td>
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-estado {{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% for reserva in reservas_canceladas %}
+                    <tr class="reserva-row" 
+                        style="cursor: pointer;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#reservaModal" 
+                        data-reserva-id="{{ reserva.id }}"
+                        data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                        data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                        data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                        data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                        data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                        data-reserva-estado="{{ reserva.estado }}">
+                        <td>
+                            <strong>{{ reserva.peluquero.nombre }}</strong>
+                        </td>
+                        <td>
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td>
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-estado {{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vista de cards para móviles -->
+        <div class="reservas-mobile">
+            {% for reserva in reservas_pendientes %}
+            <div class="reserva-card-mobile" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#reservaModal" 
+                 data-reserva-id="{{ reserva.id }}"
+                 data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                 data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                 data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                 data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                 data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                 data-reserva-estado="{{ reserva.estado }}">
+                <div class="card-header">
+                    <strong>{{ reserva.peluquero.nombre }}</strong>
+                    <span class="badge badge-estado confirmado">
+                        Confirmado
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Profesional:</span>
+                        <span class="info-value">
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha:</span>
+                        <span class="info-value">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hora:</span>
+                        <span class="info-value">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Servicio:</span>
+                        <span class="info-value">
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% for reserva in reservas_confirmadas %}
+            <div class="reserva-card-mobile" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#reservaModal" 
+                 data-reserva-id="{{ reserva.id }}"
+                 data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                 data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                 data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                 data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                 data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                 data-reserva-estado="{{ reserva.estado }}">
+                <div class="card-header">
+                    <strong>{{ reserva.peluquero.nombre }}</strong>
+                    <span class="badge badge-estado {{ reserva.estado }}">
+                        {{ reserva.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Profesional:</span>
+                        <span class="info-value">
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha:</span>
+                        <span class="info-value">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hora:</span>
+                        <span class="info-value">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Servicio:</span>
+                        <span class="info-value">
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% for reserva in reservas_completadas %}
+            <div class="reserva-card-mobile" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#reservaModal" 
+                 data-reserva-id="{{ reserva.id }}"
+                 data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                 data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                 data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                 data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                 data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                 data-reserva-estado="{{ reserva.estado }}">
+                <div class="card-header">
+                    <strong>{{ reserva.peluquero.nombre }}</strong>
+                    <span class="badge badge-estado {{ reserva.estado }}">
+                        {{ reserva.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Profesional:</span>
+                        <span class="info-value">
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha:</span>
+                        <span class="info-value">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hora:</span>
+                        <span class="info-value">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Servicio:</span>
+                        <span class="info-value">
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% for reserva in reservas_canceladas %}
+            <div class="reserva-card-mobile" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#reservaModal" 
+                 data-reserva-id="{{ reserva.id }}"
+                 data-reserva-peluquero="{{ reserva.peluquero.nombre }}"
+                 data-reserva-fecha="{{ reserva.fecha|date:'d/m/Y' }}"
+                 data-reserva-hora="{{ reserva.hora_inicio|time:'H:i' }}"
+                 data-reserva-servicio="{{ reserva.servicio.servicio.nombre|default:'No especificado' }}"
+                 data-reserva-notas="{{ reserva.notas|default:'Sin notas' }}"
+                 data-reserva-estado="{{ reserva.estado }}">
+                <div class="card-header">
+                    <strong>{{ reserva.peluquero.nombre }}</strong>
+                    <span class="badge badge-estado {{ reserva.estado }}">
+                        {{ reserva.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Profesional:</span>
+                        <span class="info-value">
+                            {% if reserva.profesional %}
+                                {{ reserva.profesional.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">No asignado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha:</span>
+                        <span class="info-value">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ reserva.fecha|date:"d/m/Y" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hora:</span>
+                        <span class="info-value">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Servicio:</span>
+                        <span class="info-value">
+                            {% if reserva.servicio %}
+                                <i class="bi bi-scissors me-1"></i>
+                                {{ reserva.servicio.servicio.nombre }}
+                            {% else %}
+                                <span class="text-muted">No especificado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Haz clic en cualquier fila o tarjeta para ver las opciones disponibles
+            </small>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Mensaje cuando no hay reservas -->
+    {% if total_reservas == 0 %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No tienes reservas actualmente.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de Detalle de Reserva -->
+<div class="modal fade" id="reservaModal" tabindex="-1" aria-labelledby="reservaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservaModalLabel">Detalles de la Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6><i class="bi bi-shop me-2"></i>Peluquero:</h6>
+                            <p id="modal-peluquero" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="bi bi-calendar-event me-2"></i>Fecha:</h6>
+                            <p id="modal-fecha" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="bi bi-clock me-2"></i>Hora:</h6>
+                            <p id="modal-hora" class="mb-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6><i class="bi bi-scissors me-2"></i>Servicio:</h6>
+                            <p id="modal-servicio" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="bi bi-sticky me-2"></i>Notas:</h6>
+                            <p id="modal-notas" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="bi bi-info-circle me-2"></i>Estado:</h6>
+                            <p><span class="badge" id="modal-estado"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mensaje informativo para reservas canceladas -->
+                <div id="modal-info-cancelada" class="alert alert-warning" style="display: none;">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Esta reserva fue cancelada. Puedes reagendarla para una nueva fecha y hora.
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end align-items-center">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger" id="btn-cancelar">Cancelar cita</button>
+                    <button type="button" class="btn btn-primary" id="btn-reagendar">Reagendar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Reagendamiento -->
+<div class="modal fade" id="reagendarModal" tabindex="-1" aria-labelledby="reagendarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reagendarModalLabel">Reagendar Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reagendarForm" method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="reserva_id" id="reagendar-reserva-id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nueva_fecha" class="form-label">Nueva Fecha</label>
+                        <input type="date" class="form-control" id="nueva_fecha" name="nueva_fecha" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nueva_hora" class="form-label">Nueva Hora</label>
+                        <select class="form-control" id="nueva_hora" name="nueva_hora" required>
+                            <option value="">Selecciona una fecha primero</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar Reagendamiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="csrf_token_js" value="{{ csrf_token }}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Constantes y variables
+    const reservaModal = document.getElementById('reservaModal');
+    const reagendarModal = new bootstrap.Modal(document.getElementById('reagendarModal'));
+    const hoy = new Date().toISOString().split('T')[0];
+    let reservaIdActual = null;
+    
+    // Elementos del DOM que se usan frecuentemente
+    const DOM_ELEMENTS = {
+        modalPeluquero: document.getElementById('modal-peluquero'),
+        modalFecha: document.getElementById('modal-fecha'),
+        modalHora: document.getElementById('modal-hora'),
+        modalServicio: document.getElementById('modal-servicio'),
+        modalNotas: document.getElementById('modal-notas'),
+        modalEstado: document.getElementById('modal-estado'),
+        modalInfoCancelada: document.getElementById('modal-info-cancelada'),
+        btnCancelar: document.getElementById('btn-cancelar'),
+        btnReagendar: document.getElementById('btn-reagendar'),
+        nuevaFecha: document.getElementById('nueva_fecha'),
+        nuevaHora: document.getElementById('nueva_hora'),
+        reagendarForm: document.getElementById('reagendarForm'),
+        reagendarReservaId: document.getElementById('reagendar-reserva-id')
+    };
+
+    // Funciones de utilidad
+    const utils = {
+        getCSRFToken: () => {
+            const input = document.getElementById('csrf_token_js');
+            if (input) return input.value;
+            const token = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!token) {
+                throw new Error('CSRF token no encontrado');
+            }
+            return token.value;
+        },
+        
+        showAlert: (message, type = 'success') => {
+            // Implementar un sistema de notificaciones más elegante
+            alert(message); // Puedes reemplazar esto con un toast/sweet alert
+        },
+        
+        handleApiError: (error, defaultMessage = 'Ocurrió un error') => {
+            console.error('API Error:', error);
+            let errorMessage = defaultMessage;
+            
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+            
+            utils.showAlert(errorMessage, 'error');
+            return errorMessage;
+        },
+        
+        validateResponse: async (response) => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Respuesta no válida del servidor');
+            }
+            
+            return response.json();
+        },
+        
+        resetFormErrors: () => {
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('.invalid-feedback').forEach(el => {
+                el.remove();
+            });
+        }
+    };
+
+    // Función para ver detalles de una reserva específica
+    function verDetalles(reservaId) {
+        // Buscar la fila correspondiente
+        const fila = document.querySelector(`tr[data-reserva-id="${reservaId}"]`);
+        if (fila) {
+            // Simular el clic en la fila para abrir el modal
+            fila.click();
+        }
+    }
+    
+    // Manejar la apertura del modal de detalles
+    reservaModal.addEventListener('show.bs.modal', function(event) {
+        try {
+            const button = event.relatedTarget;
+            reservaIdActual = button.getAttribute('data-reserva-id');
+            
+            // Validar que el ID de reserva existe
+            if (!reservaIdActual) {
+                throw new Error('No se pudo identificar la reserva');
+            }
+            
+            // Actualizar contenido del modal
+            DOM_ELEMENTS.modalPeluquero.textContent = button.getAttribute('data-reserva-peluquero') || 'No especificado';
+            DOM_ELEMENTS.modalFecha.textContent = button.getAttribute('data-reserva-fecha') || 'No especificada';
+            DOM_ELEMENTS.modalHora.textContent = button.getAttribute('data-reserva-hora') || 'No especificada';
+            DOM_ELEMENTS.modalServicio.textContent = button.getAttribute('data-reserva-servicio') || 'No especificado';
+            DOM_ELEMENTS.modalNotas.textContent = button.getAttribute('data-reserva-notas') || 'No hay notas';
+            
+            // Actualizar estado
+            const estado = button.getAttribute('data-reserva-estado') || 'pendiente';
+            if (estado === 'pendiente') {
+                DOM_ELEMENTS.modalEstado.textContent = 'Confirmado';
+                DOM_ELEMENTS.modalEstado.className = 'badge confirmado';
+            } else {
+                DOM_ELEMENTS.modalEstado.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
+                DOM_ELEMENTS.modalEstado.className = 'badge ' + estado;
+            }
+            
+            // Mostrar/ocultar botones según estado
+            const isDisabled = estado === 'cancelado' || estado === 'completado';
+            DOM_ELEMENTS.btnCancelar.disabled = isDisabled;
+            DOM_ELEMENTS.btnReagendar.disabled = isDisabled;
+            
+            // Agregar mensajes informativos según el estado
+            if (estado === 'cancelado') {
+                DOM_ELEMENTS.btnCancelar.title = 'Esta reserva ya fue cancelada';
+                DOM_ELEMENTS.btnReagendar.title = 'Reagendar esta reserva cancelada';
+                // Ocultar botón de cancelar para reservas ya canceladas
+                DOM_ELEMENTS.btnCancelar.style.display = 'none';
+                DOM_ELEMENTS.modalInfoCancelada.style.display = 'block'; // Mostrar mensaje
+            } else if (estado === 'completado') {
+                DOM_ELEMENTS.btnCancelar.title = 'No se puede cancelar una reserva completada';
+                DOM_ELEMENTS.btnReagendar.title = 'No se puede reagendar una reserva completada';
+                DOM_ELEMENTS.modalInfoCancelada.style.display = 'none'; // Ocultar mensaje
+            } else {
+                DOM_ELEMENTS.btnCancelar.title = 'Cancelar esta reserva';
+                DOM_ELEMENTS.btnReagendar.title = 'Reagendar esta reserva';
+                // Mostrar botón de cancelar para reservas activas
+                DOM_ELEMENTS.btnCancelar.style.display = 'inline-block';
+                DOM_ELEMENTS.modalInfoCancelada.style.display = 'none'; // Ocultar mensaje
+            }
+            
+        } catch (error) {
+            utils.handleApiError(error, 'Error al cargar los detalles de la reserva');
+            // Cierra el modal si hay un error
+            bootstrap.Modal.getInstance(reservaModal).hide();
+        }
+    });
+    
+    // Manejar cancelación de reserva
+DOM_ELEMENTS.btnCancelar.addEventListener('click', async function() {
+    try {
+        if (!reservaIdActual) {
+            throw new Error('No se ha seleccionado ninguna reserva');
+        }
+        
+        // Redirigir a la página de cancelación en lugar de usar AJAX
+        window.location.href = `{% url 'clientes:cancelar_reserva' 0 %}`.replace('0', reservaIdActual);
+        
+    } catch (error) {
+        utils.handleApiError(error);
+    }
+});
+    
+    // Manejar apertura del modal de reagendamiento
+    DOM_ELEMENTS.btnReagendar.addEventListener('click', function() {
+        try {
+            if (!reservaIdActual) {
+                throw new Error('No se ha seleccionado ninguna reserva');
+            }
+            
+            DOM_ELEMENTS.reagendarReservaId.value = reservaIdActual;
+            DOM_ELEMENTS.nuevaFecha.value = '';
+            DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">Selecciona una fecha primero</option>';
+            DOM_ELEMENTS.nuevaHora.disabled = true;
+            DOM_ELEMENTS.nuevaFecha.min = hoy;
+            
+            utils.resetFormErrors();
+            reagendarModal.show();
+            
+        } catch (error) {
+            utils.handleApiError(error);
+        }
+    });
+    
+    // Manejar envío del formulario de reagendamiento
+    DOM_ELEMENTS.reagendarForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            const csrfToken = utils.getCSRFToken();
+            const formData = {
+                fecha: DOM_ELEMENTS.nuevaFecha.value,
+                hora_inicio: DOM_ELEMENTS.nuevaHora.value
+            };
+            
+            // Validación básica del lado del cliente
+            if (!formData.fecha || !formData.hora_inicio) {
+                throw new Error('Por favor completa todos los campos');
+            }
+            
+            if (new Date(formData.fecha) < new Date(hoy)) {
+                throw new Error('No puedes seleccionar una fecha pasada');
+            }
+            
+            const response = await fetch(
+                `{% url 'clientes:reagendar_reserva' 0 %}`.replace('0', reservaIdActual), 
+                {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData)
+                }
+            );
+            
+            const data = await utils.validateResponse(response);
+            
+            if (data.success) {
+                utils.showAlert(data.message || 'Reserva reagendada exitosamente');
+                reagendarModal.hide();
+                location.reload();
+            } else {
+                // Mostrar errores de validación del servidor en el formulario
+                if (data.errors) {
+                    utils.resetFormErrors();
+                    
+                    for (const [field, messages] of Object.entries(data.errors)) {
+                        const input = document.getElementById(`nueva_${field}`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'invalid-feedback';
+                            errorDiv.textContent = messages.join(', ');
+                            input.parentNode.appendChild(errorDiv);
+                        }
+                    }
+                    
+                    throw new Error('Por favor corrige los errores en el formulario');
+                }
+                
+                throw new Error(data.message || 'No se pudo reagendar la reserva');
+            }
+            
+        } catch (error) {
+            utils.handleApiError(error);
+        }
+    });
+    
+    // Limpiar al cerrar modales
+    reservaModal.addEventListener('hidden.bs.modal', function() {
+        reservaIdActual = null;
+    });
+    
+    document.getElementById('reagendarModal').addEventListener('hidden.bs.modal', function() {
+        utils.resetFormErrors();
+    });
+    
+    // Cargar horarios disponibles cuando se selecciona una fecha
+    DOM_ELEMENTS.nuevaFecha.addEventListener('change', async function() {
+        try {
+            const fechaSeleccionada = this.value;
+            
+            // Validar fecha
+            if (fechaSeleccionada < hoy) {
+                this.setCustomValidity('No puedes seleccionar una fecha pasada');
+                this.classList.add('is-invalid');
+                return;
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+            }
+            
+            // Limpiar select de horas
+            DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">Cargando horarios...</option>';
+            DOM_ELEMENTS.nuevaHora.disabled = true;
+            
+            // Obtener horarios disponibles
+            const response = await fetch(
+                `{% url 'clientes:horarios_disponibles_reagendar' 0 %}`.replace('0', reservaIdActual) + 
+                `?fecha=${fechaSeleccionada}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }
+            );
+            
+            const data = await response.json();
+            
+            // Limpiar select
+            DOM_ELEMENTS.nuevaHora.innerHTML = '';
+            
+            if (data.error) {
+                DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">Error al cargar horarios</option>';
+                return;
+            }
+            
+            if (data.festivo) {
+                DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">Día festivo - No hay horarios disponibles</option>';
+                return;
+            }
+            
+            if (data.disponibles && data.disponibles.length > 0) {
+                // Agregar opción por defecto
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecciona un horario';
+                DOM_ELEMENTS.nuevaHora.appendChild(defaultOption);
+                
+                // Agregar horarios disponibles
+                data.disponibles.forEach(horario => {
+                    const option = document.createElement('option');
+                    option.value = horario.inicio;
+                    option.textContent = `${horario.inicio} - ${horario.fin}`;
+                    DOM_ELEMENTS.nuevaHora.appendChild(option);
+                });
+                
+                DOM_ELEMENTS.nuevaHora.disabled = false;
+            } else {
+                DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">No hay horarios disponibles para esta fecha</option>';
+            }
+            
+        } catch (error) {
+            console.error('Error cargando horarios:', error);
+            DOM_ELEMENTS.nuevaHora.innerHTML = '<option value="">Error al cargar horarios</option>';
+        }
+    });
+});
+</script>
+
+<style>
+    /* ... estilos existentes ... */
+    
+    .toast {
+        transition: opacity 0.3s ease;
+        margin-bottom: 10px;
+    }
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+    .bg-error {
+        background-color: #dc3545 !important;
+    }
+    .spinner-border {
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}

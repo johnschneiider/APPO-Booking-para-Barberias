@@ -1,0 +1,83 @@
+/* Mejoras visuales y responsive para dashboard de clientes */
+.dashboard-hero {
+  background: var(--color-soft-lavender-gray);
+  border-radius: 1.2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem 0.5rem 1.5rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(46,46,58,0.07);
+}
+.dashboard-stats .stat-box {
+  box-shadow: 0 2px 8px rgba(46,46,58,0.08);
+  border-radius: 1.1rem;
+  min-width: 90px;
+  margin-right: 0.5rem;
+}
+.dashboard-stats .stat-box:last-child {
+  margin-right: 0;
+}
+.card.hover-shadow:hover {
+  box-shadow: 0 4px 24px rgba(46,46,58,0.13);
+  transform: translateY(-2px) scale(1.01);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card .btn-link {
+  color: var(--color-teal-accent);
+  font-size: 1.1rem;
+}
+.card .btn-link:hover {
+  color: var(--color-coral-blush);
+}
+.bg-coral-blush {
+  background: var(--color-coral-blush) !important;
+  color: var(--color-deep-charcoal) !important;
+}
+.bg-aqua-mint {
+  background: var(--color-aqua-mint) !important;
+  color: var(--color-deep-charcoal) !important;
+}
+.bg-teal-accent {
+  background: var(--color-teal-accent) !important;
+  color: #fff !important;
+}
+@media (max-width: 768px) {
+  .dashboard-hero {
+    flex-direction: column;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    text-align: left;
+  }
+  .dashboard-stats {
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    margin-top: 1rem;
+  }
+  .dashboard-stats .stat-box {
+    min-width: 80px;
+    font-size: 1.1rem;
+    padding: 0.7rem 0.5rem;
+  }
+  .card, .card-body {
+    padding: 1.2rem 0.7rem !important;
+    border-radius: 1.1rem !important;
+  }
+  .card .btn, .card .btn-link {
+    font-size: 1.1rem;
+    padding: 0.9em 1.2em;
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .d-flex.flex-wrap.gap-2 > div {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+.toast {
+  background: var(--color-aqua-mint);
+  color: var(--color-deep-charcoal);
+  border-radius: 1.1rem;
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  box-shadow: 0 2px 12px rgba(46,46,58,0.07);
+} 

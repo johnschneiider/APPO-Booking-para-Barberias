@@ -1,0 +1,1204 @@
+{% extends 'suscripciones/base_suscripciones_negocio.html' %}
+{% load static %}
+
+{% block suscripciones_content %}
+<!-- Token CSRF oculto para JavaScript -->
+{% csrf_token %}
+
+<div class="planes-header">
+    <div class="header-content">
+        <h1 class="planes-title">
+            <i class="bi bi-crown"></i>
+            Mis Planes de Suscripción
+        </h1>
+        <p class="planes-subtitle">Gestiona los planes que ofreces a tus clientes</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'suscripciones:crear_plan' negocio_id=negocio.id %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Crear Nuevo Plan
+        </a>
+        <button class="btn btn-outline-primary" onclick="mostrarEstadisticas()">
+            <i class="bi bi-bar-chart"></i>
+            Estadísticas
+        </button>
+    </div>
+</div>
+
+<div class="planes-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="bi bi-crown"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ total_planes }}</h3>
+            <p class="stat-label">Total Planes</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon active">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ planes_activos }}</h3>
+            <p class="stat-label">Planes Activos</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ total_suscriptores }}</h3>
+            <p class="stat-label">Total Suscriptores</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon revenue">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">${{ ingresos_mensuales }}</h3>
+            <p class="stat-label">Ingresos Mensuales</p>
+        </div>
+    </div>
+</div>
+
+<div class="planes-filters">
+    <div class="filter-group">
+        <label for="estado-filter">Estado:</label>
+        <select id="estado-filter" class="form-select" onchange="filtrarPlanes()">
+            <option value="">Todos</option>
+            <option value="activo">Activos</option>
+            <option value="inactivo">Inactivos</option>
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="destacado-filter">Destacados:</label>
+        <select id="destacado-filter" class="form-select" onchange="filtrarPlanes()">
+            <option value="">Todos</option>
+            <option value="true">Solo Destacados</option>
+            <option value="false">No Destacados</option>
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="search-filter">Buscar:</label>
+        <input type="text" id="search-filter" class="form-control" placeholder="Nombre del plan..." onkeyup="filtrarPlanes()">
+    </div>
+</div>
+
+<div class="planes-grid">
+    {% for plan in planes %}
+    <div class="plan-card" data-estado="{{ plan.activo|yesno:'activo,inactivo' }}" data-destacado="{{ plan.destacado|yesno:'true,false' }}" onclick="editarPlan({{ plan.id }})" style="cursor: pointer;">
+        <div class="plan-header">
+            <div class="plan-status">
+                {% if plan.activo %}
+                <span class="status-badge status-activo">
+                    <i class="bi bi-check-circle-fill"></i> Activo
+                </span>
+                {% else %}
+                <span class="status-badge status-inactivo">
+                    <i class="bi bi-x-circle-fill"></i> Inactivo
+                </span>
+                {% endif %}
+                
+                {% if plan.destacado %}
+                <span class="destacado-badge">
+                    <i class="bi bi-star-fill"></i> Destacado
+                </span>
+                {% endif %}
+            </div>
+            
+            <div class="plan-actions" onclick="event.stopPropagation();">
+                <button class="btn btn-sm btn-outline-primary" onclick="verDetalles({{ plan.id }})" title="Ver detalles">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-warning" onclick="editarPlan({{ plan.id }})" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarPlan({{ plan.id }})" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="plan-image">
+            {% if plan.imagen %}
+            <img src="{{ plan.imagen.url }}" alt="{{ plan.nombre }}">
+            {% else %}
+            <div class="plan-image-placeholder">
+                <i class="bi bi-crown"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="plan-content">
+            <h3 class="plan-nombre">{{ plan.nombre }}</h3>
+            <p class="plan-descripcion">{{ plan.descripcion|truncatewords:15 }}</p>
+            
+            <div class="plan-precio">
+                <span class="precio-monto">${{ plan.precio_mensual }}</span>
+                <span class="precio-periodo">/mes</span>
+            </div>
+            
+            <div class="plan-duracion">
+                <i class="bi bi-calendar"></i>
+                <span>{{ plan.duracion_meses }} mes{{ plan.duracion_meses|pluralize:"es" }}</span>
+            </div>
+            
+            {% if plan.beneficios.all %}
+            <div class="plan-beneficios">
+                <h6>Beneficios:</h6>
+                <ul>
+                    {% for beneficio in plan.beneficios.all|slice:":2" %}
+                    <li>
+                        <i class="bi bi-check"></i>
+                        {{ beneficio.descripcion|truncatechars:25 }}
+                    </li>
+                    {% endfor %}
+                    {% if plan.beneficios.count > 2 %}
+                    <li class="mas-beneficios">
+                        <i class="bi bi-plus"></i>
+                        {{ plan.beneficios.count|add:"-2" }} más...
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="plan-stats">
+            <div class="stat-item">
+                <span class="stat-label">Suscriptores</span>
+                <span class="stat-value">{{ plan.total_suscriptores|default:"0" }}</span>
+            </div>
+            
+            <div class="stat-item">
+                <span class="stat-label">Ingresos</span>
+                <span class="stat-value">${{ plan.ingresos_mensuales|default:"0" }}</span>
+            </div>
+        </div>
+        
+        <div class="plan-footer">
+            <div class="plan-created">
+                <small>Creado: {{ plan.fecha_creacion|date:"d/m/Y" }}</small>
+            </div>
+            
+            <div class="plan-toggle" onclick="event.stopPropagation();">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="toggle-{{ plan.id }}" 
+                           {% if plan.activo %}checked{% endif %}
+                           onchange="togglePlan({{ plan.id }}, this.checked)">
+                    <label class="form-check-label" for="toggle-{{ plan.id }}">
+                        {{ plan.activo|yesno:"Desactivar,Activar" }}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="no-planes">
+        <div class="empty-state">
+            <i class="bi bi-crown"></i>
+            <h3>No tienes planes de suscripción</h3>
+            <p>Crea tu primer plan para empezar a recibir suscripciones de clientes.</p>
+            <a href="{% url 'suscripciones:crear_plan' negocio_id=negocio.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Crear Primer Plan
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal de Detalles del Plan -->
+<div class="modal fade" id="detallesPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detallesPlanModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Estadísticas -->
+<div class="modal fade" id="estadisticasModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Estadísticas de Planes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="estadisticas-grid">
+                    <div class="estadistica-chart">
+                        <h6>Suscriptores por Plan</h6>
+                        <canvas id="chartSuscriptores"></canvas>
+                    </div>
+                    <div class="estadistica-chart">
+                        <h6>Ingresos por Plan</h6>
+                        <canvas id="chartIngresos"></canvas>
+                    </div>
+                </div>
+                
+                <div class="estadisticas-detalle">
+                    <h6>Rendimiento por Plan</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Suscriptores</th>
+                                    <th>Ingresos Mensuales</th>
+                                    <th>Rendimiento</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rendimientoTableBody">
+                                <!-- Contenido dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="eliminarPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar este plan?</p>
+                <p class="text-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Esta acción no se puede deshacer y afectará a todas las suscripciones activas.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">
+                    <i class="bi bi-trash"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edición del Plan -->
+<div class="modal fade" id="editarPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil"></i>
+                    Editar Plan de Suscripción
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarPlanForm">
+                    <!-- Token CSRF oculto -->
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    <div class="row">
+                        <!-- Columna izquierda -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="planNombre" class="form-label">Nombre del Plan *</label>
+                                <input type="text" class="form-control" id="planNombre" name="nombre" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="planDescripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="planDescripcion" name="descripcion" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="planPrecio" class="form-label">Precio Mensual *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="planPrecio" name="precio_mensual" step="0.01" min="0" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="planDuracion" class="form-label">Duración (meses) *</label>
+                                        <input type="number" class="form-control" id="planDuracion" name="duracion_meses" min="1" max="60" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="planImagen" class="form-label">Imagen del Plan</label>
+                                <input type="file" class="form-control" id="planImagen" name="imagen" accept="image/*">
+                                <div class="form-text">Formatos: JPG, PNG, GIF. Máximo 5MB.</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna derecha -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado del Plan</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="activo" id="planActivo" value="true">
+                                        <label class="form-check-label" for="planActivo">
+                                            <i class="bi bi-check-circle-fill text-success"></i> Activo
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="activo" id="planInactivo" value="false">
+                                        <label class="form-check-label" for="planInactivo">
+                                            <i class="bi bi-x-circle-fill text-danger"></i> Inactivo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="planDestacado" name="destacado">
+                                    <label class="form-check-label" for="planDestacado">
+                                        <i class="bi bi-star-fill text-warning"></i> Plan Destacado
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Beneficios del Plan</label>
+                                <div id="beneficiosContainer">
+                                    <div class="beneficio-item mb-2">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="beneficios[]" placeholder="Descripción del beneficio">
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarBeneficio(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="agregarBeneficio()">
+                                    <i class="bi bi-plus"></i> Agregar Beneficio
+                                </button>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="planLimiteSuscriptores" class="form-label">Límite de Suscriptores</label>
+                                <input type="number" class="form-control" id="planLimiteSuscriptores" name="limite_suscriptores" min="0" placeholder="Sin límite">
+                                <div class="form-text">Dejar en 0 para sin límite</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Nota:</strong> Los cambios se guardarán automáticamente al hacer clic en "Guardar Cambios".
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarCambiosPlan()">
+                    <i class="bi bi-save"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos optimizados para tarjetas más pequeñas, centradas y minimalistas */
+.planes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 280px);
+    gap: 2rem;
+    margin: 0 auto 2rem auto;
+    justify-content: center;
+    max-width: 900px;
+}
+
+.plan-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0,0,0,0.04);
+    width: 280px;
+    height: auto;
+    position: relative;
+}
+
+.plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.plan-card:hover::before {
+    transform: scaleX(1);
+}
+
+.plan-header {
+    padding: 1.25rem 1.25rem 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.plan-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+.status-activo {
+    background: rgba(34, 197, 94, 0.08);
+    color: #16a34a;
+}
+
+.status-inactivo {
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+}
+
+.destacado-badge {
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.plan-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.plan-actions .btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}
+
+.plan-image {
+    height: 100px;
+    overflow: hidden;
+    position: relative;
+}
+
+.plan-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.plan-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #cbd5e0;
+}
+
+.plan-content {
+    padding: 1.25rem;
+}
+
+.plan-nombre {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.plan-descripcion {
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+}
+
+.plan-precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.precio-monto {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.precio-periodo {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.plan-duracion {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.plan-beneficios {
+    margin-bottom: 1rem;
+}
+
+.plan-beneficios h6 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.plan-beneficios ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-beneficios li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.mas-beneficios {
+    color: #3b82f6;
+    font-style: italic;
+    font-size: 0.75rem;
+}
+
+.plan-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: rgba(59, 130, 246, 0.04);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.plan-footer {
+    padding: 1rem 1.25rem 1.25rem 1.25rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.plan-footer .btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .planes-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .plan-card {
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .planes-grid {
+        grid-template-columns: repeat(2, 280px);
+        gap: 1.5rem;
+    }
+}
+
+/* Estilos para Bootstrap Icons */
+.bi {
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Mejoras minimalistas adicionales */
+.planes-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.planes-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white !important;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.planes-subtitle {
+    color: white !important;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.planes-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.02);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.stat-icon.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-icon.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-icon.revenue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.planes-filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    min-width: 150px;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .planes-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .planes-filters {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .filter-group {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+/* Estilos para el modal de edición */
+.modal-xl {
+    max-width: 1000px;
+}
+
+.beneficio-item {
+    position: relative;
+}
+
+.beneficio-item .input-group {
+    align-items: center;
+}
+
+.beneficio-item .btn {
+    flex-shrink: 0;
+}
+
+/* Estilos para campos del formulario */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-1px);
+}
+
+/* Animación para el modal */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+</style>
+
+<script>
+// Sistema simple de iconos usando Bootstrap Icons
+console.log('Bootstrap Icons cargado correctamente');
+
+// Función para verificar que los iconos se muestren
+function verificarIconos() {
+    const iconos = document.querySelectorAll('.bi');
+    console.log(`Se encontraron ${iconos.length} iconos Bootstrap`);
+    
+    // Aplicar estilos adicionales si es necesario
+    iconos.forEach(icono => {
+        icono.style.display = 'inline-block';
+        icono.style.fontSize = '1em';
+    });
+}
+
+// Verificar iconos cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(verificarIconos, 500);
+});
+
+// Funciones existentes
+function mostrarEstadisticas() {
+    const modal = new bootstrap.Modal(document.getElementById('estadisticasModal'));
+    modal.show();
+}
+
+function verDetalles(planId) {
+    console.log('Ver detalles del plan:', planId);
+    // Implementar lógica para mostrar detalles
+}
+
+function eliminarPlan(planId) {
+    console.log('Eliminar plan:', planId);
+    const modal = new bootstrap.Modal(document.getElementById('eliminarPlanModal'));
+    modal.show();
+}
+
+function togglePlan(planId, activo) {
+    console.log('Toggle plan:', planId, activo);
+    // Implementar lógica para activar/desactivar plan
+}
+
+function filtrarPlanes() {
+    console.log('Filtrando planes...');
+    // Implementar lógica de filtrado
+}
+
+function confirmarEliminacion() {
+    console.log('Confirmando eliminación...');
+    // Implementar lógica de eliminación
+}
+
+// Funciones para el modal de edición
+let planActual = null;
+
+function editarPlan(planId) {
+    console.log('Editando plan:', planId);
+    planActual = planId;
+    
+    // Cargar datos del plan
+    cargarDatosPlan(planId);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('editarPlanModal'));
+    modal.show();
+}
+
+function cargarDatosPlan(planId) {
+    // Llamada AJAX real para obtener datos del plan
+    console.log('Cargando datos del plan:', planId);
+    
+    // Mostrar indicador de carga
+    const modal = document.getElementById('editarPlanModal');
+    const modalBody = modal.querySelector('.modal-body');
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'text-center';
+    loadingDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>';
+    
+    // Ocultar el formulario y mostrar loading
+    const form = modalBody.querySelector('form');
+    form.style.display = 'none';
+    modalBody.appendChild(loadingDiv);
+    
+    // Hacer llamada AJAX con negocio_id
+    const negocioId = {{ negocio.id }};
+    fetch(`/suscripciones/api/negocio/${negocioId}/plan/${planId}/detalles/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(datosPlan => {
+            console.log('Datos del plan cargados:', datosPlan);
+            
+            // Remover loading y mostrar formulario
+            loadingDiv.remove();
+            form.style.display = 'block';
+            
+            // Llenar formulario con datos reales
+            document.getElementById('planNombre').value = datosPlan.nombre || '';
+            document.getElementById('planDescripcion').value = datosPlan.descripcion || '';
+            document.getElementById('planPrecio').value = datosPlan.precio_mensual || '';
+            document.getElementById('planDuracion').value = datosPlan.duracion_meses || 12;
+            document.getElementById('planLimiteSuscriptores').value = datosPlan.limite_suscriptores || 0;
+            
+            // Estado activo
+            if (datosPlan.activo) {
+                document.getElementById('planActivo').checked = true;
+            } else {
+                document.getElementById('planInactivo').checked = true;
+            }
+            
+            // Destacado
+            document.getElementById('planDestacado').checked = datosPlan.destacado || false;
+            
+            // Beneficios
+            cargarBeneficios(datosPlan.beneficios || []);
+        })
+        .catch(error => {
+            console.error('Error cargando datos del plan:', error);
+            
+            // Remover loading y mostrar error
+            loadingDiv.remove();
+            form.style.display = 'block';
+            
+            // Mostrar mensaje de error encima del formulario
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger mb-3';
+            errorDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Error:</strong> No se pudieron cargar los datos del plan. 
+                <br><small>${error.message}</small>
+                <br><br>
+                <button class="btn btn-outline-danger btn-sm" onclick="cargarDatosPlan(${planId})">Reintentar</button>
+            `;
+            
+            form.insertBefore(errorDiv, form.firstChild);
+        });
+}
+
+function cargarBeneficios(beneficios) {
+    const container = document.getElementById('beneficiosContainer');
+    container.innerHTML = '';
+    
+    if (beneficios && beneficios.length > 0) {
+        beneficios.forEach(beneficio => {
+            agregarBeneficio(beneficio);
+        });
+    } else {
+        agregarBeneficio();
+    }
+}
+
+function agregarBeneficio(valor = '') {
+    const container = document.getElementById('beneficiosContainer');
+    const beneficioDiv = document.createElement('div');
+    beneficioDiv.className = 'beneficio-item mb-2';
+    
+    beneficioDiv.innerHTML = `
+        <div class="input-group">
+            <input type="text" class="form-control" name="beneficios[]" placeholder="Descripción del beneficio" value="${valor}">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarBeneficio(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(beneficioDiv);
+}
+
+function eliminarBeneficio(button) {
+    const beneficioItem = button.closest('.beneficio-item');
+    const container = document.getElementById('beneficiosContainer');
+    
+    // No eliminar si solo queda uno
+    if (container.children.length > 1) {
+        beneficioItem.remove();
+    }
+}
+
+function guardarCambiosPlan() {
+    if (!planActual) {
+        alert('Error: No hay plan seleccionado');
+        return;
+    }
+    
+    // Recopilar datos del formulario
+    const formData = new FormData(document.getElementById('editarPlanForm'));
+    
+    // Validar campos requeridos
+    if (!formData.get('nombre') || !formData.get('precio_mensual')) {
+        alert('Por favor, completa todos los campos requeridos');
+        return;
+    }
+    
+    // Mostrar indicador de guardado
+    const guardarBtn = document.querySelector('#editarPlanModal .btn-primary');
+    const textoOriginal = guardarBtn.innerHTML;
+    guardarBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Guardando...';
+    guardarBtn.disabled = true;
+    
+    // Obtener token CSRF de múltiples fuentes como respaldo
+    let csrfToken = document.querySelector('#editarPlanForm [name=csrfmiddlewaretoken]')?.value;
+    
+    if (!csrfToken) {
+        // Intentar obtener del template principal
+        csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    }
+    
+    if (!csrfToken) {
+        // Intentar obtener de las cookies
+        csrfToken = getCookie('csrftoken');
+    }
+    
+    if (!csrfToken) {
+        alert('Error: No se pudo obtener el token CSRF. Por favor, recarga la página.');
+        guardarBtn.innerHTML = textoOriginal;
+        guardarBtn.disabled = false;
+        return;
+    }
+    
+    console.log('Token CSRF obtenido:', csrfToken);
+    console.log('FormData a enviar:', Object.fromEntries(formData));
+    
+    // Hacer llamada AJAX real para guardar cambios con negocio_id
+    const negocioId = {{ negocio.id }};
+    fetch(`/suscripciones/api/negocio/${negocioId}/plan/${planActual}/editar/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => {
+        console.log('Respuesta del servidor:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('No tienes permisos para editar este plan. Verifica que seas el propietario del negocio.');
+            } else if (response.status === 404) {
+                throw new Error('Plan no encontrado. Puede haber sido eliminado.');
+            } else {
+                throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+            }
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Plan guardado exitosamente:', result);
+        
+        // Mostrar mensaje de éxito
+        const modalBody = document.querySelector('#editarPlanModal .modal-body');
+        const alerta = document.createElement('div');
+        alerta.className = 'alert alert-success alert-dismissible fade show';
+        alerta.innerHTML = `
+            <i class="bi bi-check-circle"></i>
+            <strong>¡Éxito!</strong> ${result.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        modalBody.insertBefore(alerta, modalBody.firstChild);
+        
+        // Cerrar modal después de 2 segundos
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editarPlanModal'));
+            modal.hide();
+            
+            // Recargar página para mostrar cambios
+            location.reload();
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Error guardando plan:', error);
+        
+        // Mostrar mensaje de error
+        const modalBody = document.querySelector('#editarPlanModal .modal-body');
+        const alerta = document.createElement('div');
+        alerta.className = 'alert alert-danger alert-dismissible fade show';
+        alerta.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Error:</strong> ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        modalBody.insertBefore(alerta, modalBody.firstChild);
+        
+        // Restaurar botón
+        guardarBtn.innerHTML = textoOriginal;
+        guardarBtn.disabled = false;
+    });
+}
+
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    console.log(`Cookie ${name}: ${cookieValue}`);
+    return cookieValue;
+}
+</script>
+{% endblock %}

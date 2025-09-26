@@ -1,0 +1,80 @@
+services:
+  web:
+    build: .
+    command: gunicorn melissa.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-production-key-change-this-immediately}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-appo.com.co,www.appo.com.co,92.113.39.100}
+      - USING_DOCKER=yes
+      - POSTGRES_DB=${POSTGRES_DB:-vitalmix}
+      - POSTGRES_USER=${POSTGRES_USER:-vitaluser}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-vitalpass}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://vitaluser:vitalpass@db:5432/vitalmix}
+    expose:
+      - "8000"
+    volumes:
+      - .:/app
+      - ./media:/app/media
+      - ./logs:/app/logs
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      - redis
+      - db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vitalmix}
+      POSTGRES_USER: ${POSTGRES_USER:-vitaluser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vitalpass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./logs/postgresql:/var/log/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vitaluser} -d ${POSTGRES_DB:-vitalmix}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7
+    restart: always
+    volumes:
+      - redis_data:/data
+      - ./logs/redis:/var/log/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:1.25
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf:ro
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - web
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+  pgdata:

@@ -1,0 +1,30 @@
+Recordatorio de Cita - APPO
+
+¡Hola {{ cliente.first_name|default:cliente.username }}!
+
+Te recordamos que tienes una cita programada para MAÑANA en {{ negocio.nombre }}.
+
+📋 DETALLES DE TU CITA:
+📅 Fecha: {{ fecha_formateada }}
+🕐 Hora: {{ hora_formateada }}
+🏢 Negocio: {{ negocio.nombre }}
+{% if profesional %}👨‍💼 Profesional: {{ profesional.nombre_completo }}{% endif %}
+{% if reserva.servicio %}✂️ Servicio: {{ reserva.servicio.servicio.nombre }}{% endif %}
+📍 Dirección: {{ negocio.direccion }}
+
+💡 CONSEJOS PARA TU CITA:
+• Llega 10 minutos antes de tu hora programada
+• Trae una foto de referencia si tienes algo específico en mente
+• Si necesitas cancelar o reagendar, hazlo con al menos 24 horas de anticipación
+
+¿Necesitas cambiar tu cita?
+Visita: {{ request.scheme }}://{{ request.get_host }}{% url 'clientes:mis_reservas' %}
+
+Si tienes alguna pregunta, no dudes en contactar a {{ negocio.nombre }}.
+
+¡Te esperamos!
+El equipo de {{ negocio.nombre }}
+
+---
+Este es un recordatorio automático de APPO - Tu plataforma de reservas
+Si no deseas recibir estos recordatorios, puedes desactivarlos en tu perfil. 

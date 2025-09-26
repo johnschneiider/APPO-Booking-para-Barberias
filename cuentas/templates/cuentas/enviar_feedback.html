@@ -1,0 +1,936 @@
+{% extends 'base.html' %}
+
+{% block title %}Enviar Feedback - Melissa{% endblock %}
+
+{% block content %}
+<div class="feedback-container">
+    <!-- Header principal con gradiente -->
+    <div class="feedback-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="bi bi-lightbulb-fill"></i>
+                </div>
+                <h1>Cuéntanos cómo mejorar</h1>
+                <p>Tu opinión es valiosa para hacer Melissa aún mejor</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Formulario principal -->
+                <div class="feedback-form-card">
+                    <div class="form-header">
+                        <div class="form-header-icon">
+                            <i class="bi bi-chat-heart-fill"></i>
+                        </div>
+                        <h2>Envía tu feedback</h2>
+                        <p>Ayúdanos a mejorar tu experiencia</p>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" class="feedback-form">
+                        {% csrf_token %}
+                        
+                        <!-- Título del ticket -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-type-h1"></i>
+                                </div>
+                                <div class="section-info">
+                                    <label for="{{ form.titulo.id_for_label }}" class="section-label">
+                                        ¿De qué se trata?
+                                    </label>
+                                    <p class="section-description">Describe brevemente tu problema o idea</p>
+                                </div>
+                            </div>
+                            <div class="input-wrapper">
+                                {{ form.titulo }}
+                                <div class="input-focus-border"></div>
+                            </div>
+                            {% if form.titulo.errors %}
+                                <div class="error-message">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {{ form.titulo.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-tags-fill"></i>
+                                </div>
+                                <div class="section-info">
+                                    <label for="{{ form.categoria.id_for_label }}" class="section-label">
+                                        Tipo de feedback
+                                    </label>
+                                    <p class="section-description">Selecciona la categoría que mejor describe tu mensaje</p>
+                                </div>
+                            </div>
+                            <div class="category-selector">
+                                {{ form.categoria }}
+                                <div class="select-arrow">
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
+                            </div>
+                            {% if form.categoria.errors %}
+                                <div class="error-message">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {{ form.categoria.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Prioridad oculta -->
+                        {{ form.prioridad }}
+
+                        <!-- Mensaje -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-chat-text-fill"></i>
+                                </div>
+                                <div class="section-info">
+                                    <label for="{{ form.mensaje.id_for_label }}" class="section-label">
+                                        Cuéntanos más
+                                    </label>
+                                    <p class="section-description">Describe con detalle tu problema, idea o sugerencia</p>
+                                </div>
+                            </div>
+                            <div class="textarea-wrapper">
+                                {{ form.mensaje }}
+                                <div class="textarea-focus-border"></div>
+                                <div class="character-counter">
+                                    <span class="current-count">0</span>
+                                    <span class="max-count">/ 1000</span>
+                                </div>
+                            </div>
+                            {% if form.mensaje.errors %}
+                                <div class="error-message">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {{ form.mensaje.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-image-fill"></i>
+                                </div>
+                                <div class="section-info">
+                                    <label for="{{ form.imagen.id_for_label }}" class="section-label">
+                                        Foto (opcional)
+                                    </label>
+                                    <p class="section-description">Una imagen puede ayudarnos a entender mejor</p>
+                                </div>
+                            </div>
+                            <div class="image-upload-wrapper">
+                                <div class="image-upload-area" id="imageUploadArea">
+                                    <div class="upload-icon">
+                                        <i class="bi bi-cloud-upload-fill"></i>
+                                    </div>
+                                    <p class="upload-text">Haz clic para subir una imagen</p>
+                                    <p class="upload-hint">o arrastra y suelta aquí</p>
+                                </div>
+                                <div class="image-preview" id="imagePreview" style="display: none;">
+                                    <img id="previewImage" src="" alt="Vista previa">
+                                    <button type="button" class="remove-image" id="removeImage">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                </div>
+                                {{ form.imagen }}
+                                {% if form.imagen.errors %}
+                                    <div class="error-message">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        {{ form.imagen.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="form-actions">
+                            <a href="{% url 'cuentas:mis_tickets' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                <span>Ver mis mensajes</span>
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send-fill"></i>
+                                <span>Enviar feedback</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Guía de ayuda -->
+                <div class="help-guide">
+                    <div class="guide-header">
+                        <h3><i class="bi bi-question-circle-fill"></i> ¿Qué puedes escribir aquí?</h3>
+                        <p>Ejemplos de feedback que nos ayudan a mejorar</p>
+                    </div>
+                    
+                    <div class="guide-categories">
+                        <div class="guide-category">
+                            <div class="category-icon bug">
+                                <i class="bi bi-bug-fill"></i>
+                            </div>
+                            <div class="category-content">
+                                <h4>Problemas</h4>
+                                <p>Algo no funciona como debería</p>
+                                <span class="example">Ej: "No puedo hacer reservas desde el móvil"</span>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-category">
+                            <div class="category-icon idea">
+                                <i class="bi bi-lightbulb-fill"></i>
+                            </div>
+                            <div class="category-content">
+                                <h4>Ideas</h4>
+                                <p>Sugerencias para mejorar</p>
+                                <span class="example">Ej: "Me gustaría poder programar recordatorios"</span>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-category">
+                            <div class="category-icon question">
+                                <i class="bi bi-question-circle-fill"></i>
+                            </div>
+                            <div class="category-content">
+                                <h4>Preguntas</h4>
+                                <p>No entiendo cómo funciona algo</p>
+                                <span class="example">Ej: "¿Cómo cambio mi contraseña?"</span>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-category">
+                            <div class="category-icon feature">
+                                <i class="bi bi-plus-circle-fill"></i>
+                            </div>
+                            <div class="category-content">
+                                <h4>Nuevas funciones</h4>
+                                <p>Quiero que agreguen algo</p>
+                                <span class="example">Ej: "Me gustaría ver estadísticas de mis reservas"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Variables CSS */
+:root {
+    --primary-color: #1E40AF;
+    --primary-light: #3B82F6;
+    --primary-dark: #1E3A8A;
+    --secondary-color: #10B981;
+    --accent-color: #F59E0B;
+    --text-dark: #1F2937;
+    --text-light: #6B7280;
+    --text-lighter: #9CA3AF;
+    --background-light: #F9FAFB;
+    --background-white: #FFFFFF;
+    --border-color: #E5E7EB;
+    --border-light: #F3F4F6;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    --gradient-secondary: linear-gradient(135deg, var(--secondary-color) 0%, #059669 100%);
+    --border-radius: 16px;
+    --border-radius-sm: 12px;
+    --border-radius-lg: 20px;
+}
+
+/* Contenedor principal */
+.feedback-container {
+    background: var(--background-light);
+    min-height: 100vh;
+}
+
+/* Header principal */
+.feedback-header {
+    background: var(--gradient-primary);
+    padding: 4rem 0;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.feedback-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.header-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+    color: #FFFFFF !important;
+}
+
+.feedback-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #FFFFFF !important;
+}
+
+.feedback-header p {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+    color: #FFFFFF !important;
+}
+
+/* Tarjeta del formulario */
+.feedback-form-card {
+    background: var(--background-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    margin-bottom: 3rem;
+    border: 1px solid var(--border-light);
+}
+
+.form-header {
+    background: var(--gradient-secondary);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.form-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+}
+
+.form-header-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+    color: #FFFFFF !important;
+}
+
+.form-header h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #FFFFFF !important;
+}
+
+.form-header p {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    color: #FFFFFF !important;
+}
+
+/* Formulario */
+.feedback-form {
+    padding: 3rem 2rem;
+}
+
+.form-section {
+    margin-bottom: 2.5rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.section-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF !important;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.section-info {
+    flex: 1;
+}
+
+.section-label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.section-description {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Inputs */
+.input-wrapper, .textarea-wrapper {
+    position: relative;
+}
+
+.form-control, .form-select {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    background: var(--background-white);
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: var(--text-lighter);
+}
+
+/* Textarea específico */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+/* Selector de categoría */
+.category-selector {
+    position: relative;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.form-select:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Contador de caracteres */
+.character-counter {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-lighter);
+    background: var(--background-white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.current-count {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Subida de imagen */
+.image-upload-wrapper {
+    position: relative;
+}
+
+.image-upload-area {
+    border: 3px dashed var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--background-light);
+}
+
+.image-upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(30, 64, 175, 0.02);
+    transform: translateY(-2px);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.upload-hint {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Vista previa de imagen */
+.image-preview {
+    position: relative;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-image {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+/* Campo de imagen oculto */
+#id_imagen {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Botones de acción */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que todos los iconos en botones azules sean blancos */
+.btn-primary i,
+.btn-primary .bi {
+    color: #FFFFFF !important;
+}
+
+.btn-primary:hover i,
+.btn-primary:hover .bi {
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que el texto del botón principal sea blanco */
+.btn-primary,
+.btn-primary span,
+.btn-primary:hover,
+.btn-primary:hover span {
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que todos los iconos en headers azules sean blancos */
+.form-header *,
+.feedback-header * {
+    color: #FFFFFF !important;
+}
+
+.form-header i,
+.form-header .bi,
+.feedback-header i,
+.feedback-header .bi {
+    color: #FFFFFF !important;
+}
+
+.btn-secondary {
+    background: var(--background-white);
+    color: var(--text-dark);
+    border: 2px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--background-light);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+/* Mensajes de error */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #DC2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--border-radius-sm);
+}
+
+/* Guía de ayuda */
+.help-guide {
+    background: var(--background-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+    border: 1px solid var(--border-light);
+}
+
+.guide-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.guide-header h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.guide-header p {
+    color: var(--text-light);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.guide-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.guide-category {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--background-light);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.guide-category:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
+}
+
+.category-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #FFFFFF !important;
+    flex-shrink: 0;
+}
+
+.category-icon.bug {
+    background: var(--gradient-primary);
+}
+
+.category-icon.idea {
+    background: var(--gradient-secondary);
+}
+
+.category-icon.question {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.category-icon.feature {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.category-content h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.category-content p {
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.example {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--primary-color);
+    font-style: italic;
+    background: rgba(30, 64, 175, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .feedback-header {
+        padding: 3rem 0;
+    }
+    
+    .feedback-header h1 {
+        font-size: 2.25rem;
+    }
+    
+    .feedback-header p {
+        font-size: 1.125rem;
+    }
+    
+    .form-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .form-header h2 {
+        font-size: 1.875rem;
+    }
+    
+    .feedback-form {
+        padding: 2rem 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .guide-categories {
+        grid-template-columns: 1fr;
+    }
+    
+    .help-guide {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .section-icon {
+        margin: 0 auto 1rem;
+    }
+    
+    .guide-category {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .category-icon {
+        margin: 0 auto 1rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Contador de caracteres para el mensaje
+    const mensajeTextarea = document.querySelector('#id_mensaje');
+    const characterCounter = document.querySelector('.character-counter .current-count');
+    
+    if (mensajeTextarea && characterCounter) {
+        mensajeTextarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            characterCounter.textContent = currentLength;
+            
+            // Cambiar color si se acerca al límite
+            if (currentLength > 800) {
+                characterCounter.style.color = '#F59E0B';
+            } else if (currentLength > 900) {
+                characterCounter.style.color = '#DC2626';
+            } else {
+                characterCounter.style.color = '#1E40AF';
+            }
+        });
+    }
+    
+    // Subida de imagen con drag & drop
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const removeImageBtn = document.getElementById('removeImage');
+    const imageInput = document.getElementById('id_imagen');
+    
+    if (imageUploadArea && imageInput) {
+        // Click para subir
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+        
+        // Drag & drop
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#1E40AF';
+            imageUploadArea.style.background = 'rgba(30, 64, 175, 0.05)';
+        });
+        
+        imageUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#E5E7EB';
+            imageUploadArea.style.background = '#F9FAFB';
+        });
+        
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#E5E7EB';
+            imageUploadArea.style.background = '#F9FAFB';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        });
+        
+        // Cambio de archivo
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+    }
+    
+    function handleImageFile(file) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                imageUploadArea.style.display = 'none';
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Remover imagen
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', () => {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            imageUploadArea.style.display = 'block';
+        });
+    }
+    
+    // Animaciones de entrada
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observar elementos para animaciones
+    document.querySelectorAll('.form-section, .guide-category').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %} 

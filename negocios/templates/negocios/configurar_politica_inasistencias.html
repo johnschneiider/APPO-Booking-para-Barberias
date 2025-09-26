@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configurar Política de Inasistencias - {{ negocio.nombre }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'negocios/configurar_politica_inasistencias.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-cog text-primary"></i>
+                    Configurar Política de Inasistencias
+                </h1>
+                <a href="{% url 'negocios:gestionar_inasistencias' negocio.id %}" 
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sliders-h"></i>
+                        Configuración de Política
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Tolerancia de tiempo -->
+                        <div class="mb-4">
+                            <label for="tolerancia_minutos" class="form-label">
+                                <strong>Tolerancia de Tiempo (minutos)</strong>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="tolerancia_minutos" 
+                                       name="tolerancia_minutos" 
+                                       value="{{ config_actual.tolerancia_minutos|default:15 }}"
+                                       min="0" 
+                                       max="60">
+                                <span class="input-group-text">minutos</span>
+                            </div>
+                            <div class="form-text">
+                                Tiempo de tolerancia antes de marcar automáticamente como inasistencia.
+                            </div>
+                        </div>
+
+                        <!-- Penalización -->
+                        <div class="mb-4">
+                            <label for="penalizacion_dias" class="form-label">
+                                <strong>Días de Penalización</strong>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="penalizacion_dias" 
+                                       name="penalizacion_dias" 
+                                       value="{{ config_actual.penalizacion_dias|default:0 }}"
+                                       min="0" 
+                                       max="30">
+                                <span class="input-group-text">días</span>
+                            </div>
+                            <div class="form-text">
+                                Días que un cliente no podrá reservar después de una inasistencia (0 = sin penalización).
+                            </div>
+                        </div>
+
+                        <!-- Máximo de inasistencias -->
+                        <div class="mb-4">
+                            <label for="max_inasistencias" class="form-label">
+                                <strong>Máximo de Inasistencias</strong>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="max_inasistencias" 
+                                       name="max_inasistencias" 
+                                       value="{{ config_actual.max_inasistencias|default:3 }}"
+                                       min="1" 
+                                       max="10">
+                                <span class="input-group-text">inasistencias</span>
+                            </div>
+                            <div class="form-text">
+                                Número máximo de inasistencias antes de aplicar restricciones adicionales.
+                            </div>
+                        </div>
+
+                        <!-- Notificaciones automáticas -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="notificaciones_automaticas" 
+                                       name="notificaciones_automaticas" 
+                                       checked>
+                                <label class="form-check-label" for="notificaciones_automaticas">
+                                    <strong>Notificaciones Automáticas</strong>
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                Enviar notificaciones automáticas a clientes con inasistencias.
+                            </div>
+                        </div>
+
+                        <!-- Bloqueo automático -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="bloqueo_automatico" 
+                                       name="bloqueo_automatico">
+                                <label class="form-check-label" for="bloqueo_automatico">
+                                    <strong>Bloqueo Automático</strong>
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                Bloquear automáticamente reservas de clientes con múltiples inasistencias.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Configuración
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Información de ayuda -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle text-info"></i>
+                        Información
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>¿Cómo funciona?</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-warning"></i>
+                            <strong>Tolerancia:</strong> Tiempo antes de marcar como inasistencia
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-ban text-danger"></i>
+                            <strong>Penalización:</strong> Días sin poder reservar
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            <strong>Máximo:</strong> Límite antes de restricciones
+                        </li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>Recomendaciones:</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Tolerancia: 15-30 minutos
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Penalización: 7-14 días
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Máximo: 3-5 inasistencias
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Estadísticas actuales -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar text-primary"></i>
+                        Estadísticas Actuales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-danger">{{ total_inasistencias|default:0 }}</h4>
+                            <small>Total Inasistencias</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">{{ clientes_problematicos|length|default:0 }}</h4>
+                            <small>Clientes Problemáticos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const tolerancia = parseInt(document.getElementById('tolerancia_minutos').value);
+    const penalizacion = parseInt(document.getElementById('penalizacion_dias').value);
+    const maxInasistencias = parseInt(document.getElementById('max_inasistencias').value);
+    
+    if (tolerancia < 0 || tolerancia > 60) {
+        e.preventDefault();
+        alert('La tolerancia debe estar entre 0 y 60 minutos.');
+        return;
+    }
+    
+    if (penalizacion < 0 || penalizacion > 30) {
+        e.preventDefault();
+        alert('La penalización debe estar entre 0 y 30 días.');
+        return;
+    }
+    
+    if (maxInasistencias < 1 || maxInasistencias > 10) {
+        e.preventDefault();
+        alert('El máximo de inasistencias debe estar entre 1 y 10.');
+        return;
+    }
+});
+</script>
+{% endblock %} 

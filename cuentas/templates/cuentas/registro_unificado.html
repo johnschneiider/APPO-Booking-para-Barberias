@@ -1,0 +1,1287 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Registro - Appo{% endblock %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-app-gradient">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 col-lg-7 col-xl-6">
+            <div class="card shadow-lg border-0 rounded-4 mt-4 mb-4 form-card">
+                <div class="card-body p-4 p-md-5" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="logo mx-auto mb-3" style="width: 80px; height: 80px;">
+                            <img src="{% static 'images/ui/appo-logo.png' %}" alt="Appo Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <h2 class="fw-bold form-title mb-2">Únete a Appo</h2>
+                        <p class="form-subtitle">Crea tu cuenta y comienza a disfrutar</p>
+                    </div>
+
+                    <!-- Aviso flotante para tipo de cuenta -->
+                    <div id="aviso-tipo-cuenta" class="alert alert-danger d-none" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 350px; box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4); border: none; border-radius: 12px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem; color: #ffffff;"></i>
+                            <div>
+                                <strong class="d-block mb-1">¡Atención!</strong>
+                                <span>Debes seleccionar un tipo de cuenta antes de continuar.</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 mt-2 me-2" onclick="document.getElementById('aviso-tipo-cuenta').classList.add('d-none')"></button>
+                    </div>
+
+                    <!-- Formulario -->
+                    <form method="post" class="needs-validation" novalidate id="form-registro">
+                        {% csrf_token %}
+                        
+                        <!-- Selección de tipo de cuenta -->
+                        <div class="mb-4" id="seccion-tipo-cuenta">
+                            <label class="form-label fw-bold form-title">¿Qué tipo de cuenta quieres crear?</label>
+                            <div class="d-flex flex-column flex-md-row gap-3 justify-content-md-center align-items-md-stretch">
+                                <div class="flex-fill">
+                                    <div class="form-check w-100 h-100">
+                                        <input class="form-check-input" type="radio" name="tipo" id="tipo_cliente" value="cliente" required>
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_cliente" style="min-width: 0;">
+                                            <div class="text-start flex-grow-1">
+                                                <span class="fw-bold form-text">Cliente</span><br>
+                                                <small class="form-subtitle">Reservar servicios</small>
+                                            </div>
+                                            <i class="bi bi-person-circle text-primary ms-2 icon-responsive"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="form-check w-100 h-100">
+                                        <input class="form-check-input" type="radio" name="tipo" id="tipo_negocio" value="negocio" required>
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_negocio" style="min-width: 0;">
+                                            <div class="text-start flex-grow-1">
+                                                <span class="fw-bold form-text">Negocio</span><br>
+                                                <small class="form-subtitle">Ofrecer servicios</small>
+                                            </div>
+                                            <i class="bi bi-shop text-warning ms-2 icon-responsive"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="form-check w-100 h-100">
+                                        <input class="form-check-input" type="radio" name="tipo" id="tipo_profesional" value="profesional" required>
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_profesional" style="min-width: 0;">
+                                            <div class="text-start flex-grow-1">
+                                                <span class="fw-bold form-text">Profesional</span><br>
+                                                <small class="form-subtitle">Soy peluquero</small>
+                                            </div>
+                                            <i class="bi bi-scissors text-success ms-2 icon-responsive"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if form.tipo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.tipo.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campos del formulario -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label form-text">Nombre de usuario</label>
+                            {{ form.username }}
+                            <div id="username-validation-message" class="mt-2" style="display: none;">
+                                <small id="username-validation-text"></small>
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label form-text">Correo electrónico</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label form-text">Teléfono</label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.telefono.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label form-text">Contraseña</label>
+                            <div class="input-group">
+                                {{ form.password1 }}
+                                <button type="button" class="btn toggle-password" data-target="id_password1" tabindex="-1" style="background: transparent; border: none; color: #6c757d;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password-validation-message" class="mt-2" style="display: none;">
+                                <small id="password-validation-text"></small>
+                            </div>
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password1.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label form-text">Confirmar contraseña</label>
+                            <div class="input-group">
+                                {{ form.password2 }}
+                                <button type="button" class="btn toggle-password" data-target="id_password2" tabindex="-1" style="background: transparent; border: none; color: #6c757d;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password2-validation-message" class="mt-2" style="display: none;">
+                                <small id="password2-validation-text"></small>
+                            </div>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password2.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Checkbox de política de tratamiento de datos -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input politica-checkbox" type="checkbox" id="politica_datos" name="politica_datos" checked required>
+                            <label class="form-check-label politica-label" for="politica_datos">
+                                Acepto las <a href="{% url 'cuentas:politica_datos' %}" target="_blank" class="form-link">políticas de tratamiento de datos</a>
+                            </label>
+                        </div>
+
+                        <!-- Botón de registro -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill mb-3" id="btn-registro">
+                            <i class="bi bi-person-plus me-2" style="color: #FFFFFF;"></i>Crear cuenta
+                        </button>
+                    </form>
+
+                    <!-- Separador -->
+                    <div class="position-relative my-4">
+                        <hr class="border-1">
+                        <div class="position-absolute top-50 start-50 translate-middle separator-box px-3 text-nowrap">
+                            o regístrate con
+                        </div>
+                    </div>
+
+                    <!-- Botón de Google -->
+                    <div class="mb-4">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark btn-google rounded-pill py-3 w-100 d-flex align-items-center justify-content-center gap-3">
+                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
+                            <span class="fw-medium">Continuar con Google</span>
+                        </a>
+                    </div>
+
+                    <!-- Enlace a login -->
+                    <div class="text-center">
+                        <p class="mb-0 form-subtitle">
+                            ¿Ya tienes una cuenta? 
+                            <a href="{% url 'account_login' %}" class="text-decoration-none fw-bold form-link">Inicia sesión</a>
+                        </p>
+                    </div>
+                    
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-app-gradient {
+  background: var(--color-smoke-white, #f5f5f5);
+}
+.form-card {
+  background: #fff !important;
+  color: #181818 !important;
+}
+.form-title,
+.form-label,
+.form-text,
+.form-subtitle,
+.form-link,
+.form-check-label {
+  color: #181818 !important;
+}
+.separator-box {
+  background: #fff !important;
+  color: #181818 !important;
+  border-radius: 0.5em;
+  font-weight: 500;
+}
+.form-link {
+  color: #1e3a8a !important;
+}
+@media (prefers-color-scheme: dark) {
+  .bg-app-gradient, body {
+    background: var(--color-black-deep, #0D0D0D) !important;
+  }
+  /* El formulario sigue blanco con letras negras */
+  .form-card {
+    background: #fff !important;
+    color: #181818 !important;
+  }
+  .form-title,
+  .form-label,
+  .form-text,
+  .form-subtitle,
+  .form-link,
+  .form-check-label {
+    color: #181818 !important;
+  }
+  .separator-box {
+    background: #fff !important;
+    color: #181818 !important;
+  }
+  .form-link {
+    color: #1e3a8a !important;
+  }
+}
+
+.form-check-input:checked + .form-check-label {
+    border-color: var(--color-mint-green, #4ade80) !important;
+    background-color: var(--color-mint-green, #4ade80) !important;
+    color: var(--color-black-deep, #0D0D0D) !important;
+}
+
+.form-check-label {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Estilo hover para los botones de tipo de cuenta */
+.form-check-label:hover {
+    border-color: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.form-check-label:hover .form-text,
+.form-check-label:hover .form-subtitle {
+    color: #ffffff !important;
+}
+
+.form-check-label:hover .bi {
+    color: #ffffff !important;
+}
+
+.btn-outline-dark {
+    transition: all 0.3s ease;
+}
+
+.btn-outline-dark:hover {
+    background-color: var(--color-mint-green, #4ade80);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Más espacio arriba y abajo del formulario */
+@media (min-width: 768px) {
+  .card.shadow-lg {
+    margin-top: 2.5rem !important;
+    margin-bottom: 2.5rem !important;
+  }
+}
+
+/* Iconos más pequeños en escritorio para que quepan las 3 opciones */
+.icon-responsive {
+  font-size: 2.1rem;
+}
+
+@media (min-width: 768px) {
+  .icon-responsive {
+    font-size: 1.7rem;
+  }
+}
+
+.form-check-input[type="radio"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.btn-google {
+  border: none !important;
+  box-shadow: none !important;
+}
+ .form-check-input[type="checkbox"] {
+   border-radius: 50% !important;
+   width: 20px !important;
+   height: 20px !important;
+   min-width: 20px !important;
+   min-height: 20px !important;
+   max-width: 20px !important;
+   max-height: 20px !important;
+   background-color: #fff !important;
+   border: 2px solid #1e3a8a !important;
+   box-shadow: none !important;
+   accent-color: #1e3a8a !important;
+   appearance: none !important;
+   -webkit-appearance: none !important;
+   -moz-appearance: none !important;
+   outline: none !important;
+   cursor: pointer;
+   position: relative;
+   flex-shrink: 0 !important;
+   box-sizing: border-box !important;
+ }
+ .form-check-input[type="checkbox"]:checked {
+   background-color: #fff !important;
+   border-color: #1e3a8a !important;
+ }
+ .form-check-input[type="checkbox"]:checked::after {
+   content: '';
+   display: block;
+   width: 10px !important;
+   height: 10px !important;
+   min-width: 10px !important;
+   min-height: 10px !important;
+   max-width: 10px !important;
+   max-height: 10px !important;
+   border-radius: 50% !important;
+   background: #1e3a8a !important;
+   position: absolute;
+   top: 3px;
+   left: 3px;
+   box-sizing: border-box !important;
+ }
+ 
+ /* Estilos adicionales para garantizar círculos perfectos en todos los dispositivos */
+ .form-check-input[type="checkbox"] {
+   transform: scale(1) !important;
+   -webkit-transform: scale(1) !important;
+   -moz-transform: scale(1) !important;
+   -ms-transform: scale(1) !important;
+ }
+ 
+ /* Asegurar que el checkbox sea circular en dispositivos móviles */
+ @media (max-width: 768px) {
+   .form-check-input[type="checkbox"] {
+     width: 20px !important;
+     height: 20px !important;
+     min-width: 20px !important;
+     min-height: 20px !important;
+     max-width: 20px !important;
+     max-height: 20px !important;
+   }
+   .form-check-input[type="checkbox"]:checked::after {
+     width: 10px !important;
+     height: 10px !important;
+     min-width: 10px !important;
+     min-height: 10px !important;
+     max-width: 10px !important;
+     max-height: 10px !important;
+   }
+ }
+ 
+ /* Estilos específicos para el checkbox de políticas */
+ .politica-checkbox {
+   width: 20px !important;
+   height: 20px !important;
+   min-width: 20px !important;
+   min-height: 20px !important;
+   max-width: 20px !important;
+   max-height: 20px !important;
+   background-color: #fff !important;
+   border: 2px solid #1e3a8a !important;
+   border-radius: 50% !important;
+   box-shadow: none !important;
+   appearance: none !important;
+   -webkit-appearance: none !important;
+   -moz-appearance: none !important;
+   outline: none !important;
+   cursor: pointer;
+   position: relative;
+   flex-shrink: 0 !important;
+   box-sizing: border-box !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+ 
+ .politica-checkbox:checked {
+   background-color: #fff !important;
+   border-color: #1e3a8a !important;
+ }
+ 
+ .politica-checkbox:checked::after {
+   content: '';
+   display: block;
+   width: 10px !important;
+   height: 10px !important;
+   min-width: 10px !important;
+   min-height: 10px !important;
+   max-width: 10px !important;
+   max-height: 10px !important;
+   border-radius: 50% !important;
+   background: #1e3a8a !important;
+   position: absolute;
+   top: 3px;
+   left: 3px;
+   box-sizing: border-box !important;
+ }
+ 
+ .politica-label {
+   color: #181818 !important;
+   background: none !important;
+   font-weight: normal;
+   margin-left: 8px !important;
+   cursor: pointer;
+ }
+ 
+ /* Asegurar que el checkbox de políticas no herede estilos no deseados */
+ .politica-checkbox:checked + .politica-label {
+   border-color: transparent !important;
+   background-color: transparent !important;
+   color: #181818 !important;
+ }
+ 
+ /* Estilos para otros checkboxes (mantener los existentes) */
+ .form-check-input[type="checkbox"]:not(.politica-checkbox) {
+    border-radius: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    background-color: #fff !important;
+    border: 2px solid #1e3a8a !important;
+    box-shadow: none !important;
+    accent-color: #1e3a8a !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    outline: none !important;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .form-check-input[type="checkbox"]:not(.politica-checkbox):checked {
+    background-color: #fff !important;
+    border-color: #1e3a8a !important;
+  }
+  .form-check-input[type="checkbox"]:not(.politica-checkbox):checked::after {
+    content: '';
+    display: block;
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    min-height: 10px !important;
+    max-width: 10px !important;
+    max-height: 10px !important;
+    border-radius: 50% !important;
+    background: #1e3a8a !important;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    box-sizing: border-box !important;
+  }
+  
+  /* Estilos adicionales para garantizar círculos perfectos en todos los dispositivos */
+  .form-check-input[type="checkbox"]:not(.politica-checkbox) {
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -moz-transform: scale(1) !important;
+    -ms-transform: scale(1) !important;
+  }
+  
+  /* Asegurar que el checkbox sea circular en dispositivos móviles */
+  @media (max-width: 768px) {
+    .form-check-input[type="checkbox"]:not(.politica-checkbox) {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      max-width: 20px !important;
+      max-height: 20px !important;
+    }
+    .form-check-input[type="checkbox"]:not(.politica-checkbox):checked::after {
+      width: 10px !important;
+      height: 10px !important;
+      min-width: 10px !important;
+      min-height: 10px !important;
+      max-width: 10px !important;
+      max-height: 10px !important;
+    }
+    
+    .politica-checkbox {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      max-width: 20px !important;
+      max-height: 20px !important;
+    }
+    .politica-checkbox:checked::after {
+      width: 10px !important;
+      height: 10px !important;
+      min-width: 10px !important;
+      min-height: 10px !important;
+      max-width: 10px !important;
+      max-height: 10px !important;
+    }
+  }
+ 
+ /* Estilos específicos para el label del checkbox de políticas */
+ .form-check-label[for="politica_datos"] {
+   color: #000000 !important;
+   background: none !important;
+   font-weight: normal;
+ }
+.form-check-label.form-text, .form-check-label {
+  color: #181818 !important;
+  background: none !important;
+}
+
+/* Estilos para validación de tipo de cuenta */
+.seccion-tipo-cuenta-error {
+  border: 3px solid #dc3545 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.3), 0 8px 25px rgba(220, 53, 69, 0.4) !important;
+  padding: 1.5rem !important;
+  transition: all 0.4s ease !important;
+  background-color: rgba(220, 53, 69, 0.05) !important;
+  animation: pulseError 2s infinite !important;
+}
+
+.seccion-tipo-cuenta-error .form-label {
+  color: #dc3545 !important;
+  font-weight: bold !important;
+}
+
+/* Animación de pulso para llamar la atención */
+@keyframes pulseError {
+  0% {
+    box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.3), 0 8px 25px rgba(220, 53, 69, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 0.4rem rgba(220, 53, 69, 0.5), 0 12px 35px rgba(220, 53, 69, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.3), 0 8px 25px rgba(220, 53, 69, 0.4);
+  }
+}
+
+/* Animación para el aviso flotante */
+.alert-danger {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Estilos específicos para el aviso de tipo de cuenta */
+#aviso-tipo-cuenta {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 500 !important;
+  backdrop-filter: blur(10px);
+  animation: slideInRight 0.5s ease-out, pulseAttention 2s ease-in-out infinite 0.5s;
+}
+
+#aviso-tipo-cuenta .bi {
+  color: white !important;
+}
+
+/* Animación de pulso para llamar la atención */
+@keyframes pulseAttention {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 12px 35px rgba(220, 53, 69, 0.6);
+  }
+}
+
+/* Estilos para campos inválidos - Mayor prioridad */
+.form-control.is-invalid,
+input.is-invalid,
+textarea.is-invalid,
+select.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  background-color: #fff5f5 !important;
+}
+
+.form-control.is-invalid:focus,
+input.is-invalid:focus,
+textarea.is-invalid:focus,
+select.is-invalid:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  background-color: #fff5f5 !important;
+}
+
+/* Estilos específicos para campos de formulario Django */
+#id_username.is-invalid,
+#id_email.is-invalid,
+#id_telefono.is-invalid,
+#id_password1.is-invalid,
+#id_password2.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  background-color: #fff5f5 !important;
+}
+
+/* Estilos específicos para el aviso de tipo de cuenta - ALTA PRIORIDAD */
+#aviso-tipo-cuenta {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 500 !important;
+  backdrop-filter: blur(10px);
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  max-width: 350px !important;
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4) !important;
+  border-radius: 12px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Estilos para validación de nombre de usuario */
+#username-validation-message {
+  transition: all 0.3s ease;
+}
+
+#username-validation-text {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.username-valid {
+  color: #28a745 !important;
+}
+
+.username-invalid {
+  color: #dc3545 !important;
+}
+
+.username-checking {
+  color: #6c757d !important;
+}
+
+/* Estilos para validación de contraseña */
+#password-validation-message {
+  transition: all 0.3s ease;
+}
+
+#password-validation-text {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.password-valid {
+  color: #28a745 !important;
+}
+
+.password-invalid {
+  color: #dc3545 !important;
+}
+
+/* Estilos para validación de confirmación de contraseña */
+#password2-validation-message {
+  transition: all 0.3s ease;
+}
+
+#password2-validation-text {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.password2-valid {
+  color: #28a745 !important;
+}
+
+.password2-invalid {
+  color: #dc3545 !important;
+}
+
+/* Cuando está oculto */
+#aviso-tipo-cuenta.d-none {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transform: translateX(100%) !important;
+}
+
+#aviso-tipo-cuenta .bi {
+  color: white !important;
+}
+</style>
+
+<script>
+console.log('🚀 SCRIPT DE VALIDACIÓN CARGADO');
+
+// Validación del formulario
+document.querySelectorAll('input[name="tipo"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        console.log('🔄 Tipo de cuenta seleccionado:', this.value);
+        
+        // Limpiar estilos de error
+        limpiarErrorTipoCuenta();
+        
+        // Ocultar popup inmediatamente
+        const aviso = document.getElementById('aviso-tipo-cuenta');
+        if (aviso) {
+            aviso.classList.add('d-none');
+            aviso.style.display = 'none';
+            console.log('✅ Popup ocultado al seleccionar tipo de cuenta');
+        }
+        
+        // Restaurar botón cuando se selecciona tipo de cuenta
+        restaurarBoton();
+        
+        document.querySelectorAll('.form-check-label').forEach(label => {
+            label.style.borderColor = '';
+            label.style.backgroundColor = '';
+        });
+        
+        if (this.checked) {
+            this.nextElementSibling.style.borderColor = '#0d6efd';
+            this.nextElementSibling.style.backgroundColor = '#f8f9ff';
+        }
+    });
+});
+
+// Función para mostrar error en tipo de cuenta
+function mostrarErrorTipoCuenta() {
+    console.log('🔴 FUNCIÓN mostrarErrorTipoCuenta() EJECUTADA');
+    const seccion = document.getElementById('seccion-tipo-cuenta');
+    const aviso = document.getElementById('aviso-tipo-cuenta');
+    
+    console.log('Elementos encontrados:', { seccion, aviso });
+    
+    if (seccion && aviso) {
+        console.log('✅ Elementos encontrados, aplicando estilos...');
+        
+        // Mostrar el popup de aviso INMEDIATAMENTE
+        aviso.classList.remove('d-none');
+        console.log('✅ Aviso mostrado (clase d-none removida)');
+        
+        // Forzar visibilidad con estilos inline
+        aviso.style.display = 'block';
+        aviso.style.visibility = 'visible';
+        aviso.style.opacity = '1';
+        aviso.style.zIndex = '9999';
+        
+        // Verificar que el aviso esté visible
+        console.log('Estado del aviso:', {
+            classList: aviso.classList.toString(),
+            display: aviso.style.display,
+            visibility: aviso.style.visibility,
+            opacity: aviso.style.opacity,
+            zIndex: aviso.style.zIndex
+        });
+        
+        // Hacer que el popup sea más visible con animación
+        aviso.style.animation = 'slideInRight 0.3s ease-out';
+        
+        // Ocultar el aviso después de 8 segundos
+        setTimeout(() => {
+            aviso.classList.add('d-none');
+            aviso.style.display = 'none';
+            console.log('⏰ Aviso ocultado automáticamente después de 8 segundos');
+        }, 8000);
+        
+        // También ocultar cuando se seleccione un tipo de cuenta
+        document.querySelectorAll('input[name="tipo"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                aviso.classList.add('d-none');
+                aviso.style.display = 'none';
+                console.log('✅ Aviso ocultado al seleccionar tipo de cuenta');
+            }, { once: true });
+        });
+        
+        console.log('🎯 Función mostrarErrorTipoCuenta() completada exitosamente');
+    } else {
+        console.error('❌ No se encontraron los elementos necesarios:', { seccion, aviso });
+    }
+}
+
+// Función para limpiar error en tipo de cuenta
+function limpiarErrorTipoCuenta() {
+    console.log('Limpiando error de tipo de cuenta...');
+    const seccion = document.getElementById('seccion-tipo-cuenta');
+    const aviso = document.getElementById('aviso-tipo-cuenta');
+    
+    if (seccion && aviso) {
+        seccion.classList.remove('seccion-tipo-cuenta-error');
+        aviso.classList.add('d-none');
+        console.log('Error limpiado correctamente');
+    }
+}
+
+// Función para mostrar estado de procesamiento en el botón
+function mostrarProcesando() {
+    const btn = document.getElementById('btn-registro');
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2" style="color: #FFFFFF;"></i>Verificando...';
+        btn.disabled = true;
+        btn.classList.add('opacity-75');
+        console.log('🔒 Botón deshabilitado para validación...');
+    }
+}
+
+// Función para restaurar el botón a su estado normal
+function restaurarBoton() {
+    const btn = document.getElementById('btn-registro');
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-person-plus me-2" style="color: #FFFFFF;"></i>Crear cuenta';
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        console.log('🔓 Botón rehabilitado - listo para nuevo intento');
+    }
+}
+
+
+
+// Validación del formulario al enviar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, inicializando validaciones...');
+    
+    // Verificar que los elementos existan
+    const form = document.getElementById('form-registro');
+    const seccionTipo = document.getElementById('seccion-tipo-cuenta');
+    const aviso = document.getElementById('aviso-tipo-cuenta');
+    
+    console.log('Elementos encontrados:', { form, seccionTipo, aviso });
+    
+    if (form) {
+        console.log('Formulario encontrado, agregando event listener...');
+        form.addEventListener('submit', function(e) {
+            console.log('🚀 FORMULARIO ENVIADO - INICIANDO VALIDACIÓN');
+            
+            // PREVENIR ENVÍO POR DEFECTO - SIEMPRE
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('✅ Envío por defecto prevenido');
+            
+            // Deshabilitar botón inmediatamente al hacer clic
+            mostrarProcesando();
+            console.log('✅ Botón deshabilitado');
+            
+            // Validar tipo de cuenta PRIMERO
+            const tipoSeleccionado = document.querySelector('input[name="tipo"]:checked');
+            console.log('🔍 Tipo seleccionado:', tipoSeleccionado);
+            console.log('🔍 Valor del tipo:', tipoSeleccionado ? tipoSeleccionado.value : 'NINGUNO');
+            
+            if (!tipoSeleccionado) {
+                console.log('❌ NO hay tipo seleccionado - MOSTRANDO ERROR');
+                
+                // Mostrar error inmediatamente
+                mostrarErrorTipoCuenta();
+                console.log('✅ Error mostrado');
+                
+                // Hacer scroll a la sección de tipo de cuenta
+                document.getElementById('seccion-tipo-cuenta').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                console.log('✅ Scroll realizado');
+                
+                // Rehabilitar botón
+                restaurarBoton();
+                console.log('✅ Botón rehabilitado');
+                
+                console.log('🚫 FORMULARIO BLOQUEADO - Tipo de cuenta requerido');
+                return false;
+            }
+            
+            console.log('✅ Tipo de cuenta seleccionado:', tipoSeleccionado.value);
+            limpiarErrorTipoCuenta();
+            
+            // Validar otros campos requeridos
+            const camposRequeridos = form.querySelectorAll('[required]');
+            console.log('🔍 Campos requeridos encontrados:', camposRequeridos.length);
+            
+            let hayErrores = false;
+            camposRequeridos.forEach(campo => {
+                if (!campo.value.trim()) {
+                    console.log('❌ Campo vacío:', campo.name || campo.id);
+                    campo.classList.add('is-invalid');
+                    hayErrores = true;
+                } else {
+                    console.log('✅ Campo válido:', campo.name || campo.id);
+                    campo.classList.remove('is-invalid');
+                }
+            });
+            
+            console.log('📊 Total errores encontrados:', hayErrores);
+            
+            // Si hay errores, NO enviar y rehabilitar botón
+            if (hayErrores) {
+                console.log('🚫 FORMULARIO BLOQUEADO - Errores en campos');
+                restaurarBoton();
+                return false;
+            }
+            
+            // Si llegamos aquí, TODO está válido
+            console.log('🎉 FORMULARIO VÁLIDO - Enviando...');
+            
+            // Cambiar a "Procesando..." y enviar con fetch
+            const btn = document.getElementById('btn-registro');
+            if (btn) {
+                btn.innerHTML = '<i class="bi bi-hourglass-split me-2" style="color: #FFFFFF;"></i>Procesando...';
+            }
+            
+            // Enviar formulario con fetch para evitar recarga
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // Si hay redirección, ir a la nueva página
+                    window.location.href = response.url;
+                } else {
+                    return response.text();
+                }
+            })
+            .then(html => {
+                if (html) {
+                    // Si no hay redirección, mostrar la respuesta
+                    document.body.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar formulario:', error);
+                alert('Error al enviar el formulario. Por favor, intenta de nuevo.');
+                restaurarBoton(); // Rehabilitar botón en caso de error
+            });
+        });
+        
+        // Limpiar errores cuando el usuario empiece a escribir
+        form.querySelectorAll('input, textarea').forEach(campo => {
+            campo.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    this.classList.remove('is-invalid');
+                }
+                // Restaurar botón cuando se escribe en cualquier campo
+                restaurarBoton();
+            });
+        });
+        
+        // AGREGAR EVENT LISTENER DIRECTO AL BOTÓN
+        const btnRegistro = document.getElementById('btn-registro');
+        if (btnRegistro) {
+            console.log('🔘 Botón de registro encontrado, agregando event listener directo...');
+            btnRegistro.addEventListener('click', function(e) {
+                console.log('🖱️ CLIC EN BOTÓN REGISTRO DETECTADO');
+                
+                // Verificar tipo de cuenta inmediatamente
+                const tipoSeleccionado = document.querySelector('input[name="tipo"]:checked');
+                if (!tipoSeleccionado) {
+                    console.log('❌ NO hay tipo seleccionado - MOSTRANDO ERROR INMEDIATO');
+                    
+                    // Mostrar error visual en la sección
+                    const seccion = document.getElementById('seccion-tipo-cuenta');
+                    if (seccion) {
+                        seccion.classList.add('seccion-tipo-cuenta-error');
+                    }
+                    
+                    // Mostrar popup inmediatamente
+                    mostrarErrorTipoCuenta();
+                    
+                    // Hacer scroll a la sección de tipo de cuenta
+                    document.getElementById('seccion-tipo-cuenta').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    
+                    // Prevenir el envío del formulario
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                } else {
+                    // Si hay tipo seleccionado, limpiar errores
+                    limpiarErrorTipoCuenta();
+                }
+            });
+        }
+    }
+    
+    // Inicializar toggle de contraseñas
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = btn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    });
+
+    // Validación en tiempo real del nombre de usuario
+    const usernameInput = document.getElementById('id_username');
+    const validationMessage = document.getElementById('username-validation-message');
+    const validationText = document.getElementById('username-validation-text');
+    let validationTimeout;
+
+    if (usernameInput && validationMessage && validationText) {
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            
+            // Limpiar timeout anterior
+            if (validationTimeout) {
+                clearTimeout(validationTimeout);
+            }
+            
+            // Ocultar mensaje si está vacío
+            if (username.length === 0) {
+                validationMessage.style.display = 'none';
+                return;
+            }
+            
+            // Mostrar mensaje de verificación
+            validationMessage.style.display = 'block';
+            validationText.textContent = 'Verificando disponibilidad...';
+            validationText.className = 'username-checking';
+            
+            // Validar caracteres permitidos
+            const validChars = /^[a-zA-Z0-9._-]+$/;
+            const minLength = 3;
+            const maxLength = 30;
+            
+            if (username.length < minLength) {
+                validationText.textContent = 'El nombre de usuario debe tener al menos 3 caracteres';
+                validationText.className = 'username-invalid';
+                return;
+            }
+            
+            if (username.length > maxLength) {
+                validationText.textContent = 'El nombre de usuario no puede tener más de 30 caracteres';
+                validationText.className = 'username-invalid';
+                return;
+            }
+            
+            if (!validChars.test(username)) {
+                validationText.textContent = 'Solo se permiten letras, números, puntos, guiones y guiones bajos';
+                validationText.className = 'username-invalid';
+                return;
+            }
+            
+            // Verificar disponibilidad después de un pequeño delay
+            validationTimeout = setTimeout(() => {
+                fetch(`/cuentas/api/username-disponible/?username=${encodeURIComponent(username)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.disponible) {
+                            validationText.textContent = 'Nombre de usuario permitido';
+                            validationText.className = 'username-valid';
+                        } else {
+                            validationText.textContent = 'Nombre no permitido - ya está en uso';
+                            validationText.className = 'username-invalid';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al verificar nombre de usuario:', error);
+                        validationText.textContent = 'Error al verificar disponibilidad';
+                        validationText.className = 'username-invalid';
+                    });
+            }, 500); // Delay de 500ms para evitar muchas consultas
+        });
+        
+        // Limpiar validación cuando se pierde el foco y está vacío
+        usernameInput.addEventListener('blur', function() {
+            if (this.value.trim().length === 0) {
+                validationMessage.style.display = 'none';
+            }
+        });
+    }
+
+    // Validación en tiempo real de la contraseña
+    const passwordInput = document.getElementById('id_password1');
+    const passwordValidationMessage = document.getElementById('password-validation-message');
+    const passwordValidationText = document.getElementById('password-validation-text');
+
+    if (passwordInput && passwordValidationMessage && passwordValidationText) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Ocultar mensaje si está vacío
+            if (password.length === 0) {
+                passwordValidationMessage.style.display = 'none';
+                return;
+            }
+            
+            // Mostrar mensaje de validación
+            passwordValidationMessage.style.display = 'block';
+            
+            // Validar contraseña
+            const validation = validatePassword(password);
+            
+            if (validation.isValid) {
+                passwordValidationText.textContent = 'Contraseña válida';
+                passwordValidationText.className = 'password-valid';
+            } else {
+                passwordValidationText.textContent = `Contraseña inválida - ${validation.message}`;
+                passwordValidationText.className = 'password-invalid';
+            }
+        });
+        
+        // Limpiar validación cuando se pierde el foco y está vacío
+        passwordInput.addEventListener('blur', function() {
+            if (this.value.length === 0) {
+                passwordValidationMessage.style.display = 'none';
+            }
+        });
+    }
+
+    // Validación en tiempo real de la confirmación de contraseña
+    const password2Input = document.getElementById('id_password2');
+    const password2ValidationMessage = document.getElementById('password2-validation-message');
+    const password2ValidationText = document.getElementById('password2-validation-text');
+
+    if (password2Input && password2ValidationMessage && password2ValidationText) {
+        // Función para validar coincidencia de contraseñas
+        function validatePasswordMatch() {
+            const password1 = document.getElementById('id_password1').value;
+            const password2 = password2Input.value;
+            
+            // Ocultar mensaje si está vacío
+            if (password2.length === 0) {
+                password2ValidationMessage.style.display = 'none';
+                return;
+            }
+            
+            // Mostrar mensaje de validación
+            password2ValidationMessage.style.display = 'block';
+            
+            if (password1 === password2) {
+                password2ValidationText.textContent = 'Contraseña válida';
+                password2ValidationText.className = 'password2-valid';
+            } else {
+                password2ValidationText.textContent = 'Contraseña no coincide';
+                password2ValidationText.className = 'password2-invalid';
+            }
+        }
+
+        // Validar cuando se escribe en el campo de confirmación
+        password2Input.addEventListener('input', validatePasswordMatch);
+        
+        // Validar cuando se escribe en el campo de contraseña principal
+        passwordInput.addEventListener('input', validatePasswordMatch);
+        
+        // Limpiar validación cuando se pierde el foco y está vacío
+        password2Input.addEventListener('blur', function() {
+            if (this.value.length === 0) {
+                password2ValidationMessage.style.display = 'none';
+            }
+        });
+    }
+
+    // Función para validar contraseña
+    function validatePassword(password) {
+        const minLength = 8;
+        const maxLength = 128;
+        
+        // Verificar longitud mínima
+        if (password.length < minLength) {
+            return {
+                isValid: false,
+                message: `mínimo ${minLength} caracteres`
+            };
+        }
+        
+        // Verificar longitud máxima
+        if (password.length > maxLength) {
+            return {
+                isValid: false,
+                message: `máximo ${maxLength} caracteres`
+            };
+        }
+        
+        // Verificar que contenga al menos una letra minúscula
+        if (!/[a-z]/.test(password)) {
+            return {
+                isValid: false,
+                message: 'debe contener al menos una letra minúscula'
+            };
+        }
+        
+        // Verificar que contenga al menos una letra mayúscula
+        if (!/[A-Z]/.test(password)) {
+            return {
+                isValid: false,
+                message: 'debe contener al menos una letra mayúscula'
+            };
+        }
+        
+        // Verificar que contenga al menos un número
+        if (!/\d/.test(password)) {
+            return {
+                isValid: false,
+                message: 'debe contener al menos un número'
+            };
+        }
+        
+        // Verificar que contenga al menos un carácter especial
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            return {
+                isValid: false,
+                message: 'debe contener al menos un carácter especial'
+            };
+        }
+        
+        // Verificar que no contenga espacios
+        if (/\s/.test(password)) {
+            return {
+                isValid: false,
+                message: 'no puede contener espacios'
+            };
+        }
+        
+        // Si pasa todas las validaciones
+        return {
+            isValid: true,
+            message: ''
+        };
+    }
+});
+</script>
+{% endblock %} 

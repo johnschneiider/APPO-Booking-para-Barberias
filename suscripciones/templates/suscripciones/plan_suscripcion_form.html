@@ -1,0 +1,291 @@
+{% extends 'suscripciones/base_suscripciones.html' %}
+{% load static %}
+
+{% block suscripciones_content %}
+<div class="plan-form-container">
+    <div class="plan-form-header">
+        <h1 class="plan-form-title">
+            {% if plan %}
+            <i class="fas fa-edit"></i>
+            Editar Plan de Suscripción
+            {% else %}
+            <i class="fas fa-plus"></i>
+            Crear Nuevo Plan
+            {% endif %}
+        </h1>
+        <p class="plan-form-subtitle">
+            {% if plan %}
+            Modifica los detalles de tu plan de suscripción
+            {% else %}
+            Crea un plan atractivo para tus clientes
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="post" class="plan-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-sections">
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información Básica
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                Nombre del Plan *
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                            <div class="error-message">
+                                {% for error in form.nombre.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.precio_mensual.id_for_label }}" class="form-label">
+                                Precio Mensual *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio_mensual }}
+                            </div>
+                            {% if form.precio_mensual.errors %}
+                            <div class="error-message">
+                                {% for error in form.precio_mensual.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                        Descripción *
+                    </label>
+                    {{ form.descripcion }}
+                    <small class="form-text">Describe qué incluye tu plan y por qué es atractivo</small>
+                    {% if form.descripcion.errors %}
+                    <div class="error-message">
+                        {% for error in form.descripcion.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Beneficios -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-gift"></i>
+                    Beneficios del Plan
+                </h3>
+                
+                <div class="beneficios-container">
+                    <div class="beneficios-list" id="beneficiosList">
+                        {% if form.instance.pk and form.instance.beneficios.all %}
+                        {% for beneficio in form.instance.beneficios.all %}
+                        <div class="beneficio-item" data-beneficio-id="{{ beneficio.id }}">
+                            <div class="beneficio-content">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="beneficio-texto">{{ beneficio.descripcion }}</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarBeneficio({{ beneficio.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="nuevo-beneficio">
+                        <div class="input-group">
+                            <input type="text" id="nuevoBeneficio" class="form-control" placeholder="Agregar nuevo beneficio...">
+                            <button type="button" class="btn btn-primary" onclick="agregarBeneficio()">
+                                <i class="fas fa-plus"></i>
+                                Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-cog"></i>
+                    Configuración
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.duracion_meses.id_for_label }}" class="form-label">
+                                Duración (meses) *
+                            </label>
+                            {{ form.duracion_meses }}
+                            <small class="form-text">Número de meses que dura la suscripción</small>
+                            {% if form.duracion_meses.errors %}
+                            <div class="error-message">
+                                {% for error in form.duracion_meses.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.max_suscripciones.id_for_label }}" class="form-label">
+                                Máximo de Suscripciones
+                            </label>
+                            {{ form.max_suscripciones }}
+                            <small class="form-text">Deja en blanco para ilimitado</small>
+                            {% if form.max_suscripciones.errors %}
+                            <div class="error-message">
+                                {% for error in form.max_suscripciones.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.activo.id_for_label }}" class="form-label">
+                                Estado del Plan
+                            </label>
+                            <div class="form-check">
+                                {{ form.activo }}
+                                <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                    Plan activo y disponible para suscripciones
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.destacado.id_for_label }}" class="form-label">
+                                Plan Destacado
+                            </label>
+                            <div class="form-check">
+                                {{ form.destacado }}
+                                <label class="form-check-label" for="{{ form.destacado.id_for_label }}">
+                                    Mostrar como plan recomendado
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Imagen del Plan -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-image"></i>
+                    Imagen del Plan
+                </h3>
+                
+                <div class="plan-image-container">
+                    {% if form.instance.imagen %}
+                    <div class="current-image">
+                        <img src="{{ form.instance.imagen.url }}" alt="Imagen actual del plan" class="plan-image-preview">
+                        <p class="image-info">Imagen actual del plan</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="new-image-upload">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Haz clic o arrastra una imagen aquí</p>
+                            <small>Formatos: JPG, PNG, GIF. Máximo 5MB</small>
+                        </div>
+                        {{ form.imagen }}
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="cancelarEdicion()">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </button>
+            
+            {% if plan %}
+            <button type="button" class="btn btn-danger" onclick="eliminarPlan({{ plan.id }})">
+                <i class="fas fa-trash"></i>
+                Eliminar Plan
+            </button>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                {% if plan %}Guardar Cambios{% else %}Crear Plan{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="eliminarPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar este plan?</p>
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Esta acción no se puede deshacer y afectará a todas las suscripciones activas.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">
+                    <i class="fas fa-trash"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Vista Previa -->
+<div class="modal fade" id="vistaPreviaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Vista Previa del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="plan-preview" id="planPreview">
+                    <!-- Vista previa dinámica -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Header específico para suscripciones del negocio -->
+<div class="container-fluid px-3 px-md-4 py-3 py-md-5">
+    <div class="row mb-4 mb-md-5">
+        <div class="col-12 col-lg-10 mx-auto">
+            <!-- Breadcrumb de navegación -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'negocios:panel_negocio' negocio_id=negocio.id %}" class="text-decoration-none">
+                            <i class="bi bi-house me-1"></i>Panel del Negocio
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="bi bi-crown me-1"></i>Suscripciones
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Contenido específico de la página -->
+            {% block suscripciones_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

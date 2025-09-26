@@ -1,0 +1,260 @@
+/* Paleta NeoWellness reforzada */
+:root {
+  /* Colores de marca APPO */
+  --color-primary: #1E40AF; /* Azul oscuro */
+  --color-secondary: #10B981; /* Verde/Teal */
+  --color-background: #F3F4F6; /* Blanco off-white */
+  
+  /* Colores existentes actualizados */
+  --color-mint-green: #10B981;
+  --color-smoke-white: #6B7280;
+  --color-dark: #1E40AF;
+  --color-light: #F3F4F6;
+  
+  /* Tipografías */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif-title: 'Playfair Display', Georgia, serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Bordes */
+  --border-radius-sm: 0.375rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}
+
+body {
+  background: #F4F3F1 !important;
+  color: #181818 !important;
+  font-family: var(--font-ui);
+}
+
+.header, header {
+  background: #F4F3F1 !important;
+  color: #181818 !important;
+}
+
+footer {
+  background: #F4F3F1 !important;
+  color: #181818 !important;
+}
+
+.card, .tarjeta, .box, .modal-content {
+  background: #fff !important;
+  color: #181818 !important;
+  border-radius: 1rem;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary, .btn-success, .btn-accent, .btn-mint {
+  background: #133A7F !important;
+  color: #FFFFFF !important;
+  border: none;
+}
+
+.btn-outline-primary, .btn-outline-accent {
+  color: #133A7F !important;
+  border-color: #133A7F !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-accent:hover {
+  background: #133A7F !important;
+  color: #FFFFFF !important;
+}
+
+.divider, hr, .border-top {
+  border-color: var(--color-light-blue-gray) !important;
+}
+
+.bg-soft, .bg-light, .bg-fondo-suave {
+  background: var(--color-light-blue-gray) !important;
+  color: var(--color-black-deep) !important;
+}
+
+.text-strong {
+  color: #FFFFFF !important;
+  font-weight: 600;
+}
+
+.text-accent {
+  color: var(--color-mint-green) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+
+.text-secondary {
+  color: var(--color-champagne-beige) !important;
+  opacity: 0.85;
+}
+
+.light-mode {
+  --color-black-deep: #fff;
+  --color-graphite-gray: #F5F5F5;
+  --color-smoke-white: #0D0D0D;
+  --color-mint-green: var(--color-mint-green-dark);
+  --color-champagne-beige: #EFE5DC;
+  --color-light-blue-gray: #DDE6E8;
+}
+
+.light-mode body,
+.light-mode .header,
+.light-mode header,
+.light-mode footer,
+.light-mode .card, .light-mode .tarjeta, .light-mode .box, .light-mode .modal-content {
+  background: var(--color-black-deep) !important;
+  color: var(--color-smoke-white) !important;
+}
+
+.light-mode .btn, .light-mode .btn-primary, .light-mode .btn-success, .light-mode .btn-accent, .light-mode .btn-mint {
+  background: #133A7F !important;
+  color: #FFFFFF !important;
+}
+
+.light-mode .btn-outline-primary, .light-mode .btn-outline-accent {
+  color: #133A7F !important;
+  border-color: #133A7F !important;
+}
+
+.light-mode .btn-outline-primary:hover, .light-mode .btn-outline-accent:hover {
+  background: #133A7F !important;
+  color: #FFFFFF !important;
+}
+
+.light-mode .divider, .light-mode hr, .light-mode .border-top {
+  border-color: var(--color-light-blue-gray) !important;
+}
+
+.light-mode .bg-soft, .light-mode .bg-light, .light-mode .bg-fondo-suave {
+  background: var(--color-light-blue-gray) !important;
+  color: var(--color-smoke-white) !important;
+}
+
+.light-mode .text-strong {
+  color: var(--color-smoke-white) !important;
+  font-weight: 600;
+}
+
+.light-mode .text-accent {
+  color: var(--color-mint-green) !important;
+}
+
+.light-mode .text-secondary {
+  color: var(--color-champagne-beige) !important;
+}
+
+/* Colores de texto globales para modo claro y oscuro */
+.text-muted {
+  color: #6c757d !important;
+}
+.text-dark {
+  color: #181818 !important;
+}
+.text-light {
+  color: #f5f5f5 !important;
+}
+.text-secondary {
+  color: var(--color-champagne-beige) !important;
+  opacity: 0.85;
+}
+@media (prefers-color-scheme: dark) {
+  .text-muted {
+    color: #bdbdbd !important;
+  }
+  .text-dark {
+    color: #f5f5f5 !important;
+  }
+  .text-light {
+    color: #fff !important;
+  }
+  .text-secondary {
+    color: #e0e0e0 !important;
+    opacity: 0.92;
+  }
+}
+
+/* CTA Section global styles */
+.cta-section {
+  background: var(--color-mint-green) !important;
+}
+.cta-section .cta-title, .cta-section .cta-desc {
+  color: var(--color-smoke-white);
+  font-family: var(--font-ui);
+}
+.light-mode .cta-section {
+  background: #F5F5F5 !important;
+}
+.light-mode .cta-section .cta-title, .light-mode .cta-section .cta-desc {
+  color: #0D0D0D;
+}
+section.cta-section .cta-title, section.cta-section .cta-desc {
+  color: var(--color-smoke-white) !important;
+  font-family: var(--font-ui);
+}
+.light-mode section.cta-section .cta-title, .light-mode section.cta-section .cta-desc {
+  color: #0D0D0D !important;
+}
+section.cta-section .btn {
+  color: #0D0D0D !important;
+}
+.light-mode section.cta-section .btn {
+  color: #0D0D0D !important;
+}
+
+/* Botones de tema: solo glifos puros, sin fondo ni borde */
+#toggle-theme, #toggle-theme-mobile {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: none;
+}
+
+#toggle-theme:hover, #toggle-theme-mobile:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#toggle-theme:focus, #toggle-theme-mobile:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+#toggle-theme span, #toggle-theme-mobile span {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--color-smoke-white) !important;
+}
+
+.light-mode #toggle-theme span, .light-mode #toggle-theme-mobile span {
+  color: var(--color-smoke-white) !important;
+} 

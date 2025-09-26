@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Profesional - Appo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4">
+                {% if profesional.portada %}
+                <div style="height: 180px; background: url('{{ profesional.portada.url }}') center/cover; border-radius: 1rem 1rem 0 0;"></div>
+                {% endif %}
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            {% if profesional.foto_perfil %}
+                                <img src="{{ profesional.foto_perfil.url }}" class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover;" alt="Foto de perfil">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 120px; height: 120px; font-size: 3rem; color: #764ba2;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                            {% endif %}
+                            <div class="mt-3">
+                                <a href="{% url 'profesionales:editar_perfil' %}" class="btn btn-outline-primary btn-sm">Editar Perfil</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="fw-bold mb-1">{{ profesional.nombre_completo }}</h3>
+                            <span class="badge bg-primary mb-2">{{ profesional.especialidad }}</span>
+                            <p class="mb-2"><i class="bi bi-award me-1"></i> {{ profesional.experiencia_anos }} años de experiencia</p>
+                            <p class="mb-2"><i class="bi bi-card-text me-1"></i> {{ profesional.descripcion|default:'Sin descripción' }}</p>
+                            {% if profesional.certificaciones %}
+                                <p class="mb-2"><i class="bi bi-patch-check me-1"></i> <strong>Certificaciones:</strong> {{ profesional.certificaciones }}</p>
+                            {% endif %}
+                            {% if profesional.cv %}
+                                <p class="mb-2"><i class="bi bi-file-earmark-person me-1"></i> <a href="{{ profesional.cv.url }}" target="_blank">Ver CV</a></p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <!-- Notificaciones -->
+                            <div class="position-relative d-inline-block mb-3">
+                                <a href="{% url 'profesionales:notificaciones' %}" class="btn btn-light position-relative" title="Notificaciones">
+                                    <i class="bi bi-bell fs-3"></i>
+                                    {% if notis_no_leidas > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ notis_no_leidas }}
+                                    </span>
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <!-- Estado de matriculación -->
+                            {% if matricula_activa %}
+                                <div class="alert alert-info p-2 small no-auto-hide">
+                                    <i class="bi bi-building me-1"></i>
+                                    Matriculado en: <strong>{{ matricula_activa.negocio.nombre }}</strong><br>
+                                    Estado: <span class="badge bg-success">Aprobada</span>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning p-2 small no-auto-hide">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    No estás matriculado en ningún negocio actualmente.
+                                </div>
+                            {% endif %}
+                            <a href="{% url 'profesionales:buscar_negocio' %}" class="btn btn-success btn-sm mt-2">Buscar Negocios</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">Servicios que puedes prestar</div>
+                <div class="card-body">
+                    {% if servicios %}
+                        <ul class="list-group list-group-flush">
+                            {% for s in servicios %}
+                            <li class="list-group-item">{{ s.nombre }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No tienes servicios asignados.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-info mb-3">
+                <div class="card-header bg-info text-white">Malla de turnos</div>
+                <div class="card-body">
+                    {% if horarios %}
+                        <ul class="list-group list-group-flush">
+                            {% for h in horarios %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ h.get_dia_semana_display }}:</strong> {{ h.hora_inicio|time:'H:i' }} - {{ h.hora_fin|time:'H:i' }}
+                                </div>
+                                {% if h.disponible %}
+                                    <span class="badge bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No disponible</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No tienes turnos asignados.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="{% url 'profesionales:gestionar_ausencias' %}" class="btn btn-outline-warning btn-sm">Gestionar Ausencias/Vacaciones</a>
+    </div>
+</div>
+{% endblock %} 

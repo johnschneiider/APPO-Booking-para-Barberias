@@ -1,0 +1,245 @@
+{% extends 'suscripciones/base_suscripciones.html' %}
+{% load static %}
+
+{% block title %}Suscribirse a {{ plan.nombre }} - {{ negocio.nombre }}{% endblock %}
+
+{% block suscripciones_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header del Plan - Enfoque en Suscripción -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">{{ plan.nombre }}</h1>
+                <p class="lead text-muted">{{ negocio.nombre }}</p>
+                <div class="plan-precio-display mb-4">
+                    <span class="h1 text-success fw-bold">${{ plan.precio_mensual }}</span>
+                    <span class="text-muted">/mes</span>
+                </div>
+                
+                <!-- Call to Action Principal - SUSCRIPCIÓN -->
+                <div class="alert border-0" style="background-color: #d1fae5; border-left: 4px solid #10b981;">
+                    <h5 class="text-dark mb-2" style="color: #065f46 !important;">
+                        <i class="bi bi-check-circle me-2" style="color: #10b981;"></i>
+                        ¡Perfecto! Has elegido el plan ideal
+                    </h5>
+                    <p class="mb-0" style="color: #047857 !important;">Completa tu suscripción en menos de 2 minutos</p>
+                </div>
+            </div>
+
+            <!-- BOTÓN PRINCIPAL DE SUSCRIPCIÓN - ARRIBA DEL TODO -->
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-5 text-center">
+                    <h3 class="card-title mb-4">
+                        <i class="bi bi-credit-card text-primary me-2"></i>
+                        Suscribirse Ahora
+                    </h3>
+                    
+                    {% if suscripcion_existente %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Ya tienes una suscripción activa</strong> con {{ negocio.nombre }}.
+                            <br>
+                            <small class="text-muted">
+                                Fecha de vencimiento: {{ suscripcion_existente.fecha_vencimiento|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'suscripciones:cliente_suscripciones' %}" class="btn btn-primary btn-lg">
+                                Ver Mis Suscripciones
+                            </a>
+                        </div>
+                    {% else %}
+                        <form method="post" id="formSuscripcion">
+                            {% csrf_token %}
+                            
+                            <!-- Botón Principal de Suscripción -->
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-success btn-lg py-4" id="btnSuscribirse" style="color: white !important; background-color: #198754 !important; border-color: #198754 !important;">
+                        
+                                    <strong style="color: white !important;">Suscribirse</strong>
+                                </button>
+                            </div>
+                            
+                            <!-- Texto de Aceptación de Términos -->
+                            <p class="text-muted small">
+                                Al hacer clic en "Suscribirse Ahora" aceptas los 
+                                <a href="#" class="text-primary">términos y condiciones</a> de la suscripción 
+                                y la <a href="{% url 'cuentas:politica_datos' %}" class="text-primary">política de tratamiento de datos</a>.
+                            </p>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información del Plan -->
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-5">
+                    <h3 class="card-title mb-4">
+                        <i class="bi bi-star text-warning me-2"></i>
+                        Detalles del Plan
+                    </h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">Descripción</h5>
+                            <p class="text-muted">{{ plan.descripcion }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-primary">Duración</h5>
+                            <p class="text-muted">{{ plan.duracion_meses }} mes(es)</p>
+                        </div>
+                    </div>
+
+                    {% if beneficios %}
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">Beneficios Incluidos</h5>
+                            <div class="row">
+                                {% for beneficio in beneficios %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            <span>{{ beneficio.descripcion }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if plan.max_suscripciones %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Limitado:</strong> Solo {{ plan.max_suscripciones }} suscripciones disponibles para este plan.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Formulario de Suscripción - DETALLES -->
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-5">
+                    <h3 class="card-title mb-4">
+                        <i class="bi bi-person text-primary me-2"></i>
+                        Información de la Suscripción
+                    </h3>
+                    
+                    <!-- Información Personal -->
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">Información Personal</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" value="{{ user.get_full_name }}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de la Suscripción -->
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">Resumen de la Suscripción</h5>
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Plan:</strong></td>
+                                        <td>{{ plan.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Negocio:</strong></td>
+                                        <td>{{ negocio.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Precio Mensual:</strong></td>
+                                        <td class="text-success fw-bold">${{ plan.precio_mensual }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Duración:</strong></td>
+                                        <td>{{ plan.duracion_meses }} mes(es)</td>
+                                    </tr>
+                                    <tr class="table-light">
+                                        <td><strong>Total:</strong></td>
+                                        <td class="text-success fw-bold">${{ plan.precio_mensual }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón Secundario -->
+                    <div class="text-center">
+                        <a href="{% url 'negocios:negocio_publico' negocio.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Volver al Negocio
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="text-center mt-5">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="bi bi-shield-check text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Pago Seguro</h6>
+                            <small class="text-muted">Transacciones protegidas y seguras</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="bi bi-clock text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Acceso Inmediato</h6>
+                            <small class="text-muted">Disfruta de los beneficios al instante</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="bi bi-arrow-repeat text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Renovación Automática</h6>
+                            <small class="text-muted">Se renueva automáticamente cada mes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opción Alternativa al Final - SECUNDARIA -->
+            <div class="text-center mt-5">
+                <div class="card border-2 border-dashed border-secondary bg-light">
+                    <div class="card-body p-4">
+                        <h5 class="text-secondary mb-3">¿No estás seguro de suscribirte?</h5>
+                        <p class="text-muted mb-3">Puedes probar nuestros servicios con una cita individual y decidir después</p>
+                        <a href="{% url 'negocios:negocio_publico' negocio.id %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-calendar-plus me-2"></i>
+                            Reservar Cita Individual
+                        </a>
+                        <p class="text-muted mt-2 small">Sin compromiso • Sin suscripción • Solo paga por el servicio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formSuscripcion = document.getElementById('formSuscripcion');
+    const btnSuscribirse = document.getElementById('btnSuscribirse');
+    
+    if (formSuscripcion) {
+        formSuscripcion.addEventListener('submit', function(e) {
+            // Deshabilitar botón y mostrar loading
+            btnSuscribirse.disabled = true;
+            btnSuscribirse.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando Suscripción...';
+            
+            // El formulario se envía automáticamente
+        });
+    }
+});
+</script>
+{% endblock %}

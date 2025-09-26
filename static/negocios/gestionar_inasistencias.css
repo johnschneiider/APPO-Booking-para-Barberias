@@ -1,0 +1,511 @@
+/* Estilos para la página de gestión de inasistencias */
+
+.inasistencias-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 2rem 0;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.estadisticas-card {
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.estadisticas-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.estadisticas-card .card-body {
+    padding: 1.5rem;
+}
+
+.estadisticas-card .card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.estadisticas-card .card-text {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.estadisticas-card i {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+/* Tabla de inasistencias */
+.table-inasistencias {
+    background: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-inasistencias thead th {
+    background: #f8f9fa;
+    border: none;
+    font-weight: 600;
+    color: #495057;
+    padding: 1rem;
+}
+
+.table-inasistencias tbody td {
+    padding: 1rem;
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.table-inasistencias tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badges de estado */
+.badge-inasistencia {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8rem;
+}
+
+/* Botones de acción */
+.btn-accion {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-accion:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ver-detalle {
+    background: #007bff;
+    color: white;
+    border: none;
+}
+
+.btn-ver-detalle:hover {
+    background: #0056b3;
+    color: white;
+}
+
+.btn-contactar {
+    background: #28a745;
+    color: white;
+    border: none;
+}
+
+.btn-contactar:hover {
+    background: #1e7e34;
+    color: white;
+}
+
+/* Clientes problemáticos */
+.clientes-problematicos {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.clientes-problematicos .card-header {
+    background: #ffc107;
+    color: #856404;
+    border: none;
+    font-weight: 600;
+}
+
+/* Modal de detalles */
+.modal-detalle-inasistencia .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    border: none;
+}
+
+.modal-detalle-inasistencia .modal-title {
+    font-weight: 600;
+}
+
+/* Información del cliente */
+.cliente-info {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cliente-info h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.cliente-info p {
+    margin-bottom: 0.25rem;
+    color: #6c757d;
+}
+
+/* Estado vacío */
+.estado-vacio {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.estado-vacio i {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+.estado-vacio h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive - Tablet */
+@media (max-width: 768px) {
+    .estadisticas-card .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .estadisticas-card i {
+        font-size: 2rem;
+    }
+    
+    .table-inasistencias {
+        font-size: 0.9rem;
+    }
+    
+    .btn-accion {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .inasistencias-header {
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .estadisticas-card .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .inasistencias-header {
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+    }
+    
+    .inasistencias-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .inasistencias-header p {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .estadisticas-card {
+        margin-bottom: 1rem;
+    }
+    
+    .estadisticas-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .estadisticas-card .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .estadisticas-card .card-text {
+        font-size: 0.8rem;
+    }
+    
+    .estadisticas-card i {
+        font-size: 1.5rem;
+    }
+    
+    /* Ocultar tabla en móvil y mostrar cards */
+    .table-inasistencias {
+        display: none !important;
+    }
+    
+    .table-mobile {
+        display: block;
+    }
+    
+    .card-inasistencia {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .card-inasistencia .card-header {
+        background: #f8f9fa;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .card-inasistencia .card-body {
+        padding: 1rem;
+    }
+    
+    .card-inasistencia .cliente-nombre {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .card-inasistencia .fecha-servicio {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-inasistencia .servicio-nombre {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .card-inasistencia .badge-inasistencia {
+        display: inline-block;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-inasistencia .btn-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+    
+    .card-inasistencia .btn-accion {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 0.25rem;
+    }
+    
+    .btn-accion {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        margin: 0.25rem;
+        border-radius: 0.25rem;
+    }
+    
+    .clientes-problematicos {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .clientes-problematicos .card-header {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .estado-vacio {
+        padding: 2rem 1rem;
+    }
+    
+    .estado-vacio i {
+        font-size: 3rem;
+    }
+    
+    .estado-vacio h5 {
+        font-size: 1.1rem;
+    }
+    
+    .estado-vacio p {
+        font-size: 0.9rem;
+    }
+    
+    /* Modal responsive */
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .cliente-info {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .cliente-info h6 {
+        font-size: 0.9rem;
+    }
+    
+    .cliente-info p {
+        font-size: 0.8rem;
+    }
+    
+    /* Mejorar botones en móvil */
+    .btn-group .btn {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+    }
+    
+    .btn-group .btn i {
+        margin-right: 0.25rem;
+    }
+}
+
+/* Responsive - Mobile pequeño */
+@media (max-width: 375px) {
+    .container-fluid {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    .inasistencias-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .estadisticas-card .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .estadisticas-card i {
+        font-size: 1.25rem;
+    }
+    
+    .card-inasistencia .btn-accion {
+        min-width: 100px;
+        font-size: 0.7rem;
+        padding: 0.4rem 0.5rem;
+    }
+    
+    .btn-accion {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+    
+    .card-inasistencia .cliente-nombre {
+        font-size: 0.9rem;
+    }
+    
+    .card-inasistencia .fecha-servicio {
+        font-size: 0.8rem;
+    }
+    
+    .card-inasistencia .servicio-nombre {
+        font-size: 0.85rem;
+    }
+}
+
+/* Responsive - Mobile muy pequeño */
+@media (max-width: 320px) {
+    .container-fluid {
+        padding-left: 0.125rem;
+        padding-right: 0.125rem;
+    }
+    
+    .card-inasistencia .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .card-inasistencia .btn-accion {
+        min-width: 100%;
+        margin: 0;
+    }
+    
+    .inasistencias-header h1 {
+        font-size: 1.1rem;
+    }
+    
+    .estadisticas-card .card-title {
+        font-size: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.estadisticas-card,
+.table-inasistencias,
+.card-inasistencia {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Tooltips personalizados */
+.tooltip-inasistencia {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip-inasistencia::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.tooltip-inasistencia:hover::after {
+    opacity: 1;
+}
+
+/* Ocultar tabla en móvil por defecto */
+@media (max-width: 576px) {
+    .table-inasistencias {
+        display: none !important;
+    }
+} 

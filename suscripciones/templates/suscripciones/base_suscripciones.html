@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'css/suscripciones/suscripciones.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="suscripciones-container">
+    {% block suscripciones_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/suscripciones/suscripciones.js' %}"></script>
+{% endblock %}

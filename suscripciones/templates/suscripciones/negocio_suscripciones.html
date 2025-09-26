@@ -1,0 +1,294 @@
+{% extends 'suscripciones/base_suscripciones.html' %}
+{% load static %}
+
+{% block suscripciones_content %}
+<div class="suscripciones-header" style="color: white !important;">
+    <div class="header-content">
+        <h1 class="suscripciones-title" style="color: white !important;">
+            
+            Suscripciones Activas
+        </h1>
+        <p class="suscripciones-subtitle" style="color: white !important;">Gestiona las suscripciones de tus clientes</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-primary" onclick="mostrarEstadisticas()" style="color: white !important;">
+            
+            Estadísticas
+        </button>
+        <button class="btn btn-outline-primary" onclick="exportarDatos()" style="color: white !important;">
+            
+            Exportar
+        </button>
+    </div>
+</div>
+
+<div class="suscripciones-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ total_suscripciones }}</h3>
+            <p class="stat-label">Total Suscripciones</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon active">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ suscripciones_activas }}</h3>
+            <p class="stat-label">Activas</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="bi bi-clock-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">{{ proximas_vencer }}</h3>
+            <p class="stat-label">Próximas a Vencer</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon revenue">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-content">
+            <h3 class="stat-number">${{ ingresos_mensuales }}</h3>
+            <p class="stat-label">Ingresos Mensuales</p>
+        </div>
+    </div>
+</div>
+
+<div class="suscripciones-filters">
+    <div class="filter-group">
+        <label for="estado-filter">Estado:</label>
+        <select id="estado-filter" class="form-select" onchange="filtrarSuscripciones()">
+            <option value="">Todos</option>
+            <option value="activa">Activas</option>
+            <option value="vencida">Vencidas</option>
+            <option value="proxima_vencer">Próximas a Vencer</option>
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="plan-filter">Plan:</label>
+        <select id="plan-filter" class="form-select" onchange="filtrarSuscripciones()">
+            <option value="">Todos los Planes</option>
+            {% for plan in planes %}
+            <option value="{{ plan.id }}">{{ plan.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="search-filter">Buscar:</label>
+        <input type="text" id="search-filter" class="form-control" placeholder="Nombre del cliente..." onkeyup="filtrarSuscripciones()">
+    </div>
+</div>
+
+<div class="suscripciones-table-container">
+    <table class="suscripciones-table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Plan</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Vencimiento</th>
+                <th>Días Restantes</th>
+                <th>Estado</th>
+                <th>Último Pago</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="suscripciones-tbody">
+            {% for suscripcion in suscripciones %}
+            <tr class="suscripcion-row" data-estado="{{ suscripcion.estado }}" data-plan="{{ suscripcion.plan.id }}">
+                <td class="cliente-info">
+                    <div class="cliente-avatar">
+                        {% if suscripcion.cliente.foto_perfil %}
+                        <img src="{{ suscripcion.cliente.foto_perfil.url }}" alt="{{ suscripcion.cliente.get_full_name }}">
+                        {% else %}
+                        <i class="bi bi-person-circle fs-1 text-muted"></i>
+                        {% endif %}
+                    </div>
+                    <div class="cliente-details">
+                        <h4>{{ suscripcion.cliente.get_full_name }}</h4>
+                        <p>{{ suscripcion.cliente.email }}</p>
+                    </div>
+                </td>
+                
+                <td class="plan-info">
+                    <div class="plan-badge">
+                        <span class="plan-nombre">{{ suscripcion.plan.nombre }}</span>
+                        <span class="plan-precio">${{ suscripcion.plan.precio_mensual }}/mes</span>
+                    </div>
+                </td>
+                
+                <td class="fecha-inicio">
+                    <div class="fecha-info">
+                        <span class="fecha">{{ suscripcion.fecha_inicio|date:"d/m/Y" }}</span>
+                        <span class="tiempo">{{ suscripcion.fecha_inicio|date:"H:i" }}</span>
+                    </div>
+                </td>
+                
+                <td class="fecha-vencimiento">
+                    <div class="fecha-info">
+                        <span class="fecha">{{ suscripcion.fecha_vencimiento|date:"d/m/Y" }}</span>
+                        <span class="tiempo">{{ suscripcion.fecha_vencimiento|date:"H:i" }}</span>
+                    </div>
+                </td>
+                
+                <td class="dias-restantes">
+                    {% if suscripcion.estado == 'activa' %}
+                    <div class="dias-countdown" data-vencimiento="{{ suscripcion.fecha_vencimiento|date:'Y-m-d' }}">
+                        <span class="dias-numero">{{ suscripcion.dias_restantes }}</span>
+                        <span class="dias-texto">días</span>
+                    </div>
+                    {% else %}
+                    <span class="dias-vencido">Vencida</span>
+                    {% endif %}
+                </td>
+                
+                <td class="estado-suscripcion">
+                    <span class="estado-badge estado-{{ suscripcion.estado }}">
+                        {% if suscripcion.estado == 'activa' %}
+                        <i class="fas fa-check-circle"></i> Activa
+                        {% elif suscripcion.estado == 'vencida' %}
+                        <i class="fas fa-times-circle"></i> Vencida
+                        {% elif suscripcion.estado == 'proxima_vencer' %}
+                        <i class="fas fa-clock"></i> Próxima a Vencer
+                        {% endif %}
+                    </span>
+                </td>
+                
+                <td class="ultimo-pago">
+                    {% if suscripcion.ultimo_pago %}
+                    <div class="pago-info">
+                        <span class="pago-fecha">{{ suscripcion.ultimo_pago.fecha_pago|date:"d/m/Y" }}</span>
+                        <span class="pago-monto">${{ suscripcion.ultimo_pago.monto }}</span>
+                    </div>
+                    {% else %}
+                    <span class="sin-pago">Sin pagos</span>
+                    {% endif %}
+                </td>
+                
+                <td class="acciones">
+                    <div class="acciones-buttons">
+                        <button class="btn btn-sm btn-outline-primary" onclick="verDetalles({{ suscripcion.id }})" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="renovarSuscripcion({{ suscripcion.id }})" title="Renovar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="enviarRecordatorio({{ suscripcion.id }})" title="Enviar recordatorio">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="no-suscripciones">
+                    <div class="empty-state">
+                        <i class="fas fa-crown"></i>
+                        <h3>No hay suscripciones activas</h3>
+                        <p>Cuando los clientes se suscriban a tus planes, aparecerán aquí.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal de Detalles -->
+<div class="modal fade" id="detallesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detallesModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Estadísticas -->
+<div class="modal fade" id="estadisticasModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Estadísticas de Suscripciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="estadisticas-grid">
+                    <div class="estadistica-chart">
+                        <h6>Suscripciones por Mes</h6>
+                        <canvas id="chartSuscripciones"></canvas>
+                    </div>
+                    <div class="estadistica-chart">
+                        <h6>Ingresos por Mes</h6>
+                        <canvas id="chartIngresos"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+/* Estilos para los iconos de estadísticas */
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-icon.active {
+    background: var(--success);
+}
+
+.stat-icon.warning {
+    background: var(--warning);
+}
+
+.stat-icon.revenue {
+    background: var(--info);
+}
+
+.stat-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+/* Asegurar que los iconos de Bootstrap se muestren */
+.bi {
+    display: inline-block;
+    font-family: "Bootstrap Icons" !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: middle;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+</style>

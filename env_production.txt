@@ -1,0 +1,62 @@
+# Variables de entorno para producción APPO
+# =============================================
+
+# Django Configuration
+SECRET_KEY=django-insecure-production-key-change-this-immediately
+DEBUG=False
+ALLOWED_HOSTS=appo.com.co,www.appo.com.co,92.113.39.100,localhost,127.0.0.1
+
+# Database Configuration
+POSTGRES_DB=vitalmix
+POSTGRES_USER=vitaluser
+POSTGRES_PASSWORD=vitalpass
+DATABASE_URL=postgresql://vitaluser:vitalpass@db:5432/vitalmix
+
+# Redis Configuration
+REDIS_URL=redis://redis:6379/0
+
+# Docker Configuration
+USING_DOCKER=yes
+
+# Email Configuration (opcional)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=tu-email@gmail.com
+EMAIL_HOST_PASSWORD=tu-password-app
+
+# Social Auth Configuration (opcional)
+GOOGLE_CLIENT_ID=tu-google-client-id
+GOOGLE_CLIENT_SECRET=tu-google-client-secret
+FACEBOOK_APP_ID=tu-facebook-app-id
+FACEBOOK_APP_SECRET=tu-facebook-app-secret
+
+# Twilio Configuration (opcional)
+TWILIO_ACCOUNT_SID=tu-twilio-account-sid
+TWILIO_AUTH_TOKEN=tu-twilio-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
+
+# Security Configuration
+CSRF_TRUSTED_ORIGINS=https://appo.com.co,https://www.appo.com.co
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_BROWSER_XSS_FILTER=True
+SECURE_CONTENT_TYPE_NOSNIFF=True
+X_FRAME_OPTIONS=DENY
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FILE=/app/logs/django.log
+
+# File Upload Configuration
+MAX_UPLOAD_SIZE=5242880  # 5MB in bytes
+MEDIA_ROOT=/app/media
+STATIC_ROOT=/app/staticfiles
+
+# Cache Configuration
+CACHE_BACKEND=redis://redis:6379/1
+
+# Celery Configuration (opcional)
+CELERY_BROKER_URL=redis://redis:6379/2
+CELERY_RESULT_BACKEND=redis://redis:6379/3 

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Reservar en {{ negocio.nombre }}{% endblock %}
+{% block content %}
+
+<!-- DEBUG: Template cargado correctamente -->
+<div class="alert alert-info" role="alert">
+    <strong>DEBUG:</strong> Template reservar_negocio.html cargado correctamente
+    <br>Negocio: {{ negocio.nombre }}
+    <br>Usuario: {{ user.username }}
+    <br>Método: {{ request.method }}
+    <br>Formulario: {% if form %}SÍ{% else %}NO{% endif %}
+</div>
+
+<div class="container py-3 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-3 p-md-5">
+                    <div class="text-center mb-4">
+                        {% if negocio.logo %}
+                            <img src="{{ negocio.logo.url }}" class="rounded-circle shadow mb-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 2rem; color: #764ba2;">
+                                <i class="bi bi-shop"></i>
+                            </div>
+                        {% endif %}
+                        <h2 class="fw-bold" style="color: #181818 !important; font-size: 1.5rem;">Reservar en {{ negocio.nombre }}</h2>
+                        <p class="text-muted mb-0 small">Selecciona el servicio, profesional, fecha y hora para tu reserva</p>
+                    </div>
+                    
+                    {% if form %}
+                        <form method="post" class="mb-4">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Errores en el formulario:</strong>
+                                <ul class="mb-0">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <label for="id_servicio" class="form-label">Servicio</label>
+                                <select name="servicio" id="id_servicio" class="form-select">
+                                    <option value="">---------</option>
+                                    {% for s in servicios %}
+                                        <option value="{{ s.id }}">{{ s.servicio.nombre }} ({{ s.duracion }} min)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_profesional" class="form-label">Profesional</label>
+                                <select name="profesional" id="id_profesional" class="form-select">
+                                    <option value="">---------</option>
+                                    {% for prof in negocio.matriculaciones.all %}
+                                        {% if prof.estado == 'aprobada' %}
+                                            <option value="{{ prof.profesional.id }}">{{ prof.profesional.nombre_completo }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_fecha" class="form-label">Fecha</label>
+                                <input type="date" name="fecha" id="id_fecha" class="form-control" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_hora_inicio" class="form-label">Hora de inicio</label>
+                                <input type="time" name="hora_inicio" id="id_hora_inicio" class="form-control" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_notas" class="form-label">Notas adicionales</label>
+                                <textarea name="notas" id="id_notas" class="form-control" rows="3"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Reservar</button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> No se pudo crear el formulario de reserva.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DEBUG: Información adicional -->
+<div class="container mt-3">
+    <div class="alert alert-secondary">
+        <strong>Información de debug:</strong>
+        <br>Servicios disponibles: {{ servicios.count }}
+        <br>Disponibilidad: {{ disponibilidad|length }} días
+        <br>Fecha preseleccionada: {{ fecha_preseleccionada|default:"Ninguna" }}
+    </div>
+</div>
+
+{% endblock %} 

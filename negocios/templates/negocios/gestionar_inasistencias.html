@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Inasistencias - {{ negocio.nombre }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'negocios/gestionar_inasistencias.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    Gestión de Inasistencias
+                </h1>
+                <div>
+                    <a href="{% url 'negocios:configurar_politica_inasistencias' negocio.id %}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-cog"></i> Configurar Política
+                    </a>
+                    <a href="{% url 'negocios:panel_negocio' negocio.id %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_inasistencias }}</h4>
+                            <p class="card-text">Total Inasistencias</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-times fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ inasistencias_este_mes }}</h4>
+                            <p class="card-text">Este Mes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ inasistencias_esta_semana }}</h4>
+                            <p class="card-text">Esta Semana</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-week fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ clientes_problematicos|length }}</h4>
+                            <p class="card-text">Clientes Problemáticos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes Problemáticos -->
+    {% if clientes_problematicos %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Clientes con Múltiples Inasistencias
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Email</th>
+                                    <th>Total Inasistencias</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in clientes_problematicos %}
+                                <tr>
+                                    <td>{{ cliente.cliente__username }}</td>
+                                    <td>{{ cliente.cliente__email }}</td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ cliente.total_inasistencias }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="verHistorialCliente('{{ cliente.cliente__username }}')">
+                                            <i class="fas fa-history"></i> Ver Historial
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Lista de Inasistencias -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list"></i>
+                        Lista de Inasistencias
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if inasistencias %}
+                    <!-- Vista de tabla para desktop -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-striped table-inasistencias">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Cliente</th>
+                                    <th>Profesional</th>
+                                    <th>Servicio</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reserva in inasistencias %}
+                                <tr>
+                                    <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
+                                    <td>{{ reserva.hora_inicio|time:"H:i" }}</td>
+                                    <td>
+                                        <strong>{{ reserva.cliente.username }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ reserva.cliente.email }}</small>
+                                    </td>
+                                    <td>
+                                        {% if reserva.profesional %}
+                                            {{ reserva.profesional.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">No asignado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reserva.servicio %}
+                                            {{ reserva.servicio.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">Inasistencia</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    onclick="verDetalleReserva({{ reserva.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" 
+                                                    onclick="contactarCliente('{{ reserva.cliente.email }}')">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Vista de cards para móvil -->
+                    <div class="d-md-none">
+                        {% for reserva in inasistencias %}
+                        <div class="card card-inasistencia mb-3">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="cliente-nombre">{{ reserva.cliente.username }}</strong>
+                                        <div class="fecha-servicio">{{ reserva.fecha|date:"d/m/Y" }} - {{ reserva.hora_inicio|time:"H:i" }}</div>
+                                    </div>
+                                    <span class="badge bg-danger">Inasistencia</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="servicio-nombre">
+                                    {% if reserva.servicio %}
+                                        <i class="fas fa-cut me-2"></i>{{ reserva.servicio.nombre }}
+                                    {% else %}
+                                        <i class="fas fa-cut me-2"></i>Servicio no especificado
+                                    {% endif %}
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i>
+                                        {% if reserva.profesional %}
+                                            {{ reserva.profesional.nombre }}
+                                        {% else %}
+                                            No asignado
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-envelope me-1"></i>{{ reserva.cliente.email }}
+                                    </small>
+                                </div>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-accion btn-ver-detalle" 
+                                            onclick="verDetalleReserva({{ reserva.id }})">
+                                        <i class="fas fa-eye me-1"></i>Ver Detalle
+                                    </button>
+                                    <button class="btn btn-accion btn-contactar" 
+                                            onclick="contactarCliente('{{ reserva.cliente.email }}')">
+                                        <i class="fas fa-envelope me-1"></i>Contactar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                        <h5>¡Excelente!</h5>
+                        <p class="text-muted">No hay inasistencias registradas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles de reserva -->
+<div class="modal fade" id="detalleReservaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalle de Inasistencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleReservaContent">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function verDetalleReserva(reservaId) {
+    // Implementar lógica para cargar detalles de la reserva
+    console.log('Ver detalles de reserva:', reservaId);
+    $('#detalleReservaModal').modal('show');
+}
+
+function verHistorialCliente(username) {
+    // Implementar lógica para ver historial del cliente
+    console.log('Ver historial de cliente:', username);
+}
+
+function contactarCliente(email) {
+    // Abrir cliente de email
+    window.open(`mailto:${email}?subject=Inasistencia a cita`, '_blank');
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,49 @@
+# Ignorar entorno virtual
+venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+
+# Base de datos local
+db.sqlite3
+*.db
+
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.production
+*.env
+
+# Archivos ocultos y logs
+*.log
+logs/
+
+# Archivos de usuario
+/media/
+/staticfiles/
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de credenciales
+client_secret_*.json
+*.pem
+*.key
+
+# Archivos temporales
+*.tmp
+*.temp

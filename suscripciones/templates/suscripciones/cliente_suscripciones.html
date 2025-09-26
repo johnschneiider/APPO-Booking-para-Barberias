@@ -1,0 +1,977 @@
+{% extends 'suscripciones/base_suscripciones.html' %}
+{% load static %}
+
+{% block suscripciones_content %}
+<style>
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #f59e0b;
+    --accent: #ec4899;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --dark: #1f2937;
+    --light: #f8fafc;
+    --gray: #6b7280;
+    --gray-light: #e5e7eb;
+    --white: #ffffff;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    --gradient-secondary: linear-gradient(135deg, var(--secondary) 0%, #d97706 100%);
+    --gradient-accent: linear-gradient(135deg, var(--accent) 0%, #be185d 100%);
+}
+
+.suscripciones-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+}
+
+.suscripciones-header {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    margin-bottom: 3rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.suscripciones-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+}
+
+.header-content {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.suscripciones-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 1rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.025em;
+}
+
+.suscripciones-subtitle {
+    font-size: 1.25rem;
+    color: var(--gray);
+    margin: 0;
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    color: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: var(--white);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary);
+    color: var(--white);
+    transform: translateY(-2px);
+}
+
+.suscripciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.suscripcion-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--gray-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.suscripcion-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.suscripcion-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.suscripcion-card:hover::before {
+    transform: scaleX(1);
+}
+
+.suscripcion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.negocio-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.negocio-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid var(--primary);
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+}
+
+.negocio-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.negocio-details h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.negocio-details p {
+    color: var(--gray);
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.estado-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    color: var(--white) !important;
+}
+
+.estado-activa {
+    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    color: var(--white);
+}
+
+.estado-vencida {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    color: var(--white);
+}
+
+.estado-proxima_vencer {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    color: var(--white);
+}
+
+.suscripcion-plan {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--light);
+    border-radius: 16px;
+    border: 1px solid var(--gray-light);
+}
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.plan-header h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+}
+
+.plan-precio {
+    background: var(--gradient-secondary);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.plan-descripcion {
+    color: var(--gray);
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+}
+
+.plan-beneficios h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0 0 0.75rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.plan-beneficios ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-beneficios li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.plan-beneficios i {
+    color: var(--success);
+    font-size: 0.75rem;
+}
+
+.suscripcion-fechas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--light);
+    border-radius: 16px;
+    border: 1px solid var(--gray-light);
+}
+
+.fecha-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+    align-items: center;
+}
+
+.fecha-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fecha-valor {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.dias-restantes .fecha-valor {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.dias-restantes.normal .fecha-valor {
+    color: var(--success);
+}
+
+.dias-restantes.advertencia .fecha-valor {
+    color: var(--warning);
+}
+
+.dias-restantes.urgente .fecha-valor {
+    color: var(--danger);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.suscripcion-acciones {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.suscripcion-acciones .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    border-radius: 10px;
+}
+
+.btn-success {
+    background: var(--gradient-secondary);
+    color: var(--white);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: var(--white);
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--gray);
+    border: 2px solid var(--gray-light);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gray);
+    color: var(--white);
+    border-color: var(--gray);
+}
+
+.suscripcion-alerta {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.no-suscripciones {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 4rem 2rem;
+    box-shadow: var(--shadow);
+    border: 2px dashed var(--primary);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: var(--gray);
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* Modales mejorados */
+.modal-content {
+    border-radius: 24px;
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--gray-light);
+    padding: 1.5rem 2rem;
+    border-radius: 24px 24px 0 0;
+}
+
+.modal-title {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 1.5rem;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.busqueda-filtros {
+    background: var(--light);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.busqueda-filtros label {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-select, .form-control {
+    border-radius: 10px;
+    border: 2px solid var(--gray-light);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+}
+
+.historial-tabs .nav-tabs {
+    border-bottom: 2px solid var(--gray-light);
+    margin-bottom: 2rem;
+}
+
+.historial-tabs .nav-link {
+    border: none;
+    color: var(--gray);
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
+    transition: all 0.3s ease;
+}
+
+.historial-tabs .nav-link.active {
+    color: var(--primary);
+    background: transparent;
+    border-bottom: 3px solid var(--primary);
+}
+
+.historial-tabs .nav-link:hover {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .suscripciones-container {
+        padding: 1rem 0;
+    }
+    
+    .suscripciones-header {
+        padding: 2rem 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .suscripciones-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .suscripcion-card {
+        padding: 1.5rem;
+    }
+    
+    .suscripcion-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .suscripcion-fechas {
+        grid-template-columns: 1fr;
+    }
+    
+    .suscripcion-acciones {
+        justify-content: center;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.suscripcion-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.suscripcion-card:nth-child(2) { animation-delay: 0.1s; }
+.suscripcion-card:nth-child(3) { animation-delay: 0.2s; }
+.suscripcion-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* Scrollbar personalizado */
+.suscripciones-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.suscripciones-container::-webkit-scrollbar-track {
+    background: var(--gray-light);
+    border-radius: 4px;
+}
+
+.suscripciones-container::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.suscripciones-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+</style>
+
+<div class="suscripciones-container">
+    <div class="container">
+        <div class="suscripciones-header">
+            <div class="header-content">
+                <h1 class="suscripciones-title">
+                    
+                    Mis Suscripciones
+                </h1>
+                <p class="suscripciones-subtitle">Gestiona tus suscripciones activas y descubre nuevos beneficios</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline-primary" onclick="verHistorial()">
+                    
+                    Historial
+                </button>
+            </div>
+        </div>
+
+        <div class="suscripciones-grid">
+            {% for suscripcion in suscripciones %}
+            <div class="suscripcion-card" data-estado="{{ suscripcion.estado }}">
+                <div class="suscripcion-header">
+                    <div class="negocio-info">
+                        <div class="negocio-avatar">
+                            {% if suscripcion.negocio.logo %}
+                            <img src="{{ suscripcion.negocio.logo.url }}" alt="{{ suscripcion.negocio.nombre }}">
+                            {% else %}
+                            <img src="{% static 'img/default-business.svg' %}" alt="Negocio">
+                            {% endif %}
+                        </div>
+                        <div class="negocio-details">
+                            <h3>{{ suscripcion.negocio.nombre }}</h3>
+                            <p>{{ suscripcion.negocio.direccion }}</p>
+                        </div>
+                    </div>
+                    <div class="estado-badge estado-{{ suscripcion.estado }}">
+                        {% if suscripcion.estado == 'activa' %}
+                         Activa
+                        {% elif suscripcion.estado == 'vencida' %}
+                         Vencida
+                        {% elif suscripcion.estado == 'proxima_vencer' %}
+                         Próxima a Vencer
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="suscripcion-plan">
+                    <div class="plan-header">
+                        <h4>{{ suscripcion.plan.nombre }}</h4>
+                        <span class="plan-precio">${{ suscripcion.plan.precio_mensual }}/mes</span>
+                    </div>
+                    <p class="plan-descripcion">{{ suscripcion.plan.descripcion }}</p>
+                    
+                    {% if suscripcion.plan.beneficios.all %}
+                    <div class="plan-beneficios">
+                        <h6>Beneficios incluidos:</h6>
+                        <ul>
+                            {% for beneficio in suscripcion.plan.beneficios.all %}
+                            <li>
+                                <i class="fas fa-check"></i>
+                                {{ beneficio.descripcion }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="suscripcion-fechas">
+                    <div class="fecha-item">
+                        <span class="fecha-label">Inicio:</span>
+                        <span class="fecha-valor">{{ suscripcion.fecha_inicio|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="fecha-item">
+                        <span class="fecha-label">Vencimiento:</span>
+                        <span class="fecha-valor">{{ suscripcion.fecha_fin|date:"d/m/Y" }}</span>
+                    </div>
+                    {% if suscripcion.estado == 'activa' %}
+                    <div class="fecha-item dias-restantes">
+                        <span class="fecha-label">Días restantes:</span>
+                        <span class="fecha-valor countdown" data-vencimiento="{{ suscripcion.fecha_fin|date:'Y-m-d' }}" data-suscripcion-id="{{ suscripcion.id }}">
+                            <span class="countdown-days">--</span> días
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="suscripcion-acciones">
+                    {% if suscripcion.estado == 'activa' %}
+                    <button class="btn btn-primary" onclick="renovarSuscripcion({{ suscripcion.id }})">
+                        <i class="fas fa-sync-alt"></i>
+                        Renovar
+                    </button>
+                    <a href="{% url 'clientes:reservar_turno' suscripcion.negocio.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-calendar-plus"></i>
+                        Reservar Cita
+                    </a>
+                    {% elif suscripcion.estado == 'vencida' %}
+                    <button class="btn btn-success" onclick="renovarSuscripcion({{ suscripcion.id }})">
+                        <i class="fas fa-redo"></i>
+                        Reactivar
+                    </button>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-secondary" onclick="contactarNegocio({{ suscripcion.negocio.id }})">
+                        <i class="fas fa-phone"></i>
+                        Contactar
+                    </button>
+                </div>
+                
+                {% if suscripcion.estado == 'proxima_vencer' %}
+                <div class="suscripcion-alerta">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Tu suscripción vence pronto. ¡Renóvala para mantener tus beneficios!</span>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-suscripciones">
+                <div class="empty-state">
+                    <i class="fas fa-crown"></i>
+                    <h3>No tienes suscripciones activas</h3>
+                    <p>Descubre negocios increíbles y suscríbete a sus planes para obtener beneficios exclusivos y descuentos especiales.</p>
+                    <button class="btn btn-primary" onclick="buscarNegocios()">
+                        <i class="fas fa-search"></i>
+                        Buscar Negocios
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalles -->
+<div class="modal fade" id="detallesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detallesModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Búsqueda de Negocios -->
+<div class="modal fade" id="buscarNegociosModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Buscar Negocios para Suscribirse</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="busqueda-filtros">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="categoria-filter">Categoría:</label>
+                            <select id="categoria-filter" class="form-select">
+                                <option value="">Todas las categorías</option>
+                                <option value="peluqueria">Peluquería</option>
+                                <option value="estetica">Estética</option>
+                                <option value="spa">Spa</option>
+                                <option value="belleza">Belleza</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ubicacion-filter">Ubicación:</label>
+                            <input type="text" id="ubicacion-filter" class="form-control" placeholder="Ciudad o barrio">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="precio-filter">Precio máximo:</label>
+                            <select id="precio-filter" class="form-select">
+                                <option value="">Cualquier precio</option>
+                                <option value="10000">$10.000</option>
+                                <option value="20000">$20.000</option>
+                                <option value="50000">$50.000</option>
+                                <option value="100000">$100.000</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-3" onclick="realizarBusqueda()">
+                        <i class="fas fa-search"></i>
+                        Buscar
+                    </button>
+                </div>
+                
+                <div class="negocios-resultados" id="negociosResultados">
+                    <!-- Resultados de búsqueda dinámicos -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Historial -->
+<div class="modal fade" id="historialModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Historial de Suscripciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="historial-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#historial-activas">Activas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#historial-vencidas">Vencidas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#historial-pagos">Pagos</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="historial-activas">
+                            <div class="historial-content" id="historialActivas">
+                                <!-- Contenido dinámico -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="historial-vencidas">
+                            <div class="historial-content" id="historialVencidas">
+                                <!-- Contenido dinámico -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="historial-pagos">
+                            <div class="historial-content" id="historialPagos">
+                                <!-- Contenido dinámico -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para calcular días restantes
+function calcularDiasRestantes(fechaVencimiento) {
+    const hoy = new Date();
+    const vencimiento = new Date(fechaVencimiento);
+    
+    // Resetear la hora para comparar solo fechas
+    hoy.setHours(0, 0, 0, 0);
+    vencimiento.setHours(0, 0, 0, 0);
+    
+    const diferencia = vencimiento.getTime() - hoy.getTime();
+    const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+    
+    return diasRestantes;
+}
+
+// Función para formatear la cuenta regresiva
+function formatearCuentaRegresiva(dias) {
+    if (dias < 0) {
+        return 'Vencida';
+    } else if (dias === 0) {
+        return 'Vence hoy';
+    } else if (dias === 1) {
+        return '1 día';
+    } else {
+        return `${dias} días`;
+    }
+}
+
+// Función para actualizar todas las cuentas regresivas
+function actualizarCuentasRegresivas() {
+    const countdowns = document.querySelectorAll('.countdown');
+    
+    countdowns.forEach(countdown => {
+        const fechaVencimiento = countdown.getAttribute('data-vencimiento');
+        const countdownDays = countdown.querySelector('.countdown-days');
+        
+        if (fechaVencimiento && countdownDays) {
+            const diasRestantes = calcularDiasRestantes(fechaVencimiento);
+            countdownDays.textContent = formatearCuentaRegresiva(diasRestantes);
+            
+            // Aplicar estilos según los días restantes
+            const countdownContainer = countdown.closest('.dias-restantes');
+            if (countdownContainer) {
+                countdownContainer.classList.remove('urgente', 'advertencia', 'normal');
+                
+                if (diasRestantes <= 3) {
+                    countdownContainer.classList.add('urgente');
+                } else if (diasRestantes <= 7) {
+                    countdownContainer.classList.add('advertencia');
+                } else {
+                    countdownContainer.classList.add('normal');
+                }
+            }
+        }
+    });
+}
+
+// Función para actualizar una cuenta regresiva específica
+function actualizarCuentaRegresiva(suscripcionId) {
+    const countdown = document.querySelector(`[data-suscripcion-id="${suscripcionId}"]`);
+    if (countdown) {
+        const fechaVencimiento = countdown.getAttribute('data-vencimiento');
+        const countdownDays = countdown.querySelector('.countdown-days');
+        
+        if (fechaVencimiento && countdownDays) {
+            const diasRestantes = calcularDiasRestantes(fechaVencimiento);
+            countdownDays.textContent = formatearCuentaRegresiva(diasRestantes);
+        }
+    }
+}
+
+// Inicializar cuentas regresivas cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar inmediatamente
+    actualizarCuentasRegresivas();
+    
+    // Actualizar cada hora
+    setInterval(actualizarCuentasRegresivas, 60 * 60 * 1000);
+    
+    // Actualizar cada minuto si hay suscripciones que vencen pronto
+    setInterval(function() {
+        const countdowns = document.querySelectorAll('.countdown');
+        let hayVencimientosProximos = false;
+        
+        countdowns.forEach(countdown => {
+            const fechaVencimiento = countdown.getAttribute('data-vencimiento');
+            if (fechaVencimiento) {
+                const diasRestantes = calcularDiasRestantes(fechaVencimiento);
+                if (diasRestantes <= 7) {
+                    hayVencimientosProximos = true;
+                }
+            }
+        });
+        
+        if (hayVencimientosProximos) {
+            actualizarCuentasRegresivas();
+        }
+    }, 60 * 1000);
+});
+
+// Función para renovar suscripción (mantener la funcionalidad existente)
+function renovarSuscripcion(suscripcionId) {
+    // Aquí puedes implementar la lógica de renovación
+    console.log('Renovando suscripción:', suscripcionId);
+    // Mostrar modal o redirigir a página de renovación
+}
+
+// Función para contactar negocio (mantener la funcionalidad existente)
+function contactarNegocio(negocioId) {
+    // Aquí puedes implementar la lógica de contacto
+    console.log('Contactando negocio:', negocioId);
+    // Mostrar información de contacto o abrir chat
+}
+
+// Funciones para los modales (mantener la funcionalidad existente)
+function buscarNegocios() {
+    const modal = new bootstrap.Modal(document.getElementById('buscarNegociosModal'));
+    modal.show();
+}
+
+function verHistorial() {
+    const modal = new bootstrap.Modal(document.getElementById('historialModal'));
+    modal.show();
+}
+</script>
+
+{% endblock %}

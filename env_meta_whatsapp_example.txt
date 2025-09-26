@@ -1,0 +1,30 @@
+# Configuración de WhatsApp Business API de Meta
+# =============================================
+
+# Habilitar WhatsApp Meta API
+META_WHATSAPP_ENABLED=True
+
+# ID del número de teléfono de WhatsApp Business
+# Obtener desde: https://developers.facebook.com/apps/{app-id}/whatsapp-business/phone-numbers
+META_WHATSAPP_PHONE_NUMBER_ID=123456789012345
+
+# Token de acceso de WhatsApp Business API
+# Obtener desde: https://developers.facebook.com/apps/{app-id}/whatsapp-business/phone-numbers
+META_WHATSAPP_ACCESS_TOKEN=EAABwzLixnjYBO...
+
+# Token de verificación para webhooks (puedes generar uno aleatorio)
+META_WHATSAPP_VERIFY_TOKEN=tu_token_verificacion_personalizado
+
+# Secreto del webhook para verificar firmas (opcional pero recomendado)
+META_WHATSAPP_WEBHOOK_SECRET=tu_secreto_webhook_personalizado
+
+# URL del webhook (debe ser HTTPS en producción)
+META_WHATSAPP_WEBHOOK_URL=https://tu-dominio.com/clientes/meta-whatsapp/webhook/
+
+# Configuración de Twilio (mantener para SMS si es necesario)
+# ===========================================================
+TWILIO_ACCOUNT_SID=AC1234567890abcdef1234567890abcdef
+TWILIO_AUTH_TOKEN=tu-auth-token-aqui
+TWILIO_SMS_NUMBER=+1234567890
+
+# Nota: TWILIO_WHATSAPP_NUMBER ya no es necesario con Meta API

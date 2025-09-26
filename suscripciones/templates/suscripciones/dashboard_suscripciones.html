@@ -1,0 +1,415 @@
+{% extends 'suscripciones/base_suscripciones.html' %}
+{% load static %}
+
+{% block suscripciones_content %}
+<div class="dashboard-header">
+    <div class="header-content">
+        <h1 class="dashboard-title">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard de Suscripciones
+        </h1>
+        <p class="dashboard-subtitle">Resumen completo de tu negocio de suscripciones</p>
+    </div>
+    
+    <div class="header-actions">
+        <button class="btn btn-outline-primary" onclick="exportarReporte()">
+            <i class="fas fa-download"></i>
+            Exportar Reporte
+        </button>
+        <button class="btn btn-outline-secondary" onclick="configuracion()">
+            <i class="fas fa-cog"></i>
+            Configuración
+        </button>
+    </div>
+</div>
+
+<!-- Métricas Principales -->
+<div class="metricas-principales">
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="metrica-card">
+                <div class="metrica-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="metrica-content">
+                    <h3 class="metrica-valor">{{ total_suscripciones }}</h3>
+                    <p class="metrica-label">Total Suscripciones</p>
+                    <div class="metrica-trend {% if crecimiento_suscripciones >= 0 %}positive{% else %}negative{% endif %}">
+                        <i class="fas fa-{% if crecimiento_suscripciones >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                        <span>{{ crecimiento_suscripciones|abs }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metrica-card">
+                <div class="metrica-icon active">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metrica-content">
+                    <h3 class="metrica-valor">{{ suscripciones_activas }}</h3>
+                    <p class="metrica-label">Suscripciones Activas</p>
+                    <div class="metrica-trend {% if crecimiento_activas >= 0 %}positive{% else %}negative{% endif %}">
+                        <i class="fas fa-{% if crecimiento_activas >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                        <span>{{ crecimiento_activas|abs }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metrica-card">
+                <div class="metrica-icon revenue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metrica-content">
+                    <h3 class="metrica-valor">${{ ingresos_mensuales }}</h3>
+                    <p class="metrica-label">Ingresos Mensuales</p>
+                    <div class="metrica-trend {% if crecimiento_ingresos >= 0 %}positive{% else %}negative{% endif %}">
+                        <i class="fas fa-{% if crecimiento_ingresos >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                        <span>{{ crecimiento_ingresos|abs }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metrica-card">
+                <div class="metrica-icon warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metrica-content">
+                    <h3 class="metrica-valor">{{ proximas_vencer }}</h3>
+                    <p class="metrica-label">Próximas a Vencer</p>
+                    <div class="metrica-alerta">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Requieren atención</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos y Estadísticas -->
+<div class="dashboard-charts">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Evolución de Suscripciones</h4>
+                    <div class="chart-controls">
+                        <select id="periodoChart" class="form-select form-select-sm" onchange="actualizarChart()">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último año</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="evolucionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Distribución por Plan</h4>
+                </div>
+                <div class="chart-container">
+                    <canvas id="distribucionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Top 5 Planes Más Populares</h4>
+                </div>
+                <div class="ranking-container">
+                    {% for plan in top_planes %}
+                    <div class="ranking-item">
+                        <div class="ranking-position">{{ forloop.counter }}</div>
+                        <div class="ranking-info">
+                            <h6>{{ plan.nombre }}</h6>
+                            <p>{{ plan.negocio.nombre }}</p>
+                        </div>
+                        <div class="ranking-stats">
+                            <span class="suscriptores">{{ plan.total_suscriptores }} suscriptores</span>
+                            <span class="ingresos">${{ plan.ingresos_mensuales }}/mes</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Actividad Reciente</h4>
+                </div>
+                <div class="actividad-container">
+                    {% for actividad in actividades_recientes %}
+                    <div class="actividad-item">
+                        <div class="actividad-icon">
+                            {% if actividad.tipo == 'nueva_suscripcion' %}
+                            <i class="fas fa-plus-circle text-success"></i>
+                            {% elif actividad.tipo == 'renovacion' %}
+                            <i class="fas fa-sync-alt text-primary"></i>
+                            {% elif actividad.tipo == 'vencimiento' %}
+                            <i class="fas fa-clock text-warning"></i>
+                            {% elif actividad.tipo == 'cancelacion' %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </div>
+                        <div class="actividad-content">
+                            <p class="actividad-texto">{{ actividad.descripcion }}</p>
+                            <small class="actividad-tiempo">{{ actividad.tiempo }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Suscripciones Recientes -->
+<div class="dashboard-table">
+    <div class="table-header">
+        <h4>Suscripciones Recientes</h4>
+        <a href="{% url 'suscripciones:negocio_suscripciones' negocio_id=negocio.id %}" class="btn btn-outline-primary btn-sm">
+            Ver Todas
+        </a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Plan</th>
+                    <th>Fecha Inicio</th>
+                    <th>Estado</th>
+                    <th>Próximo Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for suscripcion in suscripciones_recientes %}
+                <tr>
+                    <td>
+                        <div class="cliente-info-compact">
+                            <div class="cliente-avatar">
+                                {% if suscripcion.cliente.foto_perfil %}
+                                <img src="{{ suscripcion.cliente.foto_perfil.url }}" alt="{{ suscripcion.cliente.get_full_name }}">
+                                {% else %}
+                                <i class="bi bi-person-circle fs-1 text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <div class="cliente-details">
+                                <strong>{{ suscripcion.cliente.get_full_name }}</strong>
+                                <small>{{ suscripcion.cliente.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td>
+                        <div class="plan-info-compact">
+                            <strong>{{ suscripcion.plan.nombre }}</strong>
+                            <small>${{ suscripcion.plan.precio_mensual }}/mes</small>
+                        </div>
+                    </td>
+                    
+                    <td>{{ suscripcion.fecha_inicio|date:"d/m/Y" }}</td>
+                    
+                    <td>
+                        <span class="estado-badge estado-{{ suscripcion.estado }}">
+                            {% if suscripcion.estado == 'activa' %}
+                            <i class="fas fa-check-circle"></i> Activa
+                            {% elif suscripcion.estado == 'vencida' %}
+                            <i class="fas fa-times-circle"></i> Vencida
+                            {% elif suscripcion.estado == 'proxima_vencer' %}
+                            <i class="fas fa-clock"></i> Próxima a Vencer
+                            {% endif %}
+                        </span>
+                    </td>
+                    
+                    <td>
+                        {% if suscripcion.estado == 'activa' %}
+                        <span class="proximo-pago">{{ suscripcion.fecha_vencimiento|date:"d/m/Y" }}</span>
+                        {% else %}
+                        <span class="sin-pago">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <div class="acciones-compact">
+                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalles({{ suscripcion.id }})" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="renovarSuscripcion({{ suscripcion.id }})" title="Renovar">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="empty-state-small">
+                            <i class="fas fa-crown"></i>
+                            <p>No hay suscripciones recientes</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Alertas y Notificaciones -->
+<div class="dashboard-alertas">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="alerta-card">
+                <div class="alerta-header">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Alertas</h5>
+                </div>
+                <div class="alerta-content">
+                    {% if alertas %}
+                    <ul class="alerta-list">
+                        {% for alerta in alertas %}
+                        <li class="alerta-item alerta-{{ alerta.tipo }}">
+                            <i class="fas fa-{{ alerta.icono }}"></i>
+                            <span>{{ alerta.mensaje }}</span>
+                            <small>{{ alerta.tiempo }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="no-alertas">No hay alertas pendientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="notificacion-card">
+                <div class="notificacion-header">
+                    <h5><i class="fas fa-bell"></i> Próximas Acciones</h5>
+                </div>
+                <div class="notificacion-content">
+                    {% if proximas_acciones %}
+                    <ul class="notificacion-list">
+                        {% for accion in proximas_acciones %}
+                        <li class="notificacion-item">
+                            <div class="accion-icon">
+                                <i class="fas fa-{{ accion.icono }}"></i>
+                            </div>
+                            <div class="accion-content">
+                                <p>{{ accion.descripcion }}</p>
+                                <small>{{ accion.fecha }}</small>
+                            </div>
+                            <button class="btn btn-sm btn-primary" onclick="ejecutarAccion('{{ accion.tipo }}', {{ accion.id }})">
+                                {{ accion.boton_texto }}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="no-acciones">No hay acciones pendientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalles -->
+<div class="modal fade" id="detallesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detallesModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Configuración -->
+<div class="modal fade" id="configuracionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configuración del Dashboard</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="configuracion-opciones">
+                    <div class="form-group">
+                        <label>Período de actualización automática:</label>
+                        <select class="form-select" id="actualizacionAutomatica">
+                            <option value="30">30 segundos</option>
+                            <option value="60" selected>1 minuto</option>
+                            <option value="300">5 minutos</option>
+                            <option value="600">10 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notificaciones:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifEmail" checked>
+                            <label class="form-check-label" for="notifEmail">
+                                Notificaciones por email
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifPush" checked>
+                            <label class="form-check-label" for="notifPush">
+                                Notificaciones push
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Alertas automáticas:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="alertaVencimiento" checked>
+                            <label class="form-check-label" for="alertaVencimiento">
+                                Alertar antes del vencimiento
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="alertaPagos" checked>
+                            <label class="form-check-label" for="alertaPagos">
+                                Alertar pagos fallidos
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarConfiguracion()">
+                    <i class="fas fa-save"></i>
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

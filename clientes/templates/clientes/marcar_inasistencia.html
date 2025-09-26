@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Marcar Inasistencia - Appo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Marcar Inasistencia
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>Reserva a marcar como inasistencia:</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Cliente:</strong> {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}</li>
+                            <li><strong>Fecha:</strong> {{ reserva.fecha|date:"d/m/Y" }}</li>
+                            <li><strong>Hora:</strong> {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}</li>
+                            <li><strong>Servicio:</strong> {{ reserva.servicio.servicio.nombre|default:"No especificado" }}</li>
+                            <li><strong>Profesional:</strong> {{ reserva.profesional.nombre_completo|default:"No asignado" }}</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">Motivo de la inasistencia (opcional):</label>
+                            <textarea 
+                                class="form-control" 
+                                id="motivo" 
+                                name="motivo" 
+                                rows="3" 
+                                placeholder="Describe el motivo de la inasistencia..."
+                            ></textarea>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Importante:</strong> Al marcar esta reserva como inasistencia:
+                            <ul class="mb-0 mt-2">
+                                <li>Se enviará una notificación al cliente</li>
+                                <li>La reserva aparecerá en el historial como inasistencia</li>
+                                <li>Esta acción no se puede deshacer</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'clientes:mis_reservas' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Confirmar Inasistencia
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

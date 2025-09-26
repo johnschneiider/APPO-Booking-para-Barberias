@@ -1,0 +1,31 @@
+Reserva Cancelada - APPO
+
+¡Hola {{ cliente.first_name|default:cliente.username }}!
+
+Tu reserva en {{ negocio.nombre }} ha sido cancelada exitosamente.
+
+📋 Detalles de la reserva cancelada:
+📅 Fecha: {{ fecha_formateada }}
+🕐 Hora: {{ hora_formateada }}
+🏢 Negocio: {{ negocio.nombre }}
+🆔 Número de reserva: #{{ reserva.id }}
+
+🔄 ¿Qué puedes hacer ahora?
+- Hacer una nueva reserva en el mismo negocio
+- Explorar otros negocios disponibles
+- Contactar al negocio si tienes alguna pregunta
+
+¿Quieres hacer una nueva reserva?
+https://appo.com.co/dashboard/
+
+💡 Información importante:
+- Ya no recibirás recordatorios para esta cita
+- El horario ha quedado disponible para otros clientes
+- Si cambias de opinión, puedes hacer una nueva reserva
+
+Gracias por usar APPO.
+El equipo de {{ negocio.nombre }}
+
+---
+Este es un email automático de APPO - Tu plataforma de reservas
+Si tienes alguna pregunta, contacta directamente a {{ negocio.nombre }} 
