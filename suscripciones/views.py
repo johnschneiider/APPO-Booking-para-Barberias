@@ -414,7 +414,7 @@ def api_eliminar_plan(request, negocio_id, plan_id):
             plural_activa = "s" if count_activas > 1 else ""
             logger.warning(f"No se puede eliminar plan {plan_id} - tiene {count_activas} suscripción{plural_suscripcion} activa{plural_activa}")
             return JsonResponse({
-                'error': f'No se puede eliminar un plan con {count_activas} suscripción{"es" if count_activas > 1 else ""} activa{"s" if count_activas > 1 else ""}'
+                'error': f'No se puede eliminar un plan con {count_activas} suscripción{plural_suscripcion} activa{plural_activa}'
             }, status=400)
         
         # Eliminar el plan
