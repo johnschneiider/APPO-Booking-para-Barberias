@@ -114,7 +114,13 @@ else
     fi
 fi
 
-# 5. Instalar dependencias de Python
+# 5. Instalar dependencias del sistema para OpenCV
+print_status "📦 Instalando dependencias del sistema para OpenCV..."
+sudo apt update
+sudo apt install -y libgl1-mesa-glx libglib2.0-0 2>/dev/null || print_warning "No se pudieron instalar algunas dependencias de OpenCV"
+print_success "Dependencias del sistema instaladas"
+
+# 6. Instalar dependencias de Python
 print_status "📦 Instalando dependencias de Python..."
 if [ ! -d "venv" ]; then
     print_status "Creando entorno virtual..."
@@ -126,7 +132,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 print_success "Dependencias instaladas"
 
-# 6. Configurar .env con credenciales generadas
+# 7. Configurar .env con credenciales generadas
 print_status "⚙️ Configurando variables de entorno..."
 if [ ! -f ".env" ]; then
     if [ -f "env_vps_production.txt" ]; then
@@ -167,19 +173,19 @@ fi
 print_success "Variables de entorno configuradas"
 print_warning "⚠️  IMPORTANTE: Edita .env para configurar EMAIL_HOST_USER, EMAIL_HOST_PASSWORD y credenciales de Twilio si las necesitas"
 
-# 7. Cargar variables de entorno
+# 8. Cargar variables de entorno
 print_status "📋 Cargando variables de entorno..."
 # Cargar variables de entorno de forma segura (evitar errores de sintaxis)
 set -a
 export $(grep -v '^#' .env | grep -v '^$' | grep '=' | xargs -0 2>/dev/null || grep -v '^#' .env | grep -v '^$' | grep '=' | xargs)
 set +a
 
-# 8. Ejecutar migraciones
+# 9. Ejecutar migraciones
 print_status "🗄️ Ejecutando migraciones de base de datos..."
 python manage.py migrate --noinput
 print_success "Migraciones completadas"
 
-# 9. Repoblar base de datos con datos de ejemplo
+# 10. Repoblar base de datos con datos de ejemplo
 print_status "📊 Repoblando base de datos con datos de ejemplo..."
 if python manage.py poblar_demo --help &>/dev/null; then
     python manage.py poblar_demo
@@ -188,7 +194,7 @@ else
     print_warning "Comando poblar_demo no encontrado, saltando repoblación"
 fi
 
-# 10. Configurar sistema de recordatorios
+# 11. Configurar sistema de recordatorios
 print_status "🔔 Configurando sistema de recordatorios..."
 if python manage.py setup_recordatorios --help &>/dev/null; then
     python manage.py setup_recordatorios --force --templates
@@ -197,7 +203,7 @@ else
     print_warning "Comando setup_recordatorios no encontrado, saltando configuración"
 fi
 
-# 11. Configurar planes de suscripción
+# 12. Configurar planes de suscripción
 print_status "💳 Configurando planes de suscripción..."
 if python manage.py poblar_planes_suscripcion --help &>/dev/null; then
     python manage.py poblar_planes_suscripcion
@@ -206,12 +212,12 @@ else
     print_warning "Comando poblar_planes_suscripcion no encontrado, saltando configuración"
 fi
 
-# 12. Recopilar archivos estáticos
+# 13. Recopilar archivos estáticos
 print_status "📁 Recopilando archivos estáticos..."
 python manage.py collectstatic --noinput
 print_success "Archivos estáticos recopilados"
 
-# 13. Configurar Nginx
+# 14. Configurar Nginx
 print_status "🌐 Configurando Nginx..."
 if [ -f "nginx-appo.conf" ]; then
     sudo cp nginx-appo.conf /etc/nginx/sites-available/$NGINX_SITE
@@ -224,7 +230,7 @@ else
     exit 1
 fi
 
-# 14. Configurar SSL con Certbot
+# 15. Configurar SSL con Certbot
 print_status "🔒 Configurando SSL..."
 if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
     print_status "Obteniendo certificado SSL..."
@@ -234,7 +240,7 @@ else
     print_success "Certificado SSL ya existe"
 fi
 
-# 15. Verificar configuración de Nginx
+# 16. Verificar configuración de Nginx
 print_status "🔍 Verificando configuración de Nginx..."
 if sudo nginx -t; then
     print_success "Configuración de Nginx válida"
@@ -245,7 +251,7 @@ else
     exit 1
 fi
 
-# 16. Crear servicio systemd para Gunicorn (opcional pero recomendado)
+# 17. Crear servicio systemd para Gunicorn (opcional pero recomendado)
 print_status "🔧 Configurando servicio systemd para Gunicorn..."
 sudo tee /etc/systemd/system/appo.service > /dev/null <<EOF
 [Unit]
@@ -274,7 +280,7 @@ sudo systemctl enable appo
 sudo systemctl restart appo
 print_success "Servicio systemd configurado y iniciado"
 
-# 17. Verificación final
+# 18. Verificación final
 print_status "🔍 Verificación final..."
 sleep 2
 

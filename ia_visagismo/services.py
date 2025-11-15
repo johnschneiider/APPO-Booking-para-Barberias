@@ -1,6 +1,19 @@
-import cv2
+# Importar OpenCV de forma opcional (puede fallar si no hay libGL.so.1)
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    cv2 = None
+
 import numpy as np
-import mediapipe as mp
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    MEDIAPIPE_AVAILABLE = False
+    mp = None
+
 from PIL import Image
 import io
 import base64
@@ -25,9 +38,15 @@ class VisagismoService:
     
     def analizar_rostro(self, imagen_path: str) -> Dict:
         """Analiza el rostro y extrae características faciales"""
+        if not CV2_AVAILABLE or not MEDIAPIPE_AVAILABLE or not self.face_mesh:
+            return {"error": "OpenCV o MediaPipe no están disponibles. Instala libgl1-mesa-glx: sudo apt install libgl1-mesa-glx"}
+        
         try:
             # Cargar imagen
             imagen = cv2.imread(imagen_path)
+            if imagen is None:
+                return {"error": "No se pudo cargar la imagen"}
+            
             imagen_rgb = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
             
             # Detectar landmarks faciales
