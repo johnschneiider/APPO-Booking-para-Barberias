@@ -37,7 +37,7 @@ sudo chown -R $USER:$USER $PROJECT_DIR
 mkdir -p logs/{nginx,postgresql,redis,django}
 print_success "Directorios creados"
 
-# 2. Verificar que PostgreSQL esté instalado
+# 2. Verificar que PostgreSQL esté instalado y corriendo
 print_status "🗄️ Verificando PostgreSQL..."
 if ! command -v psql &> /dev/null; then
     print_warning "PostgreSQL no está instalado. Instalando..."
@@ -46,6 +46,17 @@ if ! command -v psql &> /dev/null; then
     print_success "PostgreSQL instalado"
 else
     print_success "PostgreSQL ya está instalado"
+fi
+
+# Verificar y iniciar PostgreSQL si no está corriendo
+if ! systemctl is-active --quiet postgresql; then
+    print_warning "PostgreSQL no está corriendo. Iniciando..."
+    sudo systemctl start postgresql
+    sudo systemctl enable postgresql
+    sleep 3  # Esperar a que PostgreSQL inicie
+    print_success "PostgreSQL iniciado"
+else
+    print_success "PostgreSQL ya está corriendo"
 fi
 
 # 3. Generar credenciales de PostgreSQL automáticamente
