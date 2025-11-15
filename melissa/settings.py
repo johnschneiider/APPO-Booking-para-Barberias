@@ -146,8 +146,20 @@ if os.environ.get('USING_DOCKER') == 'yes':
             'NAME': os.environ.get('POSTGRES_DB', 'vitalmix'),
             'USER': os.environ.get('POSTGRES_USER', 'vitaluser'),
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'vitalpass'),
-            'HOST': 'db',
+            'HOST': 'db',  # Nombre del servicio Docker
             'PORT': '5432',
+        }
+    }
+elif os.environ.get('POSTGRES_DB'):
+    # Configuración para PostgreSQL en VPS (sin Docker)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'appo_db'),
+            'USER': os.environ.get('POSTGRES_USER', 'appo_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         }
     }
 else:
@@ -159,12 +171,33 @@ else:
         }
     }
 
-# Configuración de caché para desarrollo local
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+# Configuración de caché
+# Intentar usar Redis si está disponible (VPS o Docker)
+redis_url = os.environ.get('REDIS_URL', '')
+if redis_url or (not DEBUG and os.environ.get('USING_DOCKER') != 'yes'):
+    # Usar Redis en producción (VPS o Docker)
+    try:
+        import redis
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+                'LOCATION': redis_url or 'redis://localhost:6379/1',
+            }
+        }
+    except (ImportError, Exception):
+        # Fallback a memoria local si Redis no está disponible
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            }
+        }
+else:
+    # Configuración de caché para desarrollo local
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -413,7 +446,10 @@ TWILIO_WHATSAPP_NUMBER = os.getenv('TWILIO_WHATSAPP_NUMBER', '+14155238886')  # 
 TWILIO_WHATSAPP_ENABLED = True
 
 # URL base de la aplicación
-BASE_URL = 'http://127.0.0.1:8000'  # Cambiar en producción
+if not DEBUG:
+    BASE_URL = 'https://appo.com.co'  # Producción
+else:
+    BASE_URL = 'http://127.0.0.1:8000'  # Desarrollo
 
 # Configuración de WhatsApp Business API (Usando Twilio)
 WHATSAPP_CONFIG = {

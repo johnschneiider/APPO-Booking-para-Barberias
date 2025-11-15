@@ -1,0 +1,71 @@
+# Variables de entorno para producción APPO en VPS (SIN DOCKER)
+# ==============================================================
+# Copia este archivo como .env en /var/www/appo.com.co/
+
+# Django Configuration
+SECRET_KEY=django-insecure-production-key-change-this-immediately
+DEBUG=False
+ALLOWED_HOSTS=appo.com.co,www.appo.com.co,92.113.39.100,localhost,127.0.0.1
+
+# Database Configuration (PostgreSQL del sistema, NO Docker)
+# IMPORTANTE: Asegúrate de tener PostgreSQL instalado y crear la base de datos
+POSTGRES_DB=appo_db
+POSTGRES_USER=appo_user
+POSTGRES_PASSWORD=TU_PASSWORD_SEGURO_AQUI
+DATABASE_URL=postgresql://appo_user:TU_PASSWORD_SEGURO_AQUI@localhost:5432/appo_db
+
+# NO usar Docker
+USING_DOCKER=no
+
+# Redis Configuration (Redis del sistema, NO Docker)
+# IMPORTANTE: Asegúrate de tener Redis instalado y corriendo
+REDIS_URL=redis://localhost:6379/0
+
+# Email Configuration
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=tu-email@gmail.com
+EMAIL_HOST_PASSWORD=tu-password-app
+DEFAULT_FROM_EMAIL=APPO <noreply@appo.com.co>
+
+# Social Auth Configuration (opcional)
+GOOGLE_CLIENT_ID=tu-google-client-id
+GOOGLE_CLIENT_SECRET=tu-google-client-secret
+FACEBOOK_APP_ID=tu-facebook-app-id
+FACEBOOK_APP_SECRET=tu-facebook-app-secret
+
+# Twilio Configuration (opcional)
+TWILIO_ACCOUNT_SID=tu-twilio-account-sid
+TWILIO_AUTH_TOKEN=tu-twilio-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
+TWILIO_WHATSAPP_NUMBER=+14155238886
+
+# Security Configuration
+CSRF_TRUSTED_ORIGINS=https://appo.com.co,https://www.appo.com.co
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_BROWSER_XSS_FILTER=True
+SECURE_CONTENT_TYPE_NOSNIFF=True
+X_FRAME_OPTIONS=DENY
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FILE=/var/www/appo.com.co/logs/django.log
+
+# File Upload Configuration
+MAX_UPLOAD_SIZE=5242880  # 5MB in bytes
+MEDIA_ROOT=/var/www/appo.com.co/media
+STATIC_ROOT=/var/www/appo.com.co/staticfiles
+
+# Cache Configuration
+CACHE_BACKEND=redis://localhost:6379/1
+
+# Celery Configuration
+CELERY_BROKER_URL=redis://localhost:6379/2
+CELERY_RESULT_BACKEND=redis://localhost:6379/3
+
+# Replicate API (IA Generativa)
+REPLICATE_API_TOKEN=tu-replicate-api-token
+
