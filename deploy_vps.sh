@@ -169,10 +169,10 @@ print_warning "⚠️  IMPORTANTE: Edita .env para configurar EMAIL_HOST_USER, E
 
 # 7. Cargar variables de entorno
 print_status "📋 Cargando variables de entorno..."
+# Cargar variables de entorno de forma segura (evitar errores de sintaxis)
 set -a
-source .env
+export $(grep -v '^#' .env | grep -v '^$' | grep '=' | xargs -0 2>/dev/null || grep -v '^#' .env | grep -v '^$' | grep '=' | xargs)
 set +a
-export $(cat .env | grep -v '^#' | grep -v '^$' | xargs)
 
 # 8. Ejecutar migraciones
 print_status "🗄️ Ejecutando migraciones de base de datos..."
