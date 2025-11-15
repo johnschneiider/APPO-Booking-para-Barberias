@@ -48,37 +48,42 @@ else
     print_success "PostgreSQL ya está instalado"
 fi
 
-# 3. Crear base de datos PostgreSQL (si no existe)
-print_status "🗄️ Configurando base de datos..."
-if [ -f ".env" ]; then
-    source .env
-    DB_NAME=${POSTGRES_DB:-appo_db}
-    DB_USER=${POSTGRES_USER:-appo_user}
-    DB_PASSWORD=${POSTGRES_PASSWORD:-appo_pass}
-else
-    print_warning "No se encontró .env. Usando valores por defecto."
-    DB_NAME="appo_db"
-    DB_USER="appo_user"
-    DB_PASSWORD="appo_pass"
-fi
+# 3. Generar credenciales de PostgreSQL automáticamente
+print_status "🗄️ Generando credenciales de PostgreSQL..."
+# Generar password seguro de 32 caracteres
+DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
+DB_NAME="appo_db"
+DB_USER="appo_user"
+
+print_status "Credenciales generadas:"
+print_status "  Database: $DB_NAME"
+print_status "  User: $DB_USER"
+print_status "  Password: [GENERADO AUTOMÁTICAMENTE]"
 
 # Crear usuario y base de datos
+print_status "Creando usuario y base de datos en PostgreSQL..."
 sudo -u postgres psql <<EOF
-DO \$\$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '$DB_USER') THEN
-        CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
-    END IF;
-END
-\$\$;
+-- Eliminar usuario y base de datos si existen (para recrear desde cero)
+DROP DATABASE IF EXISTS $DB_NAME;
+DROP USER IF EXISTS $DB_USER;
 
-SELECT 'CREATE DATABASE $DB_NAME OWNER $DB_USER'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME')\gexec
+-- Crear usuario con password seguro
+CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
 
+-- Crear base de datos
+CREATE DATABASE $DB_NAME OWNER $DB_USER;
+
+-- Otorgar privilegios
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
+
+-- Conectar a la base de datos y otorgar privilegios en el esquema público
+\c $DB_NAME
+GRANT ALL ON SCHEMA public TO $DB_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
 EOF
 
-print_success "Base de datos configurada"
+print_success "Base de datos creada desde cero"
 
 # 4. Verificar que Redis esté instalado
 print_status "🔴 Verificando Redis..."
@@ -110,19 +115,12 @@ pip install --upgrade pip
 pip install -r requirements.txt
 print_success "Dependencias instaladas"
 
-# 6. Configurar .env si no existe
+# 6. Configurar .env con credenciales generadas
 print_status "⚙️ Configurando variables de entorno..."
 if [ ! -f ".env" ]; then
     if [ -f "env_vps_production.txt" ]; then
         cp env_vps_production.txt .env
-        print_warning "Archivo .env creado desde plantilla. ¡IMPORTANTE: Edita .env con tus valores reales!"
-        print_warning "Especialmente: SECRET_KEY, POSTGRES_PASSWORD, y credenciales de email/Twilio"
-        read -p "¿Ya editaste el archivo .env? (y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_error "Debes editar el archivo .env antes de continuar"
-            exit 1
-        fi
+        print_success "Archivo .env creado desde plantilla"
     else
         print_error "No se encontró env_vps_production.txt"
         exit 1
@@ -130,26 +128,79 @@ if [ ! -f ".env" ]; then
 fi
 
 # Generar SECRET_KEY si no está configurado
-if grep -q "django-insecure-production-key-change-this-immediately" .env; then
+if grep -q "django-insecure-production-key-change-this-immediately" .env || ! grep -q "^SECRET_KEY=" .env; then
     print_status "Generando SECRET_KEY..."
     SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
-    sed -i "s/SECRET_KEY=.*/SECRET_KEY=$SECRET_KEY/" .env
+    if grep -q "^SECRET_KEY=" .env; then
+        sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$SECRET_KEY/" .env
+    else
+        echo "SECRET_KEY=$SECRET_KEY" >> .env
+    fi
     print_success "SECRET_KEY generado"
 fi
 
-# 7. Ejecutar migraciones
-print_status "🗄️ Ejecutando migraciones..."
+# Actualizar credenciales de PostgreSQL en .env
+print_status "Actualizando credenciales de PostgreSQL en .env..."
+sed -i "s/^POSTGRES_DB=.*/POSTGRES_DB=$DB_NAME/" .env
+sed -i "s/^POSTGRES_USER=.*/POSTGRES_USER=$DB_USER/" .env
+sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$DB_PASSWORD/" .env
+sed -i "s|^DATABASE_URL=.*|DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME|" .env
+
+# Configurar USING_DOCKER=no
+if ! grep -q "^USING_DOCKER=" .env; then
+    echo "USING_DOCKER=no" >> .env
+else
+    sed -i "s/^USING_DOCKER=.*/USING_DOCKER=no/" .env
+fi
+
+print_success "Variables de entorno configuradas"
+print_warning "⚠️  IMPORTANTE: Edita .env para configurar EMAIL_HOST_USER, EMAIL_HOST_PASSWORD y credenciales de Twilio si las necesitas"
+
+# 7. Cargar variables de entorno
+print_status "📋 Cargando variables de entorno..."
+set -a
 source .env
-export $(cat .env | grep -v '^#' | xargs)
-python manage.py migrate
+set +a
+export $(cat .env | grep -v '^#' | grep -v '^$' | xargs)
+
+# 8. Ejecutar migraciones
+print_status "🗄️ Ejecutando migraciones de base de datos..."
+python manage.py migrate --noinput
 print_success "Migraciones completadas"
 
-# 8. Recopilar archivos estáticos
+# 9. Repoblar base de datos con datos de ejemplo
+print_status "📊 Repoblando base de datos con datos de ejemplo..."
+if python manage.py poblar_demo --help &>/dev/null; then
+    python manage.py poblar_demo
+    print_success "Base de datos repoblada con datos de ejemplo"
+else
+    print_warning "Comando poblar_demo no encontrado, saltando repoblación"
+fi
+
+# 10. Configurar sistema de recordatorios
+print_status "🔔 Configurando sistema de recordatorios..."
+if python manage.py setup_recordatorios --help &>/dev/null; then
+    python manage.py setup_recordatorios --force --templates
+    print_success "Sistema de recordatorios configurado"
+else
+    print_warning "Comando setup_recordatorios no encontrado, saltando configuración"
+fi
+
+# 11. Configurar planes de suscripción
+print_status "💳 Configurando planes de suscripción..."
+if python manage.py poblar_planes_suscripcion --help &>/dev/null; then
+    python manage.py poblar_planes_suscripcion
+    print_success "Planes de suscripción configurados"
+else
+    print_warning "Comando poblar_planes_suscripcion no encontrado, saltando configuración"
+fi
+
+# 12. Recopilar archivos estáticos
 print_status "📁 Recopilando archivos estáticos..."
 python manage.py collectstatic --noinput
 print_success "Archivos estáticos recopilados"
 
-# 9. Configurar Nginx
+# 13. Configurar Nginx
 print_status "🌐 Configurando Nginx..."
 if [ -f "nginx-appo.conf" ]; then
     sudo cp nginx-appo.conf /etc/nginx/sites-available/$NGINX_SITE
@@ -162,7 +213,7 @@ else
     exit 1
 fi
 
-# 10. Configurar SSL con Certbot
+# 14. Configurar SSL con Certbot
 print_status "🔒 Configurando SSL..."
 if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
     print_status "Obteniendo certificado SSL..."
@@ -172,7 +223,7 @@ else
     print_success "Certificado SSL ya existe"
 fi
 
-# 11. Verificar configuración de Nginx
+# 15. Verificar configuración de Nginx
 print_status "🔍 Verificando configuración de Nginx..."
 if sudo nginx -t; then
     print_success "Configuración de Nginx válida"
@@ -183,7 +234,7 @@ else
     exit 1
 fi
 
-# 12. Crear servicio systemd para Gunicorn (opcional pero recomendado)
+# 16. Crear servicio systemd para Gunicorn (opcional pero recomendado)
 print_status "🔧 Configurando servicio systemd para Gunicorn..."
 sudo tee /etc/systemd/system/appo.service > /dev/null <<EOF
 [Unit]
@@ -212,7 +263,7 @@ sudo systemctl enable appo
 sudo systemctl restart appo
 print_success "Servicio systemd configurado y iniciado"
 
-# 13. Verificación final
+# 17. Verificación final
 print_status "🔍 Verificación final..."
 sleep 2
 
@@ -238,8 +289,33 @@ else
 fi
 
 print_success "🎉 Despliegue completado exitosamente!"
-print_status "🌐 Accede a tu aplicación en: https://$DOMAIN"
-print_status "📊 Verifica el estado con: sudo systemctl status appo"
-print_status "📝 Ver logs con: sudo journalctl -u appo -f"
-print_status "🔄 Reiniciar servicio: sudo systemctl restart appo"
+print_status ""
+print_status "═══════════════════════════════════════════════════════════"
+print_status "📋 INFORMACIÓN IMPORTANTE"
+print_status "═══════════════════════════════════════════════════════════"
+print_status ""
+print_status "🌐 URL: https://$DOMAIN"
+print_status ""
+print_status "👤 Usuario Superadmin:"
+print_status "   Username: superadmin"
+print_status "   Password: Malware01"
+print_status "   Email: super@demo.com"
+print_status ""
+print_status "🗄️ Base de datos PostgreSQL:"
+print_status "   Database: $DB_NAME"
+print_status "   User: $DB_USER"
+print_status "   Password: [Guardada en .env]"
+print_status ""
+print_status "📝 Credenciales guardadas en: $PROJECT_DIR/.env"
+print_status ""
+print_status "═══════════════════════════════════════════════════════════"
+print_status "🔧 COMANDOS ÚTILES"
+print_status "═══════════════════════════════════════════════════════════"
+print_status "📊 Ver estado: sudo systemctl status appo"
+print_status "📝 Ver logs: sudo journalctl -u appo -f"
+print_status "🔄 Reiniciar: sudo systemctl restart appo"
+print_status "🗄️ Acceder a DB: psql -U $DB_USER -d $DB_NAME"
+print_status ""
+print_status "⚠️  RECUERDA: Edita .env para configurar EMAIL y TWILIO si los necesitas"
+print_status ""
 
