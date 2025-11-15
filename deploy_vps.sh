@@ -253,16 +253,32 @@ fi
 
 # 17. Crear servicio systemd para Gunicorn (opcional pero recomendado)
 print_status "🔧 Configurando servicio systemd para Gunicorn..."
+# Leer variables de PostgreSQL del .env
+POSTGRES_DB_VAL=$(grep "^POSTGRES_DB=" .env | cut -d'=' -f2)
+POSTGRES_USER_VAL=$(grep "^POSTGRES_USER=" .env | cut -d'=' -f2)
+POSTGRES_PASSWORD_VAL=$(grep "^POSTGRES_PASSWORD=" .env | cut -d'=' -f2)
+USING_DOCKER_VAL=$(grep "^USING_DOCKER=" .env | cut -d'=' -f2 || echo "no")
+DEBUG_VAL=$(grep "^DEBUG=" .env | cut -d'=' -f2 || echo "False")
+SECRET_KEY_VAL=$(grep "^SECRET_KEY=" .env | cut -d'=' -f2)
+
 sudo tee /etc/systemd/system/appo.service > /dev/null <<EOF
 [Unit]
 Description=APPO Gunicorn daemon
-After=network.target
+After=network.target postgresql.service
 
 [Service]
 User=$USER
 Group=$USER
 WorkingDirectory=$PROJECT_DIR
 Environment="PATH=$PROJECT_DIR/venv/bin"
+Environment="POSTGRES_DB=$POSTGRES_DB_VAL"
+Environment="POSTGRES_USER=$POSTGRES_USER_VAL"
+Environment="POSTGRES_PASSWORD=$POSTGRES_PASSWORD_VAL"
+Environment="POSTGRES_HOST=localhost"
+Environment="POSTGRES_PORT=5432"
+Environment="USING_DOCKER=$USING_DOCKER_VAL"
+Environment="DEBUG=$DEBUG_VAL"
+Environment="SECRET_KEY=$SECRET_KEY_VAL"
 ExecStart=$PROJECT_DIR/venv/bin/gunicorn \\
     --workers 3 \\
     --timeout 120 \\
