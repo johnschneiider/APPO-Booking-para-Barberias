@@ -32,12 +32,17 @@ fi
 
 # 5. Recargar variables de entorno en el servicio systemd
 echo "⚙️  Actualizando servicio systemd con variables de entorno..."
-POSTGRES_DB=$(grep "^POSTGRES_DB=" .env | cut -d'=' -f2)
-POSTGRES_USER=$(grep "^POSTGRES_USER=" .env | cut -d'=' -f2)
-POSTGRES_PASSWORD=$(grep "^POSTGRES_PASSWORD=" .env | cut -d'=' -f2)
-USING_DOCKER=$(grep "^USING_DOCKER=" .env | cut -d'=' -f2 || echo "no")
-DEBUG=$(grep "^DEBUG=" .env | cut -d'=' -f2 || echo "False")
-SECRET_KEY=$(grep "^SECRET_KEY=" .env | cut -d'=' -f2)
+# Cargar variables de forma segura
+set -a
+source <(grep -v '^#' .env | grep -v '^$' | grep '=' | sed 's/^/export /')
+set +a
+
+POSTGRES_DB="${POSTGRES_DB:-appo_db}"
+POSTGRES_USER="${POSTGRES_USER:-appo_user}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
+USING_DOCKER="${USING_DOCKER:-no}"
+DEBUG="${DEBUG:-False}"
+SECRET_KEY="${SECRET_KEY:-}"
 
 sudo tee /etc/systemd/system/appo.service > /dev/null <<EOF
 [Unit]
@@ -74,7 +79,10 @@ sudo systemctl daemon-reload
 # 6. Ejecutar migraciones si hay cambios
 echo "🗄️  Verificando migraciones..."
 source venv/bin/activate
-export $(grep -v '^#' .env | grep -v '^$' | grep '=' | xargs)
+# Cargar variables de entorno de forma segura
+set -a
+source <(grep -v '^#' .env | grep -v '^$' | grep '=' | sed 's/^/export /')
+set +a
 python manage.py migrate --noinput
 
 # 7. Recopilar archivos estáticos si hay cambios
