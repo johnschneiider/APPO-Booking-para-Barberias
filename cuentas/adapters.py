@@ -41,6 +41,16 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     Adaptador personalizado para manejar la redirección después del login social
     """
     
+    def get_app(self, request, provider, client_id=None):
+        """
+        Obtiene la SocialApp, pero no falla si no existe
+        """
+        try:
+            return super().get_app(request, provider, client_id)
+        except Exception:
+            # Si no existe la SocialApp, retornar None en lugar de fallar
+            return None
+    
     def pre_social_login(self, request, sociallogin):
         """
         Se ejecuta antes del login social
