@@ -17,8 +17,8 @@ from datetime import timedelta
 
 # Obtener la última reserva creada en las últimas 24 horas
 ultima_reserva = Reserva.objects.filter(
-    fecha_creacion__gte=timezone.now() - timedelta(hours=24)
-).order_by('-fecha_creacion').first()
+    creado_en__gte=timezone.now() - timedelta(hours=24)
+).order_by('-creado_en').first()
 
 if ultima_reserva:
     print(f"✅ Última reserva encontrada:")
@@ -28,7 +28,7 @@ if ultima_reserva:
     print(f"   Fecha: {ultima_reserva.fecha}")
     print(f"   Hora: {ultima_reserva.hora_inicio}")
     print(f"   Estado: {ultima_reserva.estado}")
-    print(f"   Fecha creación: {ultima_reserva.fecha_creacion}")
+    print(f"   Fecha creación: {ultima_reserva.creado_en}")
 else:
     print("⚠️ No se encontraron reservas en las últimas 24 horas")
 PYEOF
@@ -43,8 +43,8 @@ from datetime import timedelta
 
 # Obtener la última reserva
 ultima_reserva = Reserva.objects.filter(
-    fecha_creacion__gte=timezone.now() - timedelta(hours=24)
-).order_by('-fecha_creacion').first()
+    creado_en__gte=timezone.now() - timedelta(hours=24)
+).order_by('-creado_en').first()
 
 if ultima_reserva:
     print(f"Buscando mensajes para reserva ID: {ultima_reserva.id}")
