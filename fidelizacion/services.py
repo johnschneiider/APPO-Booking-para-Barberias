@@ -228,13 +228,22 @@ class MensajeLoopService:
         """Procesa los mensajes que están listos para enviar"""
         from fidelizacion.models import MensajeFidelizacion, EstadoMensaje
         
-        ahora = timezone.now()
+        try:
+            ahora = timezone.now()
+            
+            # Obtener mensajes programados que ya deben enviarse
+            mensajes_pendientes = MensajeFidelizacion.objects.filter(
+                estado=EstadoMensaje.PROGRAMADO,
+                fecha_programada__lte=ahora
+            ).select_related('destinatario', 'reserva')[:10]  # Procesar máximo 10 a la vez
+        except Exception as e:
+            # Si hay error de base de datos (tabla no existe, columna no existe, etc.)
+            # simplemente retornar sin procesar
+            logger.warning(f"No se pueden procesar mensajes (posible problema de migraciones): {e}")
+            return
         
-        # Obtener mensajes programados que ya deben enviarse
-        mensajes_pendientes = MensajeFidelizacion.objects.filter(
-            estado=EstadoMensaje.PROGRAMADO,
-            fecha_programada__lte=ahora
-        ).select_related('destinatario', 'reserva')[:10]  # Procesar máximo 10 a la vez
+        if not mensajes_pendientes:
+            return
         
         for mensaje in mensajes_pendientes:
             try:
