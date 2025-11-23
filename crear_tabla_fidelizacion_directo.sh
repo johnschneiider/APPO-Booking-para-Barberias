@@ -7,10 +7,23 @@ set -e
 cd /var/www/appo.com.co
 source venv/bin/activate
 
-# Cargar variables de entorno desde .env (igual que el servicio systemd)
+# Cargar variables de entorno desde .env (solo las de PostgreSQL)
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | grep -v '^$' | grep '=' | xargs)
-    echo "✅ Variables de entorno cargadas desde .env"
+    # Cargar solo variables de PostgreSQL, evitando valores con caracteres especiales
+    while IFS='=' read -r key value; do
+        # Ignorar comentarios y líneas vacías
+        [[ "$key" =~ ^#.*$ ]] && continue
+        [[ -z "$key" ]] && continue
+        
+        # Solo exportar variables de PostgreSQL
+        if [[ "$key" == "POSTGRES_DB" ]] || [[ "$key" == "POSTGRES_USER" ]] || [[ "$key" == "POSTGRES_PASSWORD" ]] || [[ "$key" == "POSTGRES_HOST" ]] || [[ "$key" == "POSTGRES_PORT" ]]; then
+            # Limpiar espacios y comillas
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs | sed "s/^['\"]//;s/['\"]$//")
+            export "$key=$value"
+        fi
+    done < <(grep -E '^POSTGRES_' .env)
+    echo "✅ Variables de PostgreSQL cargadas desde .env"
 else
     echo "❌ Error: Archivo .env no encontrado"
     exit 1
