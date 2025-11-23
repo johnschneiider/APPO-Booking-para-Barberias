@@ -96,11 +96,44 @@ class WhatsAppService:
     def send_custom_message(self, to_phone, message):
         """
         Envía un mensaje personalizado (texto simple)
+        Usa Twilio si está configurado, sino intenta con la API de Meta
         """
         if not self.is_enabled():
             logger.warning("WhatsApp no está habilitado o configurado")
             return False
         
+        # Si el proveedor es Twilio, usar el SDK de Twilio
+        provider = self.config.get('PROVIDER', '').lower()
+        if provider == 'twilio' or (not provider and self.config.get('ACCOUNT_SID')):
+            try:
+                from twilio.rest import Client
+                from twilio.base.exceptions import TwilioException
+                
+                account_sid = self.config.get('ACCOUNT_SID', '')
+                auth_token = self.config.get('AUTH_TOKEN', '')
+                whatsapp_number = self.config.get('WHATSAPP_NUMBER', '')
+                
+                if not account_sid or not auth_token:
+                    logger.error("Credenciales de Twilio no configuradas")
+                    return False
+                
+                client = Client(account_sid, auth_token)
+                formatted_phone = self.format_phone_number(to_phone)
+                
+                message_obj = client.messages.create(
+                    from_=f'whatsapp:{whatsapp_number}',
+                    body=message,
+                    to=f'whatsapp:{formatted_phone}'
+                )
+                
+                logger.info(f"Mensaje de WhatsApp enviado exitosamente a {formatted_phone} (SID: {message_obj.sid})")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Error enviando mensaje con Twilio: {str(e)}")
+                return False
+        
+        # Fallback: Intentar con API de Meta (si está configurada)
         try:
             url = f"{self.api_url}/{self.phone_number_id}/messages"
             
