@@ -46,12 +46,23 @@ echo ""
 echo "🔧 Verificando configuración de WhatsApp..."
 python manage.py shell << 'PYEOF'
 from clientes.whatsapp_service import whatsapp_service
+from django.conf import settings
 
-print(f"¿WhatsApp habilitado?: {whatsapp_service.is_enabled()}")
+enabled = whatsapp_service.is_enabled()
+print(f"¿WhatsApp habilitado?: {enabled}")
+
 if hasattr(whatsapp_service, 'phone_number_id'):
     print(f"Phone Number ID: {whatsapp_service.phone_number_id or 'No configurado'}")
+
 if hasattr(whatsapp_service, 'access_token'):
     token = whatsapp_service.access_token
     print(f"Access Token: {'Configurado' if token else 'No configurado'}")
+
+# Verificar variables de entorno
+print(f"\n📋 Variables de entorno:")
+print(f"TWILIO_ACCOUNT_SID: {'Configurado' if settings.TWILIO_ACCOUNT_SID else '❌ NO CONFIGURADO'}")
+print(f"TWILIO_AUTH_TOKEN: {'Configurado' if settings.TWILIO_AUTH_TOKEN else '❌ NO CONFIGURADO'}")
+print(f"TWILIO_WHATSAPP_NUMBER: {settings.TWILIO_WHATSAPP_NUMBER}")
+print(f"TWILIO_WHATSAPP_ENABLED: {settings.TWILIO_WHATSAPP_ENABLED}")
 PYEOF
 
