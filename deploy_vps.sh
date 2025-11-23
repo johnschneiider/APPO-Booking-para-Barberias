@@ -261,6 +261,11 @@ USING_DOCKER_VAL=$(grep "^USING_DOCKER=" .env | cut -d'=' -f2 || echo "no")
 DEBUG_VAL=$(grep "^DEBUG=" .env | cut -d'=' -f2 || echo "False")
 SECRET_KEY_VAL=$(grep "^SECRET_KEY=" .env | cut -d'=' -f2)
 
+# Leer variables de Twilio del .env
+TWILIO_ACCOUNT_SID_VAL=$(grep "^TWILIO_ACCOUNT_SID=" .env | cut -d'=' -f2 || echo "")
+TWILIO_AUTH_TOKEN_VAL=$(grep "^TWILIO_AUTH_TOKEN=" .env | cut -d'=' -f2 || echo "")
+TWILIO_WHATSAPP_NUMBER_VAL=$(grep "^TWILIO_WHATSAPP_NUMBER=" .env | cut -d'=' -f2 || echo "+14155238886")
+
 sudo tee /etc/systemd/system/appo.service > /dev/null <<EOF
 [Unit]
 Description=APPO Gunicorn daemon
@@ -279,6 +284,9 @@ Environment="POSTGRES_PORT=5432"
 Environment="USING_DOCKER=$USING_DOCKER_VAL"
 Environment="DEBUG=$DEBUG_VAL"
 Environment="SECRET_KEY=$SECRET_KEY_VAL"
+Environment="TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID_VAL"
+Environment="TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN_VAL"
+Environment="TWILIO_WHATSAPP_NUMBER=$TWILIO_WHATSAPP_NUMBER_VAL"
 ExecStart=$PROJECT_DIR/venv/bin/gunicorn \\
     --workers 3 \\
     --timeout 120 \\
