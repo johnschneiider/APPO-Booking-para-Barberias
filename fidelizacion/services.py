@@ -227,6 +227,7 @@ class MensajeLoopService:
     def _procesar_mensajes(self):
         """Procesa los mensajes que están listos para enviar"""
         from fidelizacion.models import MensajeFidelizacion, EstadoMensaje
+        from django.db import OperationalError, ProgrammingError
         
         try:
             ahora = timezone.now()
@@ -236,10 +237,14 @@ class MensajeLoopService:
                 estado=EstadoMensaje.PROGRAMADO,
                 fecha_programada__lte=ahora
             ).select_related('destinatario', 'reserva')[:10]  # Procesar máximo 10 a la vez
-        except Exception as e:
+        except (OperationalError, ProgrammingError) as e:
             # Si hay error de base de datos (tabla no existe, columna no existe, etc.)
-            # simplemente retornar sin procesar
-            logger.warning(f"No se pueden procesar mensajes (posible problema de migraciones): {e}")
+            # simplemente retornar sin procesar - las migraciones se aplicarán después
+            logger.warning(f"No se pueden procesar mensajes (tabla no existe aún - aplicar migraciones): {e}")
+            return
+        except Exception as e:
+            # Otros errores también los capturamos
+            logger.warning(f"No se pueden procesar mensajes: {e}")
             return
         
         if not mensajes_pendientes:
