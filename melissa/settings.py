@@ -138,21 +138,10 @@ WSGI_APPLICATION = 'melissa.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuración condicional de base de datos
-if os.environ.get('USING_DOCKER') == 'yes':
-    # Configuración para PostgreSQL en Docker
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'vitalmix'),
-            'USER': os.environ.get('POSTGRES_USER', 'vitaluser'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'vitalpass'),
-            'HOST': 'db',  # Nombre del servicio Docker
-            'PORT': '5432',
-        }
-    }
-elif os.environ.get('POSTGRES_DB'):
-    # Configuración para PostgreSQL en VPS (sin Docker)
+# Configuración de base de datos
+# Prioridad: PostgreSQL del sistema > SQLite (solo desarrollo)
+if os.environ.get('POSTGRES_DB'):
+    # Configuración para PostgreSQL del sistema (producción/VPS)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -164,7 +153,7 @@ elif os.environ.get('POSTGRES_DB'):
         }
     }
 else:
-    # Configuración para SQLite en desarrollo local
+    # Configuración para SQLite en desarrollo local (solo si no hay PostgreSQL)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -173,10 +162,10 @@ else:
     }
 
 # Configuración de caché
-# Intentar usar Redis si está disponible (VPS o Docker)
+# Intentar usar Redis si está disponible (del sistema)
 redis_url = os.environ.get('REDIS_URL', '')
-if redis_url or (not DEBUG and os.environ.get('USING_DOCKER') != 'yes'):
-    # Usar Redis en producción (VPS o Docker)
+if redis_url or not DEBUG:
+    # Usar Redis en producción (del sistema)
     try:
         import redis
         CACHES = {

@@ -13,16 +13,34 @@ from django.core.management import call_command
 
 def verificar_tabla():
     """Verifica si la tabla existe y la crea si no"""
-    with connection.cursor() as cursor:
-        # Verificar si la tabla existe
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = 'fidelizacion_mensajes'
-            );
-        """)
-        existe = cursor.fetchone()[0]
+    from django.conf import settings
+    
+    # Verificar qué base de datos estamos usando
+    db_engine = settings.DATABASES['default']['ENGINE']
+    
+    if 'postgresql' in db_engine:
+        # PostgreSQL
+        with connection.cursor() as cursor:
+            # Verificar si la tabla existe
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = 'fidelizacion_mensajes'
+                );
+            """)
+            existe = cursor.fetchone()[0]
+    elif 'sqlite' in db_engine:
+        # SQLite
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='fidelizacion_mensajes';
+            """)
+            existe = cursor.fetchone() is not None
+    else:
+        print(f"❌ Base de datos no soportada: {db_engine}")
+        return
         
         if existe:
             print("✅ La tabla fidelizacion_mensajes existe")
@@ -32,14 +50,21 @@ def verificar_tabla():
             call_command('migrate', 'fidelizacion', verbosity=2)
             
             # Verificar de nuevo
-            cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_name = 'fidelizacion_mensajes'
-                );
-            """)
-            existe = cursor.fetchone()[0]
+            if 'postgresql' in db_engine:
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_name = 'fidelizacion_mensajes'
+                    );
+                """)
+                existe = cursor.fetchone()[0]
+            elif 'sqlite' in db_engine:
+                cursor.execute("""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name='fidelizacion_mensajes';
+                """)
+                existe = cursor.fetchone() is not None
             if existe:
                 print("✅ Tabla creada exitosamente")
             else:
