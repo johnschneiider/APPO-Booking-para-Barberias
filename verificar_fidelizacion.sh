@@ -51,7 +51,25 @@ fi
 # 5. Verificar estado del servicio
 echo ""
 echo "📊 Estado del servicio appo:"
-sudo systemctl is-active appo && echo "✅ Servicio activo" || echo "❌ Servicio inactivo"
+if sudo systemctl is-active appo > /dev/null 2>&1; then
+    echo "✅ Servicio activo"
+    # Ver detalles del servicio
+    echo ""
+    echo "📋 Detalles del servicio:"
+    sudo systemctl status appo --no-pager -l | head -15
+else
+    echo "❌ Servicio inactivo"
+    echo ""
+    echo "⚠️ Intentando iniciar el servicio..."
+    sudo systemctl start appo
+    sleep 3
+    if sudo systemctl is-active appo > /dev/null 2>&1; then
+        echo "✅ Servicio iniciado correctamente"
+    else
+        echo "❌ Error al iniciar el servicio. Revisa los logs:"
+        sudo journalctl -u appo -n 20 --no-pager
+    fi
+fi
 
 echo ""
 echo "✅ Verificación completada"
