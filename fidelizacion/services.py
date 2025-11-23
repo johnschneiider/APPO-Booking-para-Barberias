@@ -216,12 +216,21 @@ class MensajeLoopService:
         """Loop principal que procesa mensajes programados"""
         logger.info("Iniciando loop de procesamiento de mensajes...")
         
+        # Esperar un poco al inicio para que Django esté completamente listo
+        time.sleep(5)
+        
         while self.running:
             try:
                 self._procesar_mensajes()
                 time.sleep(self.check_interval)
             except Exception as e:
-                logger.error(f"Error en loop de mensajes: {e}", exc_info=True)
+                # Si es un error de tabla no existe, solo loguear como warning
+                # (la tabla se creará con las migraciones)
+                error_str = str(e)
+                if 'does not exist' in error_str or 'relation' in error_str.lower():
+                    logger.warning(f"Tabla aún no disponible (se creará automáticamente): {e}")
+                else:
+                    logger.error(f"Error en loop de mensajes: {e}", exc_info=True)
                 time.sleep(self.check_interval)
     
     def _procesar_mensajes(self):
@@ -239,8 +248,13 @@ class MensajeLoopService:
             ).select_related('destinatario', 'reserva')[:10]  # Procesar máximo 10 a la vez
         except (OperationalError, ProgrammingError) as e:
             # Si hay error de base de datos (tabla no existe, columna no existe, etc.)
-            # simplemente retornar sin procesar - las migraciones se aplicarán después
-            logger.warning(f"No se pueden procesar mensajes (tabla no existe aún - aplicar migraciones): {e}")
+            # Verificar si es porque la tabla no existe
+            error_str = str(e)
+            if 'does not exist' in error_str or 'relation' in error_str.lower():
+                # La tabla no existe aún, esperar a que se cree
+                logger.debug(f"Tabla fidelizacion_mensajes no existe aún, esperando...")
+            else:
+                logger.warning(f"Error de base de datos: {e}")
             return
         except Exception as e:
             # Otros errores también los capturamos
