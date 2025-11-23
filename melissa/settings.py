@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'ia_visagismo',
     'suscripciones',
     'recordatorios',
+    'fidelizacion',
     'django.contrib.humanize',
 ]
 
