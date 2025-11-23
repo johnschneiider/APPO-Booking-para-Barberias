@@ -3,6 +3,20 @@
 Script para crear la tabla de fidelización en PostgreSQL directamente
 """
 import os
+import sys
+from pathlib import Path
+
+# Cargar variables de entorno antes de Django
+BASE_DIR = Path(__file__).resolve().parent
+env_file = BASE_DIR / '.env'
+
+if env_file.exists():
+    from dotenv import load_dotenv
+    load_dotenv(env_file)
+    print(f"✅ Archivo .env cargado desde {env_file}")
+else:
+    print(f"⚠️ Archivo .env no encontrado en {env_file}")
+
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'melissa.settings')
@@ -15,9 +29,30 @@ from django.core.management import call_command
 def crear_tabla_manualmente():
     """Crea la tabla manualmente en PostgreSQL"""
     db_engine = settings.DATABASES['default']['ENGINE']
+    db_name = settings.DATABASES['default'].get('NAME', '')
+    
+    print(f"📊 Base de datos configurada: {db_engine}")
+    print(f"📊 Nombre de BD: {db_name}")
+    
+    # Verificar variables de entorno
+    postgres_db = os.environ.get('POSTGRES_DB')
+    postgres_user = os.environ.get('POSTGRES_USER')
+    postgres_host = os.environ.get('POSTGRES_HOST', 'localhost')
+    
+    print(f"📊 POSTGRES_DB: {postgres_db}")
+    print(f"📊 POSTGRES_USER: {postgres_user}")
+    print(f"📊 POSTGRES_HOST: {postgres_host}")
     
     if 'postgresql' not in db_engine:
-        print(f"❌ Este script solo funciona con PostgreSQL. Base de datos actual: {db_engine}")
+        print(f"\n❌ ERROR: Este script solo funciona con PostgreSQL.")
+        print(f"   Base de datos actual: {db_engine}")
+        print(f"\n💡 Solución:")
+        print(f"   1. Verifica que el archivo .env existe y tiene las variables:")
+        print(f"      POSTGRES_DB=appo_db")
+        print(f"      POSTGRES_USER=appo_user")
+        print(f"      POSTGRES_PASSWORD=tu_password")
+        print(f"      POSTGRES_HOST=localhost")
+        print(f"   2. O ejecuta: export POSTGRES_DB=appo_db && export POSTGRES_USER=appo_user && python crear_tabla_fidelizacion.py")
         return False
     
     with connection.cursor() as cursor:
