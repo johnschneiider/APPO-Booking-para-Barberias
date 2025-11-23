@@ -31,10 +31,10 @@ def crear_mensajes_fidelizacion(sender, instance, created, **kwargs):
         MensajeFidelizacionService.crear_mensaje_confirmacion(instance)
         
         # 2. Crear recordatorio 24h antes
-        MensajeFidelizacionService.crear_mensaje_recordatorio_24h(instance)
+        MensajeFidelizacionService.crear_recordatorio_24h(instance)
         
         # 3. Crear recordatorio 1h antes
-        MensajeFidelizacionService.crear_mensaje_recordatorio_1h(instance)
+        MensajeFidelizacionService.crear_recordatorio_1h(instance)
         
         logger.info(f"Mensajes de fidelización creados para reserva {instance.id}")
         
