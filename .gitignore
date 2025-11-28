@@ -44,6 +44,13 @@ client_secret_*.json
 *.pem
 *.key
 
+# Archivos con credenciales de servicios (Twilio, etc.)
+COMANDO_CONFIGURAR_TWILIO_VPS.txt
+COMANDO_SIMPLE_TWILIO.sh
+configurar_twilio_vps.sh
+*_credentials.txt
+*_secrets.txt
+
 # Archivos temporales
 *.tmp
 *.temp
