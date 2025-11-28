@@ -1,319 +1,294 @@
 """
-Señales para integrar automáticamente el sistema de recordatorios
-con reservas y otros eventos del sistema
+Señales para el sistema de notificaciones de APPO
+
+Conecta automáticamente las acciones de reservas con las notificaciones WhatsApp:
+- Cita agendada → Notificación de confirmación
+- Cita cancelada → Notificación de cancelación  
+- Cita reprogramada → Notificación de reprogramación
+
+Uso:
+    Las señales se conectan automáticamente al cargar la app.
+    No requiere configuración adicional.
 """
 
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
-from .models import Recordatorio, TipoRecordatorio, EstadoRecordatorio
-from .services import servicio_recordatorios
 import logging
 
-# Importar modelos para evitar problemas de importación circular
+logger = logging.getLogger('recordatorios.signals')
+
+# Variable para almacenar el estado anterior de las reservas
+_reservas_estado_anterior = {}
+
+
 def get_reserva_model():
-    """Obtiene el modelo Reserva de manera segura"""
+    """Obtiene el modelo Reserva de manera segura para evitar imports circulares"""
     try:
         from clientes.models import Reserva
         return Reserva
     except ImportError:
+        logger.warning("No se pudo importar el modelo Reserva")
         return None
 
-logger = logging.getLogger(__name__)
 
-# Señales para reservas
-def conectar_senales():
-    """Conecta las señales de manera segura"""
+def get_whatsapp_service():
+    """Obtiene el servicio de WhatsApp de manera segura"""
     try:
-        Reserva = get_reserva_model()
-        if Reserva:
-            # Conectar señal de creación/modificación
-            post_save.connect(crear_recordatorios_reserva, sender=Reserva, weak=False)
-            # Conectar señal de eliminación
-            post_delete.connect(eliminar_recordatorios_reserva, sender=Reserva, weak=False)
-            logger.info("Señales de recordatorios conectadas exitosamente")
-            return True
-        else:
-            logger.warning("No se pudo obtener el modelo Reserva")
-            return False
-    except Exception as e:
-        logger.error(f"Error conectando señales: {e}")
-        return False
+        from .whatsapp_service import notificacion_whatsapp
+        return notificacion_whatsapp
+    except ImportError as e:
+        logger.error(f"No se pudo importar el servicio de WhatsApp: {e}")
+        return None
 
-def crear_recordatorios_reserva(sender, instance, created, **kwargs):
+
+# =============================================================================
+# SEÑALES PARA RESERVAS
+# =============================================================================
+
+@receiver(pre_save, sender='clientes.Reserva')
+def guardar_estado_anterior_reserva(sender, instance, **kwargs):
     """
-    Crea recordatorios automáticamente cuando se crea o modifica una reserva
+    Guarda el estado anterior de la reserva antes de guardar.
+    Esto permite detectar cambios en fecha/hora para reprogramaciones.
     """
+    if instance.pk:
+        try:
+            Reserva = get_reserva_model()
+            if Reserva:
+                reserva_anterior = Reserva.objects.filter(pk=instance.pk).first()
+                if reserva_anterior:
+                    _reservas_estado_anterior[instance.pk] = {
+                        'fecha': reserva_anterior.fecha,
+                        'hora_inicio': reserva_anterior.hora_inicio,
+                        'hora_fin': reserva_anterior.hora_fin,
+                        'estado': reserva_anterior.estado,
+                    }
+        except Exception as e:
+            logger.error(f"Error guardando estado anterior de reserva: {e}")
+
+
+@receiver(post_save, sender='clientes.Reserva')
+def manejar_cambios_reserva(sender, instance, created, **kwargs):
+    """
+    Maneja las notificaciones cuando se crea o modifica una reserva.
+    
+    Detecta:
+    - Nueva reserva → Notifica cita agendada
+    - Cambio de fecha/hora → Notifica reprogramación
+    - Cambio de estado a 'cancelado' → Notifica cancelación
+    """
+    whatsapp = get_whatsapp_service()
+    if not whatsapp:
+        logger.warning("Servicio WhatsApp no disponible")
+        return
+    
     try:
         if created:
-            # Nueva reserva - crear recordatorios
-            _crear_recordatorios_para_reserva(instance)
+            # Nueva reserva - Notificar cita agendada
+            _notificar_cita_agendada(instance, whatsapp)
         else:
-            # Reserva modificada - actualizar recordatorios existentes
-            _actualizar_recordatorios_para_reserva(instance)
+            # Reserva modificada - Verificar qué cambió
+            _procesar_modificacion_reserva(instance, whatsapp)
             
     except Exception as e:
-        logger.error(f"Error creando recordatorios para reserva {instance.id}: {e}")
+        logger.error(f"Error procesando cambios en reserva {instance.id}: {e}")
+    finally:
+        # Limpiar estado anterior
+        if instance.pk in _reservas_estado_anterior:
+            del _reservas_estado_anterior[instance.pk]
 
-def eliminar_recordatorios_reserva(sender, instance, **kwargs):
-    """
-    Elimina recordatorios cuando se elimina una reserva
-    """
+
+def _notificar_cita_agendada(reserva, whatsapp):
+    """Envía notificación de cita agendada"""
     try:
-        _eliminar_recordatorios_para_reserva(instance)
+        # Solo notificar si la reserva está en estado válido
+        if reserva.estado in ['pendiente', 'confirmado']:
+            resultado = whatsapp.notificar_cita_agendada(reserva)
+            
+            if resultado.get('success'):
+                logger.info(f"✅ Notificación de cita agendada enviada - Reserva {reserva.id}")
+            else:
+                logger.warning(f"⚠️ No se pudo enviar notificación - Reserva {reserva.id}: {resultado.get('error')}")
+                
     except Exception as e:
-        logger.error(f"Error eliminando recordatorios para reserva {instance.id}: {e}")
+        logger.error(f"Error notificando cita agendada: {e}")
 
-def _crear_recordatorios_para_reserva(reserva):
-    """
-    Crea recordatorios para una reserva específica
-    """
+
+def _procesar_modificacion_reserva(reserva, whatsapp):
+    """Procesa las modificaciones de una reserva"""
+    estado_anterior = _reservas_estado_anterior.get(reserva.pk, {})
+    
+    if not estado_anterior:
+        return
+    
+    # Verificar si se canceló
+    if reserva.estado == 'cancelado' and estado_anterior.get('estado') != 'cancelado':
+        _notificar_cita_cancelada(reserva, whatsapp)
+        return
+    
+    # Verificar si se reprogramó (cambio de fecha u hora)
+    fecha_cambio = estado_anterior.get('fecha') != reserva.fecha
+    hora_cambio = estado_anterior.get('hora_inicio') != reserva.hora_inicio
+    
+    if fecha_cambio or hora_cambio:
+        # Solo notificar reprogramación si la reserva sigue activa
+        if reserva.estado in ['pendiente', 'confirmado']:
+            _notificar_cita_reprogramada(
+                reserva=reserva,
+                fecha_anterior=estado_anterior.get('fecha'),
+                hora_anterior=estado_anterior.get('hora_inicio'),
+                whatsapp=whatsapp
+            )
+
+
+def _notificar_cita_cancelada(reserva, whatsapp):
+    """Envía notificación de cita cancelada"""
     try:
-        # Verificar que la reserva tenga fecha y hora válidas
-        if not reserva.fecha or not reserva.hora_inicio:
-            logger.warning(f"Reserva {reserva.id} sin fecha/hora válida")
-            return
+        # Extraer motivo de las notas si existe
+        motivo = ""
+        if reserva.notas:
+            # Buscar el motivo en las notas
+            import re
+            match = re.search(r'\[Cancelado[^\]]*\]\s*(.+?)(?:\n|$)', reserva.notas)
+            if match:
+                motivo = match.group(1).strip()
         
-        # Crear recordatorio inmediato de confirmación
-        servicio_recordatorios.enviar_recordatorio_confirmacion(reserva)
+        resultado = whatsapp.notificar_cita_cancelada(reserva, motivo)
         
-        # Crear recordatorio para el día antes
-        servicio_recordatorios.enviar_recordatorio_dia_antes(reserva)
-        
-        # Crear recordatorio para 3 horas antes
-        servicio_recordatorios.enviar_recordatorio_tres_horas(reserva)
-        
-        logger.info(f"Recordatorios creados para reserva {reserva.id}")
-        
+        if resultado.get('success'):
+            logger.info(f"✅ Notificación de cancelación enviada - Reserva {reserva.id}")
+        else:
+            logger.warning(f"⚠️ No se pudo enviar notificación de cancelación - Reserva {reserva.id}")
+            
     except Exception as e:
-        logger.error(f"Error creando recordatorios para reserva {reserva.id}: {e}")
+        logger.error(f"Error notificando cita cancelada: {e}")
 
-def _actualizar_recordatorios_para_reserva(reserva):
-    """
-    Actualiza recordatorios existentes cuando se modifica una reserva
-    """
+
+def _notificar_cita_reprogramada(reserva, fecha_anterior, hora_anterior, whatsapp):
+    """Envía notificación de cita reprogramada"""
     try:
-        # Buscar recordatorios existentes para esta reserva
-        content_type = ContentType.objects.get_for_model(reserva)
-        
-        recordatorios = Recordatorio.objects.filter(
-            content_type=content_type,
-            object_id=reserva.id,
-            estado__in=[EstadoRecordatorio.PENDIENTE, EstadoRecordatorio.ENVIADO]
+        resultado = whatsapp.notificar_cita_reprogramada(
+            reserva=reserva,
+            fecha_anterior=fecha_anterior,
+            hora_anterior=hora_anterior
         )
         
-        if recordatorios.exists():
-            # Cancelar recordatorios existentes
-            recordatorios.update(estado=EstadoRecordatorio.CANCELADO)
+        if resultado.get('success'):
+            logger.info(f"✅ Notificación de reprogramación enviada - Reserva {reserva.id}")
+        else:
+            logger.warning(f"⚠️ No se pudo enviar notificación de reprogramación - Reserva {reserva.id}")
             
-            # Crear nuevos recordatorios con la fecha actualizada
-            _crear_recordatorios_para_reserva(reserva)
-            
-            logger.info(f"Recordatorios actualizados para reserva {reserva.id}")
-        
     except Exception as e:
-        logger.error(f"Error actualizando recordatorios para reserva {reserva.id}: {e}")
+        logger.error(f"Error notificando cita reprogramada: {e}")
 
-def _eliminar_recordatorios_para_reserva(reserva):
+
+@receiver(post_delete, sender='clientes.Reserva')
+def manejar_eliminacion_reserva(sender, instance, **kwargs):
     """
-    Elimina recordatorios cuando se elimina una reserva
+    Maneja la eliminación de reservas.
+    Cancela los recordatorios pendientes asociados.
     """
     try:
-        content_type = ContentType.objects.get_for_model(reserva)
+        from .models import Recordatorio, EstadoRecordatorio
+        
+        content_type = ContentType.objects.get_for_model(instance)
         
         # Cancelar recordatorios pendientes
-        Recordatorio.objects.filter(
+        actualizados = Recordatorio.objects.filter(
             content_type=content_type,
-            object_id=reserva.id,
+            object_id=instance.id,
             estado=EstadoRecordatorio.PENDIENTE
         ).update(estado=EstadoRecordatorio.CANCELADO)
         
-        logger.info(f"Recordatorios cancelados para reserva eliminada {reserva.id}")
-        
+        if actualizados > 0:
+            logger.info(f"Cancelados {actualizados} recordatorios para reserva eliminada {instance.id}")
+            
     except Exception as e:
-        logger.error(f"Error cancelando recordatorios para reserva eliminada {reserva.id}: {e}")
+        logger.error(f"Error cancelando recordatorios de reserva eliminada: {e}")
 
-# Señales para suscripciones
-@receiver(post_save, sender='suscripciones.Suscripcion')
-def crear_recordatorios_suscripcion(sender, instance, created, **kwargs):
+
+# =============================================================================
+# FUNCIONES DE UTILIDAD
+# =============================================================================
+
+def enviar_notificacion_manual(reserva, tipo: str, **kwargs):
     """
-    Crea recordatorios para renovaciones de suscripciones
+    Permite enviar notificaciones manualmente desde otras partes del código.
+    
+    Args:
+        reserva: Objeto Reserva
+        tipo: 'agendada', 'cancelada', 'reprogramada'
+        **kwargs: Argumentos adicionales según el tipo
+        
+    Ejemplo:
+        from recordatorios.signals import enviar_notificacion_manual
+        
+        # Notificar cancelación con motivo personalizado
+        enviar_notificacion_manual(reserva, 'cancelada', motivo='Cliente no disponible')
+    """
+    whatsapp = get_whatsapp_service()
+    if not whatsapp:
+        return {'success': False, 'error': 'Servicio WhatsApp no disponible'}
+    
+    if tipo == 'agendada':
+        return whatsapp.notificar_cita_agendada(reserva)
+    elif tipo == 'cancelada':
+        return whatsapp.notificar_cita_cancelada(reserva, kwargs.get('motivo', ''))
+    elif tipo == 'reprogramada':
+        return whatsapp.notificar_cita_reprogramada(
+            reserva,
+            kwargs.get('fecha_anterior'),
+            kwargs.get('hora_anterior')
+        )
+    else:
+        return {'success': False, 'error': f'Tipo de notificación no válido: {tipo}'}
+
+
+def verificar_conexion_signals():
+    """
+    Verifica que las señales estén conectadas correctamente.
+    Útil para debugging.
+    """
+    from django.db.models.signals import post_save, pre_save, post_delete
+    
+    Reserva = get_reserva_model()
+    if not Reserva:
+        return {'connected': False, 'error': 'Modelo Reserva no encontrado'}
+    
+    # Verificar señales conectadas
+    pre_save_receivers = pre_save.receivers
+    post_save_receivers = post_save.receivers
+    post_delete_receivers = post_delete.receivers
+    
+    return {
+        'connected': True,
+        'reserva_model': str(Reserva),
+        'pre_save_count': len([r for r in pre_save_receivers if 'Reserva' in str(r)]),
+        'post_save_count': len([r for r in post_save_receivers if 'Reserva' in str(r)]),
+        'post_delete_count': len([r for r in post_delete_receivers if 'Reserva' in str(r)]),
+        'whatsapp_enabled': get_whatsapp_service() is not None
+    }
+
+
+# =============================================================================
+# INICIALIZACIÓN
+# =============================================================================
+
+def conectar_senales():
+    """
+    Conecta las señales al iniciar la aplicación.
+    Esta función es llamada automáticamente desde apps.py
     """
     try:
-        if created:
-            # Nueva suscripción - crear recordatorio de renovación
-            _crear_recordatorio_renovacion_suscripcion(instance)
+        Reserva = get_reserva_model()
+        if Reserva:
+            logger.info("✅ Señales de notificaciones conectadas para Reserva")
+            return True
         else:
-            # Suscripción modificada - actualizar recordatorios
-            _actualizar_recordatorios_suscripcion(instance)
-            
+            logger.warning("⚠️ No se pudieron conectar las señales - Modelo Reserva no disponible")
+            return False
     except Exception as e:
-        logger.error(f"Error creando recordatorios para suscripción {instance.id}: {e}")
-
-def _crear_recordatorio_renovacion_suscripcion(suscripcion):
-    """
-    Crea recordatorio para renovación de suscripción
-    """
-    try:
-        # Calcular fecha de vencimiento
-        if hasattr(suscripcion, 'fecha_vencimiento') and suscripcion.fecha_vencimiento:
-            fecha_vencimiento = suscripcion.fecha_vencimiento
-        else:
-            # Por defecto: 30 días desde la creación
-            fecha_vencimiento = suscripcion.fecha_creacion + timezone.timedelta(days=30)
-        
-        # Crear recordatorio 7 días antes del vencimiento
-        fecha_recordatorio = fecha_vencimiento - timezone.timedelta(days=7)
-        
-        if fecha_recordatorio > timezone.now():
-            recordatorio = servicio_recordatorios.crear_recordatorio(
-                tipo=TipoRecordatorio.SUSCRIPCION_RENOVACION,
-                destinatario=suscripcion.usuario,
-                fecha_evento=fecha_vencimiento,
-                contenido_relacionado=suscripcion,
-                canales=['email', 'whatsapp'],
-                contexto_template={
-                    'usuario': suscripcion.usuario,
-                    'suscripcion': suscripcion,
-                    'plan': suscripcion.plan,
-                    'fecha_vencimiento': fecha_vencimiento.strftime('%d/%m/%Y'),
-                    'dias_restantes': 7
-                },
-                prioridad=2
-            )
-            
-            logger.info(f"Recordatorio de renovación creado para suscripción {suscripcion.id}")
-        
-    except Exception as e:
-        logger.error(f"Error creando recordatorio de renovación: {e}")
-
-def _actualizar_recordatorios_suscripcion(suscripcion):
-    """
-    Actualiza recordatorios cuando se modifica una suscripción
-    """
-    try:
-        # Buscar recordatorios existentes
-        content_type = ContentType.objects.get_for_model(suscripcion)
-        
-        recordatorios = Recordatorio.objects.filter(
-            content_type=content_type,
-            object_id=suscripcion.id,
-            tipo=TipoRecordatorio.SUSCRIPCION_RENOVACION,
-            estado__in=[EstadoRecordatorio.PENDIENTE, EstadoRecordatorio.ENVIADO]
-        )
-        
-        if recordatorios.exists():
-            # Cancelar recordatorios existentes
-            recordatorios.update(estado=EstadoRecordatorio.CANCELADO)
-            
-            # Crear nuevos recordatorios
-            _crear_recordatorio_renovacion_suscripcion(suscripcion)
-            
-    except Exception as e:
-        logger.error(f"Error actualizando recordatorios de suscripción: {e}")
-
-# Señales para inasistencias (cuando una reserva cambia a estado inasistencia)
-@receiver(post_save, sender='clientes.Reserva')
-def crear_recordatorio_por_estado_reserva(sender, instance, created, **kwargs):
-    """
-    Crea recordatorios basados en el estado de la reserva
-    """
-    try:
-        if not created and hasattr(instance, 'estado'):
-            # Verificar cambios de estado
-            if instance.estado == 'inasistencia':
-                _crear_recordatorio_inasistencia(instance)
-            elif instance.estado == 'cancelado':
-                _crear_recordatorio_cancelacion(instance)
-                
-    except Exception as e:
-        logger.error(f"Error creando recordatorio por estado de reserva {instance.id}: {e}")
-
-def _crear_recordatorio_inasistencia(reserva):
-    """
-    Crea recordatorio para inasistencia
-    """
-    try:
-        # Enviar recordatorio inmediatamente
-        recordatorio = servicio_recordatorios.crear_recordatorio(
-            tipo=TipoRecordatorio.INASISTENCIA,
-            destinatario=reserva.cliente,
-            fecha_evento=timezone.now(),
-            contenido_relacionado=reserva,
-            canales=['email', 'whatsapp'],
-            contexto_template={
-                'cliente': reserva.cliente,
-                'reserva': reserva,
-                'negocio': reserva.peluquero,
-                'profesional': reserva.profesional,
-                'fecha_inasistencia': timezone.now().strftime('%d/%m/%Y')
-            },
-            prioridad=1  # Alta prioridad
-        )
-        
-        logger.info(f"Recordatorio de inasistencia creado para {reserva.cliente}")
-        
-    except Exception as e:
-        logger.error(f"Error creando recordatorio de inasistencia: {e}")
-
-def _crear_recordatorio_cancelacion(reserva):
-    """
-    Crea recordatorio para cancelación de reserva
-    """
-    try:
-        # Enviar recordatorio inmediatamente
-        recordatorio = servicio_recordatorios.crear_recordatorio(
-            tipo=TipoRecordatorio.RESERVA_CANCELADA,
-            destinatario=reserva.cliente,
-            fecha_evento=timezone.now(),
-            contenido_relacionado=reserva,
-            canales=['email', 'whatsapp'],
-            contexto_template={
-                'cliente': reserva.cliente,
-                'reserva': reserva,
-                'negocio': reserva.peluquero,
-                'profesional': reserva.profesional,
-                'fecha_cancelacion': timezone.now().strftime('%d/%m/%Y'),
-                'fecha_reserva': reserva.fecha.strftime('%d/%m/%Y'),
-                'hora_reserva': reserva.hora_inicio.strftime('%H:%M')
-            },
-            prioridad=1  # Alta prioridad
-        )
-        
-        logger.info(f"Recordatorio de cancelación creado para {reserva.cliente}")
-        
-    except Exception as e:
-        logger.error(f"Error creando recordatorio de cancelación: {e}")
-
-# La función _crear_recordatorio_cancelacion ya está definida arriba y se usa en crear_recordatorio_por_estado_reserva
-
-# Función para limpiar recordatorios antiguos
-def limpiar_recordatorios_antiguos():
-    """
-    Limpia recordatorios muy antiguos para mantener la base de datos optimizada
-    """
-    try:
-        # Eliminar recordatorios cancelados o fallidos de más de 30 días
-        fecha_limite = timezone.now() - timezone.timedelta(days=30)
-        
-        recordatorios_eliminados = Recordatorio.objects.filter(
-            estado__in=[EstadoRecordatorio.CANCELADO, EstadoRecordatorio.FALLIDO],
-            fecha_creacion__lt=fecha_limite
-        ).delete()
-        
-        if recordatorios_eliminados[0] > 0:
-            logger.info(f"Limpiados {recordatorios_eliminados[0]} recordatorios antiguos")
-            
-    except Exception as e:
-        logger.error(f"Error limpiando recordatorios antiguos: {e}")
-
-# Configurar limpieza automática (puede ser llamada por un cron job)
-def tarea_limpieza_recordatorios():
-    """
-    Tarea programada para limpiar recordatorios antiguos
-    """
-    limpiar_recordatorios_antiguos()
-
-# Conectar señales cuando se importe el módulo
-conectar_senales()
+        logger.error(f"❌ Error conectando señales: {e}")
+        return False
