@@ -816,7 +816,8 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
             'fin_minutos': fin_minutos
         }
     
-    servicios_asignados = profesional.servicios.values_list('id', flat=True)
+    # Convertir a lista para que funcione el 'in' en el template
+    servicios_asignados = list(profesional.servicios.values_list('id', flat=True))
     return render(request, 'negocios/editar_profesional_negocio.html', {
         'negocio': negocio,
         'profesional': profesional,
