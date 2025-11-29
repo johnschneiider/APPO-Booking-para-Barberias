@@ -292,3 +292,27 @@ def gestionar_ausencias(request):
         'solicitudes_rechazadas': solicitudes_rechazadas,
         'ausencias_activas': ausencias_activas,
     })
+
+
+@login_required
+@require_POST
+def cancelar_solicitud_ausencia(request, solicitud_id):
+    """Cancela una solicitud de ausencia pendiente"""
+    profesional = getattr(request.user, 'perfil_profesional', None)
+    if not profesional:
+        messages.error(request, 'Solo los profesionales pueden cancelar solicitudes.')
+        return redirect('profesionales:panel')
+    
+    try:
+        solicitud = SolicitudAusencia.objects.get(
+            id=solicitud_id,
+            profesional=profesional,
+            estado='pendiente'
+        )
+        solicitud.estado = 'cancelada'
+        solicitud.save()
+        messages.success(request, 'Solicitud de ausencia cancelada.')
+    except SolicitudAusencia.DoesNotExist:
+        messages.error(request, 'Solicitud no encontrada o no se puede cancelar.')
+    
+    return redirect('profesionales:gestionar_ausencias')

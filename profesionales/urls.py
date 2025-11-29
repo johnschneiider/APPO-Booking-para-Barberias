@@ -13,6 +13,7 @@ urlpatterns = [
     path('cancelar-matricula/<int:matricula_id>/', views.cancelar_matricula, name='cancelar_matricula'),
     path('notificaciones/eliminar/<int:notificacion_id>/', views.eliminar_notificacion, name='eliminar_notificacion'),
     path('gestionar-ausencias/', views.gestionar_ausencias, name='gestionar_ausencias'),
+    path('cancelar-solicitud-ausencia/<int:solicitud_id>/', views.cancelar_solicitud_ausencia, name='cancelar_solicitud_ausencia'),
 ]
 
 urlpatterns += [
