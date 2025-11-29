@@ -792,17 +792,19 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
     
     # Obtener horarios actuales del modelo HorarioProfesional
     horarios_actuales = {}
+    
+    # Mapear de vuelta a nombres en español
+    dia_mapping_reverse = {
+        'lunes': 'Lunes',
+        'martes': 'Martes',
+        'miercoles': 'Miércoles', 
+        'jueves': 'Jueves',
+        'viernes': 'Viernes',
+        'sabado': 'Sábado',
+        'domingo': 'Domingo'
+    }
+    
     for horario in profesional.horarios.all():
-        # Mapear de vuelta a nombres en español
-        dia_mapping_reverse = {
-            'lunes': 'Lunes',
-            'martes': 'Martes',
-            'miercoles': 'Miércoles', 
-            'jueves': 'Jueves',
-            'viernes': 'Viernes',
-            'sabado': 'Sábado',
-            'domingo': 'Domingo'
-        }
         dia_nombre = dia_mapping_reverse.get(horario.dia_semana, horario.dia_semana)
         
         # Convertir horas a minutos desde medianoche
@@ -815,6 +817,17 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
             'inicio_minutos': inicio_minutos,
             'fin_minutos': fin_minutos
         }
+    
+    # Si el profesional no tiene horarios, usar los del negocio como default
+    if not horarios_actuales and negocio.horario_atencion:
+        for dia, horario in negocio.horario_atencion.items():
+            if horario and horario.get('inicio') and horario.get('fin'):
+                horarios_actuales[dia] = {
+                    'inicio': horario['inicio'],
+                    'fin': horario['fin'],
+                    'inicio_minutos': 0,
+                    'fin_minutos': 0
+                }
     
     # Convertir a lista para que funcione el 'in' en el template
     servicios_asignados = list(profesional.servicios.values_list('id', flat=True))

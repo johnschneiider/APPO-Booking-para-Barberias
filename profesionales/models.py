@@ -60,7 +60,67 @@ class Matriculacion(models.Model):
         self.fecha_respuesta = timezone.now()
         self.mensaje_respuesta = mensaje_respuesta
         self.save()
-        # Ya no se crea Peluquero, solo se aprueba el profesional
+        
+        # Copiar horarios del negocio al profesional automáticamente
+        self._asignar_horarios_negocio()
+        
+        # Asignar todos los servicios del negocio al profesional
+        self._asignar_servicios_negocio()
+    
+    def _asignar_horarios_negocio(self):
+        """Copia los horarios del negocio al profesional si no tiene horarios asignados"""
+        from datetime import time as dt_time
+        
+        # Si el profesional ya tiene horarios, no los sobreescribimos
+        if self.profesional.horarios.exists():
+            return
+        
+        # Mapeo de nombres de días (Negocio -> HorarioProfesional)
+        dia_mapping = {
+            'Lunes': 'lunes',
+            'Martes': 'martes',
+            'Miércoles': 'miercoles',
+            'Jueves': 'jueves',
+            'Viernes': 'viernes',
+            'Sábado': 'sabado',
+            'Domingo': 'domingo'
+        }
+        
+        horario_negocio = self.negocio.horario_atencion or {}
+        
+        for dia_nombre, horario in horario_negocio.items():
+            if horario and horario.get('inicio') and horario.get('fin'):
+                try:
+                    # Convertir strings a objetos time
+                    hora_inicio = dt_time.fromisoformat(horario['inicio'])
+                    hora_fin = dt_time.fromisoformat(horario['fin'])
+                    dia_semana = dia_mapping.get(dia_nombre)
+                    
+                    if dia_semana:
+                        HorarioProfesional.objects.create(
+                            profesional=self.profesional,
+                            dia_semana=dia_semana,
+                            hora_inicio=hora_inicio,
+                            hora_fin=hora_fin,
+                            disponible=True
+                        )
+                except (ValueError, TypeError):
+                    continue
+    
+    def _asignar_servicios_negocio(self):
+        """Asigna todos los servicios del negocio al profesional si no tiene servicios"""
+        from negocios.models import ServicioNegocio
+        
+        # Si el profesional ya tiene servicios, no los sobreescribimos
+        if self.profesional.servicios.exists():
+            return
+        
+        # Obtener todos los servicios activos del negocio
+        servicios_negocio = ServicioNegocio.objects.filter(negocio=self.negocio, activo=True)
+        servicios = [sn.servicio for sn in servicios_negocio]
+        
+        if servicios:
+            self.profesional.servicios.set(servicios)
 
     def rechazar(self, mensaje_respuesta=""):
         self.estado = 'rechazada'
