@@ -923,11 +923,7 @@ function verDetalles(planId) {
     // Implementar lógica para mostrar detalles
 }
 
-function eliminarPlan(planId) {
-    console.log('Eliminar plan:', planId);
-    const modal = new bootstrap.Modal(document.getElementById('eliminarPlanModal'));
-    modal.show();
-}
+// La función eliminarPlan está definida más abajo con la lógica completa
 
 function togglePlan(planId, activo) {
     console.log('Toggle plan:', planId, activo);
@@ -939,9 +935,75 @@ function filtrarPlanes() {
     // Implementar lógica de filtrado
 }
 
+let planAEliminar = null;
+
+function eliminarPlan(planId) {
+    console.log('Preparando eliminar plan:', planId);
+    planAEliminar = planId;
+    const modal = new bootstrap.Modal(document.getElementById('eliminarPlanModal'));
+    modal.show();
+}
+
 function confirmarEliminacion() {
-    console.log('Confirmando eliminación...');
-    // Implementar lógica de eliminación
+    if (!planAEliminar) {
+        console.error('No hay plan seleccionado para eliminar');
+        return;
+    }
+    
+    console.log('Confirmando eliminación del plan:', planAEliminar);
+    
+    // Obtener token CSRF
+    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!csrfToken) {
+        csrfToken = getCookie('csrftoken');
+    }
+    
+    if (!csrfToken) {
+        alert('Error: No se pudo obtener el token CSRF. Por favor, recarga la página.');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    const eliminarBtn = document.querySelector('#eliminarPlanModal .btn-danger');
+    const textoOriginal = eliminarBtn.innerHTML;
+    eliminarBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Eliminando...';
+    eliminarBtn.disabled = true;
+    
+    const negocioId = {{ negocio.id }};
+    
+    fetch(`/suscripciones/api/negocio/${negocioId}/plan/${planAEliminar}/eliminar/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Plan eliminado:', result);
+        
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('eliminarPlanModal'));
+        modal.hide();
+        
+        // Mostrar mensaje de éxito y recargar
+        alert('Plan eliminado exitosamente');
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error eliminando plan:', error);
+        alert('Error al eliminar el plan: ' + error.message);
+        eliminarBtn.innerHTML = textoOriginal;
+        eliminarBtn.disabled = false;
+    });
 }
 
 // Funciones para el modal de edición
@@ -1115,6 +1177,10 @@ function guardarCambiosPlan() {
     }
     
     console.log('Token CSRF obtenido:', csrfToken);
+    
+    // Agregar token CSRF al FormData también
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
     console.log('FormData a enviar:', Object.fromEntries(formData));
     
     // Hacer llamada AJAX real para guardar cambios con negocio_id
@@ -1125,7 +1191,8 @@ function guardarCambiosPlan() {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRFToken': csrfToken
-        }
+        },
+        credentials: 'same-origin'
     })
     .then(response => {
         console.log('Respuesta del servidor:', response.status, response.statusText);
