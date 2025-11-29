@@ -724,12 +724,15 @@ def galeria_negocio(request, negocio_id):
 
 @login_required
 def editar_profesional_negocio(request, negocio_id, profesional_id):
+    logger.info(f"=== EDITAR PROFESIONAL: negocio={negocio_id}, profesional={profesional_id}, method={request.method} ===")
+    
     negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
     profesional = get_object_or_404(Profesional, id=profesional_id)
     matriculacion = get_object_or_404(Matriculacion, negocio=negocio, profesional=profesional, estado='aprobada')
     servicios_negocio = ServicioNegocio.objects.filter(negocio=negocio)
     
     if request.method == 'POST':
+        logger.info(f"POST recibido: {dict(request.POST)}")
         # Actualizar servicios asignados
         servicios_ids = request.POST.getlist('servicios')
         servicios_a_asignar = [s.servicio for s in servicios_negocio if str(s.id) in servicios_ids]

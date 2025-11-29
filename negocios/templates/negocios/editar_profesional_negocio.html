@@ -44,7 +44,7 @@
 <div class="container py-4">
     <h2 class="mb-4">Editar Horario y Servicios de {{ profesional.nombre_completo }}</h2>
 
-    <form method="post">
+    <form method="post" action="{% url 'negocios:editar_profesional_negocio' negocio.id profesional.id %}" id="formEditarProfesional">
         {% csrf_token %}
         <!-- Asignar servicios al profesional -->
         <div class="card mb-4 shadow-sm" style="border: 1.5px solid var(--color-mint-green);">
@@ -150,8 +150,11 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-lg px-4" style="background: var(--color-mint-green); color: var(--color-black-deep); border: none;">Guardar Cambios</button>
+        <div class="d-flex justify-content-end gap-3 mt-4">
+            <a href="{% url 'negocios:panel_negocio' negocio.id %}" class="btn btn-secondary btn-lg px-4">Cancelar</a>
+            <button type="submit" class="btn btn-success btn-lg px-4">
+                <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+            </button>
         </div>
     </form>
 </div>
@@ -186,6 +189,22 @@ function asignarHorarioTodos() {
 
 // Validación de horarios
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug: Verificar que el formulario existe
+    const form = document.getElementById('formEditarProfesional');
+    console.log('Formulario encontrado:', form);
+    console.log('Acción del formulario:', form.action);
+    console.log('Método del formulario:', form.method);
+    
+    // Agregar listener al submit para depuración
+    form.addEventListener('submit', function(e) {
+        console.log('=== FORMULARIO ENVIÁNDOSE ===');
+        console.log('Servicios seleccionados:', document.querySelectorAll('input[name="servicios"]:checked').length);
+        console.log('Días seleccionados:', document.querySelectorAll('input[name="dias"]:checked').length);
+        
+        // NO prevenir el envío - dejar que continúe
+        // El botón cambiará a "Procesando..." por el script de base.html
+    });
+    
     // Agregar validación a los inputs de tiempo
     document.querySelectorAll('.horario-inicio, .horario-fin').forEach(input => {
         input.addEventListener('change', function() {
