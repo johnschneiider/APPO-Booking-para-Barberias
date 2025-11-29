@@ -105,17 +105,17 @@ class ImagenNegocio(models.Model):
     def __str__(self):
         return self.titulo
 
-# Servicios iniciales fijos
+# Servicios iniciales fijos - Barbería Masculina
 SERVICIOS_FIJOS = [
-    'Corte de cabello',
-    'Coloración',
-    'Peinado',
-    'Manicura',
-    'Pedicura',
-    'Depilación',
-    'Barbería',
-    'Tratamiento capilar',
-    'Maquillaje',
+    'Corte con barba',
+    'Corte sin barba',
+    'Corte con cejas',
+    'Solo trazo (Mickey)',
+    'Barba completa',
+    'Diseño de cejas',
+    'Corte clásico',
+    'Corte degradado (Fade)',
+    'Afeitado tradicional',
 ]
 
 def crear_servicios_iniciales():
