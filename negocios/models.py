@@ -10,6 +10,20 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.utils import timezone
 
+
+def horario_default():
+    """Horario por defecto: Abierto de 10:00 a 22:00 todos los días"""
+    return {
+        "Lunes": {"inicio": "10:00", "fin": "22:00"},
+        "Martes": {"inicio": "10:00", "fin": "22:00"},
+        "Miércoles": {"inicio": "10:00", "fin": "22:00"},
+        "Jueves": {"inicio": "10:00", "fin": "22:00"},
+        "Viernes": {"inicio": "10:00", "fin": "22:00"},
+        "Sábado": {"inicio": "10:00", "fin": "22:00"},
+        "Domingo": {"inicio": "10:00", "fin": "22:00"},
+    }
+
+
 class Servicio(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
@@ -28,7 +42,7 @@ class Negocio(models.Model):
     logo = models.ImageField(upload_to='logos_negocios/', blank=True, null=True)
     portada = models.ImageField(upload_to='portadas_negocios/', blank=True, null=True)
     creado_en = models.DateTimeField(auto_now_add=True)
-    horario_atencion = models.JSONField(default=dict, blank=True, null=True)
+    horario_atencion = models.JSONField(default=horario_default, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     activo = models.BooleanField(default=True)
     
