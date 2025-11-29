@@ -239,3 +239,242 @@ class DiaDescanso(models.Model):
                 url_relacionada='/profesionales/panel/',
             )
 
+
+# ==================== MODELOS FINANCIEROS ====================
+
+class ComisionProfesional(models.Model):
+    """
+    Define la comisión que gana cada profesional por los servicios prestados.
+    Puede ser un porcentaje del servicio o un monto fijo.
+    """
+    TIPO_COMISION_CHOICES = [
+        ('porcentaje', 'Porcentaje del servicio'),
+        ('fijo', 'Monto fijo por servicio'),
+    ]
+    
+    profesional = models.ForeignKey(
+        'profesionales.Profesional', 
+        on_delete=models.CASCADE, 
+        related_name='comisiones'
+    )
+    negocio = models.ForeignKey(
+        'Negocio', 
+        on_delete=models.CASCADE, 
+        related_name='comisiones_profesionales'
+    )
+    
+    tipo_comision = models.CharField(
+        max_length=20, 
+        choices=TIPO_COMISION_CHOICES, 
+        default='porcentaje'
+    )
+    valor = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        help_text='Si es porcentaje: 0-100. Si es fijo: monto en pesos.'
+    )
+    
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('profesional', 'negocio')
+        verbose_name = 'Comisión de Profesional'
+        verbose_name_plural = 'Comisiones de Profesionales'
+    
+    def __str__(self):
+        if self.tipo_comision == 'porcentaje':
+            return f"{self.profesional.nombre_completo} - {self.valor}% en {self.negocio.nombre}"
+        return f"{self.profesional.nombre_completo} - ${self.valor} fijo en {self.negocio.nombre}"
+    
+    def calcular_comision(self, monto_servicio):
+        """Calcula la comisión del profesional basado en el monto del servicio"""
+        if self.tipo_comision == 'porcentaje':
+            return (monto_servicio * self.valor) / 100
+        return self.valor  # Monto fijo
+
+
+class TransaccionNegocio(models.Model):
+    """
+    Registra todas las transacciones financieras del negocio.
+    Se crea automáticamente cuando una reserva se completa.
+    """
+    TIPO_CHOICES = [
+        ('ingreso', 'Ingreso'),
+        ('egreso', 'Egreso'),
+    ]
+    
+    CONCEPTO_CHOICES = [
+        ('servicio', 'Servicio prestado'),
+        ('suscripcion', 'Pago de suscripción'),
+        ('propina', 'Propina'),
+        ('comision_profesional', 'Comisión a profesional'),
+        ('comision_plataforma', 'Comisión plataforma'),
+        ('reembolso', 'Reembolso'),
+        ('ajuste', 'Ajuste contable'),
+        ('otro', 'Otro'),
+    ]
+    
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('completada', 'Completada'),
+        ('cancelada', 'Cancelada'),
+    ]
+    
+    # Relaciones principales
+    negocio = models.ForeignKey(
+        'Negocio', 
+        on_delete=models.CASCADE, 
+        related_name='transacciones'
+    )
+    profesional = models.ForeignKey(
+        'profesionales.Profesional', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name='transacciones'
+    )
+    reserva = models.ForeignKey(
+        'clientes.Reserva', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name='transacciones'
+    )
+    
+    # Información de la transacción
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    concepto = models.CharField(max_length=50, choices=CONCEPTO_CHOICES)
+    descripcion = models.CharField(max_length=300, blank=True)
+    
+    # Montos
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    comision_profesional = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text='Monto que corresponde al profesional'
+    )
+    comision_negocio = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text='Monto que corresponde al negocio'
+    )
+    
+    # Estado y método de pago
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='completada')
+    metodo_pago = models.CharField(
+        max_length=50, blank=True, null=True,
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('tarjeta', 'Tarjeta'),
+            ('transferencia', 'Transferencia'),
+            ('mixto', 'Mixto'),
+        ]
+    )
+    
+    # Auditoría
+    fecha = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name='transacciones_creadas'
+    )
+    notas = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Transacción del Negocio'
+        verbose_name_plural = 'Transacciones del Negocio'
+        indexes = [
+            models.Index(fields=['negocio', 'fecha']),
+            models.Index(fields=['profesional', 'fecha']),
+            models.Index(fields=['tipo', 'concepto']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_tipo_display()} - ${self.monto} - {self.get_concepto_display()} ({self.fecha.strftime('%d/%m/%Y')})"
+    
+    @classmethod
+    def crear_desde_reserva(cls, reserva, metodo_pago='efectivo', creado_por=None):
+        """
+        Crea una transacción de ingreso a partir de una reserva completada.
+        También calcula y registra las comisiones.
+        """
+        if not reserva.total:
+            return None
+        
+        monto_total = reserva.total
+        comision_prof = 0
+        comision_neg = monto_total
+        
+        # Calcular comisión del profesional si existe configuración
+        if reserva.profesional:
+            try:
+                config_comision = ComisionProfesional.objects.get(
+                    profesional=reserva.profesional,
+                    negocio=reserva.peluquero,
+                    activo=True
+                )
+                comision_prof = config_comision.calcular_comision(monto_total)
+                comision_neg = monto_total - comision_prof
+            except ComisionProfesional.DoesNotExist:
+                # Si no hay configuración, todo va al negocio
+                pass
+        
+        # Crear la transacción principal (ingreso)
+        transaccion = cls.objects.create(
+            negocio=reserva.peluquero,
+            profesional=reserva.profesional,
+            reserva=reserva,
+            tipo='ingreso',
+            concepto='servicio',
+            descripcion=f"Servicio: {reserva.servicio.servicio.nombre if reserva.servicio else 'N/A'} - Cliente: {reserva.cliente.username}",
+            monto=monto_total,
+            comision_profesional=comision_prof,
+            comision_negocio=comision_neg,
+            estado='completada',
+            metodo_pago=metodo_pago,
+            creado_por=creado_por,
+        )
+        
+        return transaccion
+
+
+class ResumenFinancieroMensual(models.Model):
+    """
+    Resumen pre-calculado de las finanzas mensuales del negocio.
+    Se actualiza automáticamente o mediante un comando de gestión.
+    """
+    negocio = models.ForeignKey(
+        'Negocio', 
+        on_delete=models.CASCADE, 
+        related_name='resumenes_financieros'
+    )
+    mes = models.PositiveIntegerField()  # 1-12
+    anio = models.PositiveIntegerField()
+    
+    # Totales
+    ingresos_servicios = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    ingresos_suscripciones = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    ingresos_otros = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_ingresos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    total_egresos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    comisiones_profesionales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    # Contadores
+    total_reservas = models.PositiveIntegerField(default=0)
+    reservas_completadas = models.PositiveIntegerField(default=0)
+    reservas_canceladas = models.PositiveIntegerField(default=0)
+    
+    # Auditoría
+    fecha_calculo = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('negocio', 'mes', 'anio')
+        ordering = ['-anio', '-mes']
+        verbose_name = 'Resumen Financiero Mensual'
+        verbose_name_plural = 'Resúmenes Financieros Mensuales'
+    
+    def __str__(self):
+        return f"{self.negocio.nombre} - {self.mes}/{self.anio}"
+

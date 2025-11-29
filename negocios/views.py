@@ -349,9 +349,38 @@ def dashboard_negocio(request, negocio_id):
         fecha__lte=hoy
     )
     
-    # Calcular ingresos totales (asumiendo precio promedio de $30 por servicio)
+    # ========== INGRESOS REALES DESDE TRANSACCIONES Y RESERVAS ==========
+    from django.db.models import Sum
+    from .models import TransaccionNegocio
+    
     total_reservas_mes = reservas_mes.count()
-    ingresos_totales = total_reservas_mes * 30  # Precio promedio estimado
+    
+    # Primero intentar desde TransaccionNegocio
+    ingresos_transacciones = TransaccionNegocio.objects.filter(
+        negocio=negocio,
+        tipo='ingreso',
+        concepto='servicio',
+        estado='completada',
+        fecha__gte=inicio_mes,
+        fecha__lte=timezone.now()
+    ).aggregate(total=Sum('monto'))['total'] or 0
+    
+    # Si no hay transacciones, calcular desde reservas completadas
+    if ingresos_transacciones == 0:
+        ingresos_reservas = reservas_mes.filter(
+            estado='completado',
+            total__isnull=False
+        ).aggregate(total=Sum('total'))['total'] or 0
+        
+        # Si tampoco hay totales en reservas, calcular desde servicios
+        if ingresos_reservas == 0:
+            for reserva in reservas_mes.filter(estado='completado'):
+                if reserva.servicio and reserva.servicio.precio:
+                    ingresos_reservas += float(reserva.servicio.precio)
+        
+        ingresos_totales = ingresos_reservas
+    else:
+        ingresos_totales = float(ingresos_transacciones)
     
     # Clientes nuevos del mes (clientes que hicieron su primera reserva este mes)
     clientes_nuevos_mes = reservas_mes.values('cliente').distinct().count()
@@ -401,7 +430,7 @@ def dashboard_negocio(request, negocio_id):
                 mejor_puntuacion = promedio
                 mejor_profesional = profesional
     
-    # Ventas por mes (últimos 6 meses)
+    # Ventas por mes (últimos 6 meses) - USANDO DATOS REALES
     meses_grafico = []
     ventas_mes_grafico = []
     
@@ -410,14 +439,34 @@ def dashboard_negocio(request, negocio_id):
         inicio_mes_grafico = fecha_mes.replace(day=1)
         fin_mes_grafico = (inicio_mes_grafico + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        reservas_mes_grafico = Reserva.objects.filter(
-            peluquero=negocio,
+        # Intentar obtener desde transacciones
+        ingresos_mes = TransaccionNegocio.objects.filter(
+            negocio=negocio,
+            tipo='ingreso',
+            concepto='servicio',
+            estado='completada',
             fecha__gte=inicio_mes_grafico,
             fecha__lte=fin_mes_grafico
-        ).count()
+        ).aggregate(total=Sum('monto'))['total'] or 0
+        
+        # Si no hay transacciones, calcular desde reservas
+        if ingresos_mes == 0:
+            reservas_periodo = Reserva.objects.filter(
+                peluquero=negocio,
+                fecha__gte=inicio_mes_grafico,
+                fecha__lte=fin_mes_grafico,
+                estado='completado'
+            )
+            
+            # Sumar totales de reservas o precios de servicios
+            for reserva in reservas_periodo:
+                if reserva.total:
+                    ingresos_mes += float(reserva.total)
+                elif reserva.servicio and reserva.servicio.precio:
+                    ingresos_mes += float(reserva.servicio.precio)
         
         meses_grafico.append(fecha_mes.strftime('%m/%y'))
-        ventas_mes_grafico.append(reservas_mes_grafico * 30)  # Precio promedio estimado
+        ventas_mes_grafico.append(float(ingresos_mes))  # Ingresos reales
     
     # Crear objeto reporte
     class Reporte:
@@ -451,28 +500,33 @@ def dashboard_negocio(request, negocio_id):
         ).count()
         reservas_por_profesional.append(reservas_prof)
         
-        # Calcular ingresos del profesional (sumando precios de servicios)
-        reservas_con_precio = Reserva.objects.filter(
-            peluquero=negocio,
+        # Calcular ingresos del profesional - USANDO DATOS REALES
+        # Primero intentar desde transacciones
+        ingresos_prof = TransaccionNegocio.objects.filter(
+            negocio=negocio,
             profesional=profesional,
-            fecha__gte=inicio_mes,
-            fecha__lte=hoy
-        )
+            tipo='ingreso',
+            estado='completada',
+            fecha__gte=inicio_mes
+        ).aggregate(total=Sum('monto'))['total'] or 0
         
-        # Intentar sumar los precios reales de los servicios
-        ingresos_prof = 0
-        for reserva in reservas_con_precio:
-            if hasattr(reserva, 'servicio') and reserva.servicio:
-                # Buscar el precio del servicio en el negocio
-                servicio_negocio = negocio.servicios_negocio.filter(servicio=reserva.servicio).first()
-                if servicio_negocio:
-                    ingresos_prof += float(servicio_negocio.precio)
-                else:
-                    ingresos_prof += 30  # Precio promedio si no se encuentra
-            else:
-                ingresos_prof += 30  # Precio promedio estimado
+        # Si no hay transacciones, calcular desde reservas
+        if ingresos_prof == 0:
+            reservas_prof_completadas = Reserva.objects.filter(
+                peluquero=negocio,
+                profesional=profesional,
+                fecha__gte=inicio_mes,
+                fecha__lte=hoy,
+                estado='completado'
+            )
+            
+            for reserva in reservas_prof_completadas:
+                if reserva.total:
+                    ingresos_prof += float(reserva.total)
+                elif reserva.servicio and reserva.servicio.precio:
+                    ingresos_prof += float(reserva.servicio.precio)
         
-        ingresos_por_profesional.append(ingresos_prof)
+        ingresos_por_profesional.append(float(ingresos_prof))
     
     context = {
         'negocio': negocio,

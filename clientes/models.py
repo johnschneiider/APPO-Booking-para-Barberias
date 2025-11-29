@@ -93,6 +93,32 @@ class Reserva(models.Model):
     # Campos para recordatorios
     recordatorio_dia_enviado = models.BooleanField(default=False, help_text='Recordatorio de 1 día antes enviado')
     recordatorio_tres_horas_enviado = models.BooleanField(default=False, help_text='Recordatorio de 3 horas antes enviado')
+    
+    # ========== CAMPOS FINANCIEROS (Snapshot del precio al momento de la reserva) ==========
+    precio_servicio = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text='Precio del servicio al momento de la reserva'
+    )
+    descuento = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text='Descuento aplicado'
+    )
+    total = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text='Total a pagar (precio_servicio - descuento)'
+    )
+    metodo_pago = models.CharField(
+        max_length=50, blank=True, null=True,
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('tarjeta', 'Tarjeta'),
+            ('transferencia', 'Transferencia'),
+            ('mixto', 'Mixto'),
+            ('pendiente', 'Pendiente de pago'),
+        ],
+        default='pendiente'
+    )
+    pagado = models.BooleanField(default=False, help_text='¿El cliente ya pagó?')
 
     class Meta:
         ordering = ['fecha', 'hora_inicio']
@@ -101,6 +127,18 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f"Reserva de {self.cliente} con {self.profesional or self.peluquero} el {self.fecha} a las {self.hora_inicio}"
+    
+    def save(self, *args, **kwargs):
+        """Guarda el precio del servicio al momento de crear la reserva"""
+        # Solo capturar precio si es una nueva reserva o si no tiene precio asignado
+        if self.servicio and self.precio_servicio is None:
+            self.precio_servicio = self.servicio.precio or 0
+        
+        # Calcular total
+        if self.precio_servicio is not None:
+            self.total = self.precio_servicio - (self.descuento or 0)
+        
+        super().save(*args, **kwargs)
     
     def confirmar(self, notas_adicionales=""):
         """

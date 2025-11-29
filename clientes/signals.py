@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from .models import Reserva, MetricaCliente
 from negocios.models import MetricaNegocio, ReporteMensual, Negocio
@@ -7,6 +7,9 @@ from datetime import date
 from django.db import transaction
 from collections import Counter
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 @receiver([post_save, post_delete], sender=Reserva)
 def actualizar_metricas_reserva(sender, instance, **kwargs):
@@ -79,4 +82,112 @@ def actualizar_metricas_profesional_cliente(sender, instance, **kwargs):
     profesionales = [r.profesional.nombre_completo for r in reservas_cli if r.profesional]
     metricac.servicios_mas_solicitados = ', '.join([s for s, _ in Counter(servicios).most_common(3)])
     metricac.profesionales_mas_reservados = ', '.join([p for p, _ in Counter(profesionales).most_common(3)])
-    metricac.save() 
+    metricac.save()
+
+
+# ==================== SIGNALS FINANCIEROS ====================
+
+@receiver(pre_save, sender=Reserva)
+def capturar_estado_anterior(sender, instance, **kwargs):
+    """Guarda el estado anterior de la reserva para detectar cambios"""
+    if instance.pk:
+        try:
+            instance._estado_anterior = Reserva.objects.get(pk=instance.pk).estado
+        except Reserva.DoesNotExist:
+            instance._estado_anterior = None
+    else:
+        instance._estado_anterior = None
+
+
+@receiver(post_save, sender=Reserva)
+def crear_transaccion_al_completar(sender, instance, created, **kwargs):
+    """
+    Crea una transacción financiera automáticamente cuando una reserva 
+    cambia a estado 'completado'.
+    """
+    from negocios.models import TransaccionNegocio
+    
+    estado_anterior = getattr(instance, '_estado_anterior', None)
+    
+    # Solo crear transacción si:
+    # 1. La reserva cambió a 'completado' (no era completado antes)
+    # 2. Tiene un total definido
+    # 3. No tiene ya una transacción asociada
+    if (instance.estado == 'completado' and 
+        estado_anterior != 'completado' and 
+        instance.total and 
+        instance.total > 0):
+        
+        # Verificar si ya existe una transacción para esta reserva
+        if not TransaccionNegocio.objects.filter(reserva=instance).exists():
+            try:
+                transaccion = TransaccionNegocio.crear_desde_reserva(
+                    reserva=instance,
+                    metodo_pago=instance.metodo_pago or 'efectivo'
+                )
+                if transaccion:
+                    logger.info(f"Transacción creada automáticamente: {transaccion}")
+                    
+                    # Marcar la reserva como pagada si se creó la transacción
+                    if not instance.pagado:
+                        Reserva.objects.filter(pk=instance.pk).update(pagado=True)
+            except Exception as e:
+                logger.error(f"Error al crear transacción para reserva {instance.pk}: {e}")
+
+
+@receiver(post_save, sender=Reserva)
+def actualizar_resumen_mensual(sender, instance, **kwargs):
+    """
+    Actualiza el resumen financiero mensual del negocio cuando 
+    se modifica una reserva.
+    """
+    from negocios.models import ResumenFinancieroMensual, TransaccionNegocio
+    from django.db.models import Sum, Count, Q
+    
+    try:
+        negocio = instance.peluquero
+        mes = instance.fecha.month
+        anio = instance.fecha.year
+        
+        # Obtener o crear el resumen
+        resumen, created = ResumenFinancieroMensual.objects.get_or_create(
+            negocio=negocio,
+            mes=mes,
+            anio=anio
+        )
+        
+        # Calcular totales del mes
+        reservas_mes = Reserva.objects.filter(
+            peluquero=negocio,
+            fecha__year=anio,
+            fecha__month=mes
+        )
+        
+        resumen.total_reservas = reservas_mes.count()
+        resumen.reservas_completadas = reservas_mes.filter(estado='completado').count()
+        resumen.reservas_canceladas = reservas_mes.filter(estado='cancelado').count()
+        
+        # Calcular ingresos desde transacciones
+        transacciones_mes = TransaccionNegocio.objects.filter(
+            negocio=negocio,
+            fecha__year=anio,
+            fecha__month=mes,
+            estado='completada'
+        )
+        
+        ingresos = transacciones_mes.filter(tipo='ingreso', concepto='servicio').aggregate(
+            total=Sum('monto')
+        )['total'] or 0
+        
+        comisiones = transacciones_mes.filter(tipo='ingreso').aggregate(
+            total_comisiones=Sum('comision_profesional')
+        )['total_comisiones'] or 0
+        
+        resumen.ingresos_servicios = ingresos
+        resumen.comisiones_profesionales = comisiones
+        resumen.total_ingresos = ingresos
+        
+        resumen.save()
+        
+    except Exception as e:
+        logger.error(f"Error al actualizar resumen mensual: {e}") 
