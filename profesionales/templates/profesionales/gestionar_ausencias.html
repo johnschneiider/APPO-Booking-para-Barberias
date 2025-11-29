@@ -1,6 +1,101 @@
 {% extends 'base.html' %}
 {% block title %}Gestionar Ausencias y Vacaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Toast de error personalizado */
+.toast-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+    display: none;
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-error.show {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-error i {
+    font-size: 1.5rem;
+}
+
+.toast-error .toast-content {
+    flex: 1;
+}
+
+.toast-error .toast-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.toast-error .toast-message {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.toast-error .toast-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.toast-error .toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-error.hiding {
+    animation: slideOut 0.3s ease-in forwards;
+}
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Toast de error -->
+<div id="toastError" class="toast-error">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div class="toast-content">
+        <div class="toast-title">Error de validación</div>
+        <div class="toast-message" id="toastMessage">Mensaje de error</div>
+    </div>
+    <button class="toast-close" onclick="hideToast()">&times;</button>
+</div>
+
 <div class="container py-4">
   <h2 class="mb-4">Mis Ausencias y Vacaciones</h2>
   
@@ -157,4 +252,87 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+// Toast de error
+function showToast(message, duration = 4000) {
+    const toast = document.getElementById('toastError');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    toastMessage.textContent = message;
+    toast.classList.remove('hiding');
+    toast.classList.add('show');
+    
+    // Auto-ocultar después de la duración
+    setTimeout(() => {
+        hideToast();
+    }, duration);
+}
+
+function hideToast() {
+    const toast = document.getElementById('toastError');
+    toast.classList.add('hiding');
+    
+    setTimeout(() => {
+        toast.classList.remove('show', 'hiding');
+    }, 300);
+}
+
+// Validación del formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[method="post"]:not([action])');
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+    
+    if (form && fechaInicio && fechaFin) {
+        form.addEventListener('submit', function(e) {
+            const inicio = new Date(fechaInicio.value);
+            const fin = new Date(fechaFin.value);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            
+            // Validar que la fecha de inicio no sea posterior a la de fin
+            if (inicio > fin) {
+                e.preventDefault();
+                showToast('La fecha de inicio no puede ser posterior a la fecha de fin');
+                fechaInicio.focus();
+                return false;
+            }
+            
+            // Validar que no sea una fecha pasada
+            if (inicio < hoy) {
+                e.preventDefault();
+                showToast('No puedes solicitar permisos en fechas pasadas');
+                fechaInicio.focus();
+                return false;
+            }
+        });
+        
+        // Validación en tiempo real al cambiar las fechas
+        fechaFin.addEventListener('change', function() {
+            if (fechaInicio.value && fechaFin.value) {
+                const inicio = new Date(fechaInicio.value);
+                const fin = new Date(fechaFin.value);
+                
+                if (inicio > fin) {
+                    showToast('La fecha de inicio no puede ser posterior a la fecha de fin');
+                    this.value = '';
+                }
+            }
+        });
+        
+        fechaInicio.addEventListener('change', function() {
+            if (fechaInicio.value && fechaFin.value) {
+                const inicio = new Date(fechaInicio.value);
+                const fin = new Date(fechaFin.value);
+                
+                if (inicio > fin) {
+                    showToast('La fecha de inicio no puede ser posterior a la fecha de fin');
+                    fechaFin.value = '';
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %} 
