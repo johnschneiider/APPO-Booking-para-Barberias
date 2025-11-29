@@ -835,7 +835,25 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
     
     if request.method == 'POST':
         logger.info(f"POST recibido: {dict(request.POST)}")
-        # Actualizar servicios asignados
+        
+        # ========== ACTUALIZAR INFORMACIÓN LABORAL ==========
+        cargo = request.POST.get('cargo', '').strip()
+        salario_mensual = request.POST.get('salario_mensual', '').strip()
+        
+        if cargo:
+            matriculacion.cargo = cargo
+        
+        if salario_mensual:
+            try:
+                matriculacion.salario_mensual = float(salario_mensual)
+            except ValueError:
+                pass
+        else:
+            matriculacion.salario_mensual = None
+        
+        matriculacion.save()
+        
+        # ========== ACTUALIZAR SERVICIOS ==========
         servicios_ids = request.POST.getlist('servicios')
         servicios_a_asignar = [s.servicio for s in servicios_negocio if str(s.id) in servicios_ids]
         profesional.servicios.set(servicios_a_asignar)
@@ -939,6 +957,7 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
     return render(request, 'negocios/editar_profesional_negocio.html', {
         'negocio': negocio,
         'profesional': profesional,
+        'matriculacion': matriculacion,  # Para mostrar fecha de ingreso y salario
         'servicios_negocio': servicios_negocio,
         'dias_semana': dias_semana,
         'horario_actual': horarios_actuales,

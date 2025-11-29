@@ -47,6 +47,16 @@ class Matriculacion(models.Model):
     salario_propuesto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     horario_propuesto = models.TextField(blank=True)
     
+    # Salario asignado por el negocio (después de ser aceptado)
+    salario_mensual = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text='Salario mensual asignado por el negocio'
+    )
+    cargo = models.CharField(
+        max_length=100, blank=True, default='Barbero',
+        help_text='Cargo o rol del profesional en el negocio'
+    )
+    
     class Meta:
         verbose_name = 'Matriculación'
         verbose_name_plural = 'Matriculaciones'

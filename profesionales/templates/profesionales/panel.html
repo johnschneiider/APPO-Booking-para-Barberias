@@ -64,6 +64,53 @@
                             <a href="{% url 'profesionales:buscar_negocio' %}" class="btn btn-success btn-sm mt-2">Buscar Negocios</a>
                         </div>
                     </div>
+                    
+                    <!-- Información Laboral -->
+                    {% if matricula_activa %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">
+                                        <i class="bi bi-briefcase text-success me-2"></i>Información Laboral
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <p class="mb-1 text-muted small">Cargo</p>
+                                            <p class="fw-bold">{{ matricula_activa.cargo|default:"Barbero" }}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="mb-1 text-muted small">Fecha de Ingreso</p>
+                                            <p class="fw-bold">
+                                                {% if matricula_activa.fecha_respuesta %}
+                                                    {{ matricula_activa.fecha_respuesta|date:"d/m/Y" }}
+                                                {% else %}
+                                                    {{ matricula_activa.fecha_solicitud|date:"d/m/Y" }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="mb-1 text-muted small">Salario Mensual</p>
+                                            <p class="fw-bold">
+                                                {% if matricula_activa.salario_mensual %}
+                                                    ${{ matricula_activa.salario_mensual|floatformat:0 }}
+                                                {% else %}
+                                                    <span class="text-muted">Por comisión</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="mb-1 text-muted small">Negocio</p>
+                                            <p class="fw-bold">{{ matricula_activa.negocio.nombre }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

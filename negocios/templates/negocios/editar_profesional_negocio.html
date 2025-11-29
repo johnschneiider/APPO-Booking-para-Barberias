@@ -42,10 +42,70 @@
 }
 </style>
 <div class="container py-4">
-    <h2 class="mb-4">Editar Horario y Servicios de {{ profesional.nombre_completo }}</h2>
+    <h2 class="mb-4">Editar Perfil de {{ profesional.nombre_completo }}</h2>
+
+    <!-- Información del profesional (solo lectura) -->
+    <div class="card mb-4 shadow-sm border-info">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0"><i class="bi bi-person-badge me-2"></i>Información del Profesional</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Nombre:</strong> {{ profesional.nombre_completo }}</p>
+                    <p class="mb-2"><strong>Email:</strong> {{ profesional.usuario.email }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Fecha de ingreso:</strong> 
+                        {% if matriculacion.fecha_respuesta %}
+                            {{ matriculacion.fecha_respuesta|date:"d/m/Y" }}
+                        {% else %}
+                            {{ matriculacion.fecha_solicitud|date:"d/m/Y" }}
+                        {% endif %}
+                    </p>
+                    <p class="mb-2"><strong>Estado:</strong> 
+                        <span class="badge bg-success">Activo</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <form method="post" action="{% url 'negocios:editar_profesional_negocio' negocio.id profesional.id %}" id="formEditarProfesional">
         {% csrf_token %}
+        
+        <!-- Información Laboral y Salario -->
+        <div class="card mb-4 shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-cash-stack me-2"></i>Información Laboral</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label fw-bold">Cargo / Rol</label>
+                            <input type="text" class="form-control" id="cargo" name="cargo" 
+                                   value="{{ matriculacion.cargo|default:'Barbero' }}" 
+                                   placeholder="Ej: Barbero, Estilista Senior">
+                            <div class="form-text">El cargo que desempeña en tu negocio</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="salario_mensual" class="form-label fw-bold">Salario Mensual</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="salario_mensual" name="salario_mensual" 
+                                       value="{{ matriculacion.salario_mensual|default:'' }}" 
+                                       min="0" step="1000" placeholder="0">
+                            </div>
+                            <div class="form-text">Deja vacío si el pago es por comisión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Asignar servicios al profesional -->
         <div class="card mb-4 shadow-sm" style="border: 1.5px solid var(--color-mint-green);">
             <div class="card-header" style="background: var(--color-mint-green); color: var(--color-black-deep);">
