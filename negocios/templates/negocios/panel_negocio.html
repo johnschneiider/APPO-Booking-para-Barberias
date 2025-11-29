@@ -261,48 +261,18 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                     {% if profesionales_aceptados %}
                     <div class="row g-2 g-md-3">
                         {% for prof in profesionales_aceptados %}
-                        <div class="col-12 col-md-6 mb-3 mb-md-4">
-                            <div class="card h-100 shadow-sm border-info flex-column flex-sm-row flex-md-row align-items-center">
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card h-100 shadow-sm border-0 text-center p-3">
                                 {% if prof.foto_perfil %}
-                                <img src="{{ prof.foto_perfil.url }}" class="rounded-circle m-2 m-md-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                <img src="{{ prof.foto_perfil.url }}" class="rounded-circle mx-auto mb-2" style="width: 50px; height: 50px; object-fit: cover;">
                                 {% else %}
-                                <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center m-2 m-md-3" style="width: 60px; height: 60px;">
-                                    <i class="bi bi-person-fill fs-3"></i>
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person-fill fs-5"></i>
                                 </div>
                                 {% endif %}
-                                <div class="card-body flex-grow-1 text-center text-sm-start">
-                                    <h5 class="card-title mb-1 text-dark">{{ prof.nombre_completo }}</h5>
-                                    <div class="mb-1">
-                                        <span class="badge bg-secondary">{{ prof.especialidad|default:'Sin especialidad' }}</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="bi bi-clock-history text-primary me-1"></i>
-                                        <span class="text-muted small">{{ prof.horario }}</span>
-                                    </div>
-                                    <div class="mb-2 d-flex align-items-center justify-content-center justify-content-sm-start">
-                                        <span class="me-2">
-                                            {% for i in "12345" %}
-                                                {% if forloop.counter <= prof.promedio %}
-                                                    <i class="bi bi-star-fill text-warning"></i>
-                                                {% elif prof.promedio|floatformat:1 == forloop.counter0|stringformat:'d' %}
-                                                    <i class="bi bi-star-half text-warning"></i>
-                                                {% else %}
-                                                    <i class="bi bi-star text-warning"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </span>
-                                        <span class="text-muted small">{{ prof.promedio|floatformat:1 }} ({{ prof.num_calificaciones }} calificaciones)</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="bi bi-briefcase text-primary me-1"></i>
-                                        <span class="text-muted small">Servicios: {{ prof.servicios }}</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="bi bi-calendar-check text-info me-1"></i>
-                                        <span class="text-muted small">Reservas: {{ prof.reservas_count }}</span>
-                                    </div>
-                                    <a href="{% url 'negocios:ver_perfil_profesional' prof.id %}?negocio_id={{ negocio.id }}" class="btn btn-outline-primary btn-sm mt-2">Ver perfil</a>
-                                </div>
+                                <h6 class="card-title mb-1 text-dark" style="font-size: 0.9rem;">{{ prof.nombre_completo }}</h6>
+                                <span class="badge bg-secondary mb-2" style="font-size: 0.7rem;">{{ prof.especialidad|default:'Barbero' }}</span>
+                                <a href="{% url 'negocios:ver_perfil_profesional' prof.id %}?negocio_id={{ negocio.id }}" class="btn btn-outline-primary btn-sm" style="font-size: 0.75rem;">Ver perfil</a>
                             </div>
                         </div>
                         {% endfor %}
