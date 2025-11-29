@@ -257,7 +257,7 @@ ACCOUNT_SIGNUP_REDIRECT_URL = '/'
 
 # Custom User Model
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'cuentas.backends.CaseInsensitiveAuthBackend',  # Username case-insensitive
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
