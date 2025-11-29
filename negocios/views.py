@@ -430,6 +430,50 @@ def dashboard_negocio(request, negocio_id):
     
     reporte = Reporte()
     
+    # ========== GRÁFICAS POR PROFESIONAL ==========
+    # Datos de reservas e ingresos por profesional
+    from django.db.models import Sum
+    from clientes.models import Reserva
+    
+    nombres_profesionales = []
+    reservas_por_profesional = []
+    ingresos_por_profesional = []
+    
+    for profesional in profesionales_negocio:
+        nombres_profesionales.append(profesional.nombre_completo)
+        
+        # Contar reservas del profesional en este negocio (mes actual)
+        reservas_prof = Reserva.objects.filter(
+            peluquero=negocio,
+            profesional=profesional,
+            fecha__gte=inicio_mes,
+            fecha__lte=hoy
+        ).count()
+        reservas_por_profesional.append(reservas_prof)
+        
+        # Calcular ingresos del profesional (sumando precios de servicios)
+        reservas_con_precio = Reserva.objects.filter(
+            peluquero=negocio,
+            profesional=profesional,
+            fecha__gte=inicio_mes,
+            fecha__lte=hoy
+        )
+        
+        # Intentar sumar los precios reales de los servicios
+        ingresos_prof = 0
+        for reserva in reservas_con_precio:
+            if hasattr(reserva, 'servicio') and reserva.servicio:
+                # Buscar el precio del servicio en el negocio
+                servicio_negocio = negocio.servicios_negocio.filter(servicio=reserva.servicio).first()
+                if servicio_negocio:
+                    ingresos_prof += float(servicio_negocio.precio)
+                else:
+                    ingresos_prof += 30  # Precio promedio si no se encuentra
+            else:
+                ingresos_prof += 30  # Precio promedio estimado
+        
+        ingresos_por_profesional.append(ingresos_prof)
+    
     context = {
         'negocio': negocio,
         'fechas': fechas_grafico,
@@ -441,6 +485,10 @@ def dashboard_negocio(request, negocio_id):
         'peluquero_top_score': round(mejor_puntuacion, 1) if mejor_puntuacion > 0 else 0,
         'dias_ocupados': dia_mas_ocupado_nombre,
         'hora_pico': hora_pico,
+        # Nuevos datos para gráficas por profesional
+        'nombres_profesionales': nombres_profesionales,
+        'reservas_por_profesional': reservas_por_profesional,
+        'ingresos_por_profesional': ingresos_por_profesional,
     }
     return render(request, 'negocios/dashboard_negocio.html', context)
 
