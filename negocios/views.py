@@ -5,7 +5,7 @@ from clientes.models import Calificacion
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 import holidays
@@ -349,38 +349,9 @@ def dashboard_negocio(request, negocio_id):
         fecha__lte=hoy
     )
     
-    # ========== INGRESOS REALES DESDE TRANSACCIONES Y RESERVAS ==========
-    from django.db.models import Sum
-    from .models import TransaccionNegocio
-    
+    # Calcular ingresos totales (asumiendo precio promedio de $30 por servicio)
     total_reservas_mes = reservas_mes.count()
-    
-    # Primero intentar desde TransaccionNegocio
-    ingresos_transacciones = TransaccionNegocio.objects.filter(
-        negocio=negocio,
-        tipo='ingreso',
-        concepto='servicio',
-        estado='completada',
-        fecha__gte=inicio_mes,
-        fecha__lte=timezone.now()
-    ).aggregate(total=Sum('monto'))['total'] or 0
-    
-    # Si no hay transacciones, calcular desde reservas completadas
-    if ingresos_transacciones == 0:
-        ingresos_reservas = reservas_mes.filter(
-            estado='completado',
-            total__isnull=False
-        ).aggregate(total=Sum('total'))['total'] or 0
-        
-        # Si tampoco hay totales en reservas, calcular desde servicios
-        if ingresos_reservas == 0:
-            for reserva in reservas_mes.filter(estado='completado'):
-                if reserva.servicio and reserva.servicio.precio:
-                    ingresos_reservas += float(reserva.servicio.precio)
-        
-        ingresos_totales = ingresos_reservas
-    else:
-        ingresos_totales = float(ingresos_transacciones)
+    ingresos_totales = total_reservas_mes * 30  # Precio promedio estimado
     
     # Clientes nuevos del mes (clientes que hicieron su primera reserva este mes)
     clientes_nuevos_mes = reservas_mes.values('cliente').distinct().count()
@@ -430,7 +401,7 @@ def dashboard_negocio(request, negocio_id):
                 mejor_puntuacion = promedio
                 mejor_profesional = profesional
     
-    # Ventas por mes (últimos 6 meses) - USANDO DATOS REALES
+    # Ventas por mes (últimos 6 meses)
     meses_grafico = []
     ventas_mes_grafico = []
     
@@ -439,34 +410,14 @@ def dashboard_negocio(request, negocio_id):
         inicio_mes_grafico = fecha_mes.replace(day=1)
         fin_mes_grafico = (inicio_mes_grafico + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        # Intentar obtener desde transacciones
-        ingresos_mes = TransaccionNegocio.objects.filter(
-            negocio=negocio,
-            tipo='ingreso',
-            concepto='servicio',
-            estado='completada',
+        reservas_mes_grafico = Reserva.objects.filter(
+            peluquero=negocio,
             fecha__gte=inicio_mes_grafico,
             fecha__lte=fin_mes_grafico
-        ).aggregate(total=Sum('monto'))['total'] or 0
-        
-        # Si no hay transacciones, calcular desde reservas
-        if ingresos_mes == 0:
-            reservas_periodo = Reserva.objects.filter(
-                peluquero=negocio,
-                fecha__gte=inicio_mes_grafico,
-                fecha__lte=fin_mes_grafico,
-                estado='completado'
-            )
-            
-            # Sumar totales de reservas o precios de servicios
-            for reserva in reservas_periodo:
-                if reserva.total:
-                    ingresos_mes += float(reserva.total)
-                elif reserva.servicio and reserva.servicio.precio:
-                    ingresos_mes += float(reserva.servicio.precio)
+        ).count()
         
         meses_grafico.append(fecha_mes.strftime('%m/%y'))
-        ventas_mes_grafico.append(float(ingresos_mes))  # Ingresos reales
+        ventas_mes_grafico.append(reservas_mes_grafico * 30)  # Precio promedio estimado
     
     # Crear objeto reporte
     class Reporte:
@@ -479,100 +430,6 @@ def dashboard_negocio(request, negocio_id):
     
     reporte = Reporte()
     
-    # ========== GRÁFICAS POR PROFESIONAL ==========
-    # Datos de reservas e ingresos por profesional
-    from django.db.models import Sum
-    from clientes.models import Reserva
-    
-    nombres_profesionales = []
-    reservas_por_profesional = []
-    ingresos_por_profesional = []
-    
-    for profesional in profesionales_negocio:
-        nombres_profesionales.append(profesional.nombre_completo)
-        
-        # Contar reservas del profesional en este negocio (mes actual)
-        reservas_prof = Reserva.objects.filter(
-            peluquero=negocio,
-            profesional=profesional,
-            fecha__gte=inicio_mes,
-            fecha__lte=hoy
-        ).count()
-        reservas_por_profesional.append(reservas_prof)
-        
-        # Calcular ingresos del profesional - USANDO DATOS REALES
-        # Primero intentar desde transacciones
-        ingresos_prof = TransaccionNegocio.objects.filter(
-            negocio=negocio,
-            profesional=profesional,
-            tipo='ingreso',
-            estado='completada',
-            fecha__gte=inicio_mes
-        ).aggregate(total=Sum('monto'))['total'] or 0
-        
-        # Si no hay transacciones, calcular desde reservas
-        if ingresos_prof == 0:
-            reservas_prof_completadas = Reserva.objects.filter(
-                peluquero=negocio,
-                profesional=profesional,
-                fecha__gte=inicio_mes,
-                fecha__lte=hoy,
-                estado='completado'
-            )
-            
-            for reserva in reservas_prof_completadas:
-                if reserva.total:
-                    ingresos_prof += float(reserva.total)
-                elif reserva.servicio and reserva.servicio.precio:
-                    ingresos_prof += float(reserva.servicio.precio)
-        
-        ingresos_por_profesional.append(float(ingresos_prof))
-    
-    # ========== MÉTRICAS DE SUSCRIPCIONES ==========
-    from suscripciones.models import PlanSuscripcion, Suscripcion
-    
-    # Total de suscripciones (todas, sin importar estado)
-    total_suscripciones = Suscripcion.objects.filter(negocio=negocio).count()
-    
-    # Suscripciones activas
-    suscripciones_activas = Suscripcion.objects.filter(negocio=negocio, estado='activa').count()
-    
-    # Calcular tasa de activación
-    tasa_activacion = 0
-    if total_suscripciones > 0:
-        tasa_activacion = round((suscripciones_activas / total_suscripciones) * 100)
-    
-    # Ingresos por suscripciones (mes actual)
-    ingresos_suscripciones = Suscripcion.objects.filter(
-        negocio=negocio,
-        estado='activa'
-    ).aggregate(total=Sum('precio_actual'))['total'] or 0
-    
-    # Calcular cambio vs mes anterior
-    mes_anterior_inicio = (inicio_mes - timedelta(days=1)).replace(day=1)
-    mes_anterior_fin = inicio_mes - timedelta(days=1)
-    
-    ingresos_suscripciones_mes_anterior = Suscripcion.objects.filter(
-        negocio=negocio,
-        estado='activa',
-        fecha_inicio__lte=mes_anterior_fin
-    ).aggregate(total=Sum('precio_actual'))['total'] or 0
-    
-    cambio_ingresos_suscripciones = 0
-    if ingresos_suscripciones_mes_anterior > 0:
-        cambio_ingresos_suscripciones = round(
-            ((float(ingresos_suscripciones) - float(ingresos_suscripciones_mes_anterior)) / float(ingresos_suscripciones_mes_anterior)) * 100
-        )
-    
-    # Suscripciones próximas a vencer (en los próximos 7 días)
-    proxima_semana = hoy + timedelta(days=7)
-    suscripciones_por_vencer = Suscripcion.objects.filter(
-        negocio=negocio,
-        estado='activa',
-        fecha_fin__gte=hoy,
-        fecha_fin__lte=proxima_semana
-    ).count()
-    
     context = {
         'negocio': negocio,
         'fechas': fechas_grafico,
@@ -584,17 +441,6 @@ def dashboard_negocio(request, negocio_id):
         'peluquero_top_score': round(mejor_puntuacion, 1) if mejor_puntuacion > 0 else 0,
         'dias_ocupados': dia_mas_ocupado_nombre,
         'hora_pico': hora_pico,
-        # Datos para gráficas por profesional
-        'nombres_profesionales': nombres_profesionales,
-        'reservas_por_profesional': reservas_por_profesional,
-        'ingresos_por_profesional': ingresos_por_profesional,
-        # Métricas de suscripciones
-        'total_suscripciones': total_suscripciones,
-        'suscripciones_activas': suscripciones_activas,
-        'tasa_activacion': tasa_activacion,
-        'ingresos_suscripciones': ingresos_suscripciones,
-        'cambio_ingresos_suscripciones': cambio_ingresos_suscripciones,
-        'suscripciones_por_vencer': suscripciones_por_vencer,
     }
     return render(request, 'negocios/dashboard_negocio.html', context)
 
@@ -878,34 +724,13 @@ def galeria_negocio(request, negocio_id):
 
 @login_required
 def editar_profesional_negocio(request, negocio_id, profesional_id):
-    logger.info(f"=== EDITAR PROFESIONAL: negocio={negocio_id}, profesional={profesional_id}, method={request.method} ===")
-    
     negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
     profesional = get_object_or_404(Profesional, id=profesional_id)
     matriculacion = get_object_or_404(Matriculacion, negocio=negocio, profesional=profesional, estado='aprobada')
     servicios_negocio = ServicioNegocio.objects.filter(negocio=negocio)
     
     if request.method == 'POST':
-        logger.info(f"POST recibido: {dict(request.POST)}")
-        
-        # ========== ACTUALIZAR INFORMACIÓN LABORAL ==========
-        cargo = request.POST.get('cargo', '').strip()
-        salario_mensual = request.POST.get('salario_mensual', '').strip()
-        
-        if cargo:
-            matriculacion.cargo = cargo
-        
-        if salario_mensual:
-            try:
-                matriculacion.salario_mensual = float(salario_mensual)
-            except ValueError:
-                pass
-        else:
-            matriculacion.salario_mensual = None
-        
-        matriculacion.save()
-        
-        # ========== ACTUALIZAR SERVICIOS ==========
+        # Actualizar servicios asignados
         servicios_ids = request.POST.getlist('servicios')
         servicios_a_asignar = [s.servicio for s in servicios_negocio if str(s.id) in servicios_ids]
         profesional.servicios.set(servicios_a_asignar)
@@ -967,19 +792,17 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
     
     # Obtener horarios actuales del modelo HorarioProfesional
     horarios_actuales = {}
-    
-    # Mapear de vuelta a nombres en español
-    dia_mapping_reverse = {
-        'lunes': 'Lunes',
-        'martes': 'Martes',
-        'miercoles': 'Miércoles', 
-        'jueves': 'Jueves',
-        'viernes': 'Viernes',
-        'sabado': 'Sábado',
-        'domingo': 'Domingo'
-    }
-    
     for horario in profesional.horarios.all():
+        # Mapear de vuelta a nombres en español
+        dia_mapping_reverse = {
+            'lunes': 'Lunes',
+            'martes': 'Martes',
+            'miercoles': 'Miércoles', 
+            'jueves': 'Jueves',
+            'viernes': 'Viernes',
+            'sabado': 'Sábado',
+            'domingo': 'Domingo'
+        }
         dia_nombre = dia_mapping_reverse.get(horario.dia_semana, horario.dia_semana)
         
         # Convertir horas a minutos desde medianoche
@@ -993,23 +816,10 @@ def editar_profesional_negocio(request, negocio_id, profesional_id):
             'fin_minutos': fin_minutos
         }
     
-    # Si el profesional no tiene horarios, usar los del negocio como default
-    if not horarios_actuales and negocio.horario_atencion:
-        for dia, horario in negocio.horario_atencion.items():
-            if horario and horario.get('inicio') and horario.get('fin'):
-                horarios_actuales[dia] = {
-                    'inicio': horario['inicio'],
-                    'fin': horario['fin'],
-                    'inicio_minutos': 0,
-                    'fin_minutos': 0
-                }
-    
-    # Convertir a lista para que funcione el 'in' en el template
-    servicios_asignados = list(profesional.servicios.values_list('id', flat=True))
+    servicios_asignados = profesional.servicios.values_list('id', flat=True)
     return render(request, 'negocios/editar_profesional_negocio.html', {
         'negocio': negocio,
         'profesional': profesional,
-        'matriculacion': matriculacion,  # Para mostrar fecha de ingreso y salario
         'servicios_negocio': servicios_negocio,
         'dias_semana': dias_semana,
         'horario_actual': horarios_actuales,
@@ -1040,12 +850,10 @@ def api_reservas_negocio(request, negocio_id):
         start_date = request.GET.get('start')
         end_date = request.GET.get('end')
         
-        # Filtrar reservas del negocio (excluyendo canceladas)
+        # Filtrar reservas del negocio
         # Las reservas están relacionadas directamente con el negocio a través del campo peluquero
         reservas = Reserva.objects.filter(
             peluquero=negocio
-        ).exclude(
-            estado='cancelado'  # No mostrar reservas canceladas en el calendario
         ).select_related('cliente', 'servicio', 'profesional')
         
         # Aplicar filtros de fecha
@@ -1077,20 +885,28 @@ def api_reservas_negocio(request, negocio_id):
                 # Usar la hora_fin que ya está en el modelo
                 hora_fin = r.hora_fin
                 
-                # Si no hay hora_fin, calcular basado en la duración guardada en la reserva
-                if not hora_fin:
+                # Si no hay hora_fin, calcular basado en la duración del servicio
+                if not hora_fin and r.servicio and r.servicio.duracion:
                     from datetime import datetime, timedelta
                     try:
                         hora_inicio_dt = datetime.strptime(str(hora_inicio), '%H:%M:%S')
-                        # Usar duracion_servicio (snapshot) si existe, sino la actual del servicio, sino 30 min
-                        duracion = r.duracion_servicio or (r.servicio.duracion if r.servicio else None) or 30
-                        hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
+                        hora_fin_dt = hora_inicio_dt + timedelta(minutes=r.servicio.duracion)
                         hora_fin = hora_fin_dt.strftime('%H:%M:%S')
                     except:
                         # Si falla el cálculo, usar 1 hora por defecto
                         hora_inicio_dt = datetime.strptime(str(hora_inicio), '%H:%M:%S')
                         hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
                         hora_fin = hora_fin_dt.strftime('%H:%M:%S')
+                
+                # Verificar si el cliente tiene suscripción activa
+                from suscripciones.models import Suscripcion
+                tiene_suscripcion = Suscripcion.objects.filter(
+                    cliente=r.cliente,
+                    negocio=negocio,
+                    estado='activa',
+                    fecha_inicio__lte=r.fecha,
+                    fecha_fin__gte=r.fecha
+                ).exists()
                 
                 reserva_data = {
                     'id': r.id,
@@ -1100,10 +916,10 @@ def api_reservas_negocio(request, negocio_id):
                     'hora_fin': str(hora_fin),
                     'fecha': r.fecha.isoformat(),
                     'profesional_id': r.profesional.id if r.profesional else None,
-                    'estado': r.estado or 'confirmado',
+                    'estado': r.estado or 'pendiente',
                     'notas': r.notas or '',
-                    'precio': float(r.precio_servicio) if r.precio_servicio else 0,
-                    'imagen_referencia': r.imagen_referencia.url if r.imagen_referencia else None
+                    'precio': 0,  # El modelo Servicio en negocios no tiene precio
+                    'tiene_suscripcion': tiene_suscripcion
                 }
                 
                 reservas_data.append(reserva_data)
@@ -1230,32 +1046,20 @@ def api_crear_reserva(request, negocio_id):
             'detalle': str(e)
         }, status=500)
 
-def get_color_by_estado(estado, tiene_suscripcion_activa=False):
-    """
-    Función auxiliar para obtener el color según el estado de la reserva
-    
-    Colores por estado:
-    - Completada: gris oscuro (#4a5568)
-    - Inasistencia: rosado (#f687b3)
-    - Confirmada con suscripción: azul (#3182ce)
-    - Confirmada sin suscripción: verde (#48bb78)
-    - Pendiente: amarillo (#ecc94b)
-    """
-    if estado in ['completada', 'completado']:
-        return '#4a5568'  # Gris oscuro
-    elif estado in ['inasistencia', 'no_show']:
-        return '#f687b3'  # Rosado
-    elif estado in ['cancelada', 'cancelado']:
-        return '#dc3545'  # Rojo
-    elif estado in ['confirmada', 'confirmado']:
-        if tiene_suscripcion_activa:
-            return '#3182ce'  # Azul para suscriptores
-        else:
-            return '#48bb78'  # Verde para no suscriptores
-    elif estado == 'pendiente':
-        return '#ecc94b'  # Amarillo
-    else:
-        return '#48bb78'  # Verde por defecto
+def get_color_by_estado(estado):
+    """Función auxiliar para obtener el color según el estado de la reserva"""
+    colores = {
+        'confirmada': '#28a745',
+        'confirmado': '#28a745',
+        'pendiente': '#ffc107',
+        'cancelada': '#dc3545',
+        'cancelado': '#dc3545',
+        'completada': '#17a2b8',
+        'completado': '#17a2b8',
+        'inasistencia': '#6c757d',
+        'no_show': '#6c757d'
+    }
+    return colores.get(estado, '#6c757d')
 
 @login_required
 def api_estadisticas_negocio(request, negocio_id):
@@ -1394,16 +1198,14 @@ def api_reservas_dia(request, negocio_id):
         
         logger.info(f"API reservas día: Buscando reservas para fecha {fecha}")
         
-        # Obtener reservas del día para el negocio (excluyendo canceladas)
+        # Obtener reservas del día para el negocio
         try:
             reservas = Reserva.objects.filter(
                 peluquero=negocio,
                 fecha=fecha
-            ).exclude(
-                estado='cancelado'  # No mostrar reservas canceladas en el calendario
             ).select_related('cliente', 'servicio', 'profesional')
             
-            logger.info(f"API reservas día: Encontradas {reservas.count()} reservas (sin canceladas)")
+            logger.info(f"API reservas día: Encontradas {reservas.count()} reservas")
         except Exception as e:
             logger.error(f"API reservas día: Error consultando reservas: {e}")
             return JsonResponse({'error': 'Error consultando reservas', 'detalle': str(e)}, status=500)
@@ -1414,17 +1216,17 @@ def api_reservas_dia(request, negocio_id):
                 logger.info(f"API reservas día: Procesando reserva {reserva.id} - Cliente: {reserva.cliente.username}, Profesional: {reserva.profesional}")
                 
                 # Calcular hora de fin basada en duración del servicio
-                # Usar duracion_servicio de la reserva (snapshot) si existe,
-                # sino usar la duración actual del servicio
                 hora_inicio = reserva.hora_inicio
-                from datetime import datetime, timedelta
-                hora_inicio_dt = datetime.strptime(str(hora_inicio), '%H:%M:%S')
-                
-                # Prioridad: 1) duracion guardada en la reserva, 2) duración actual del servicio, 3) default 30 min
-                duracion = reserva.duracion_servicio or (reserva.servicio.duracion if reserva.servicio else None) or 30
-                
-                hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
-                hora_fin = hora_fin_dt.strftime('%H:%M:%S')
+                if reserva.servicio and reserva.servicio.duracion:
+                    from datetime import datetime, timedelta
+                    hora_inicio_dt = datetime.strptime(str(hora_inicio), '%H:%M:%S')
+                    hora_fin_dt = hora_inicio_dt + timedelta(minutes=reserva.servicio.duracion)
+                    hora_fin = hora_fin_dt.strftime('%H:%M:%S')
+                else:
+                    # Si no hay duración del servicio, asumir 30 minutos por defecto
+                    hora_inicio_dt = datetime.strptime(str(hora_inicio), '%H:%M:%S')
+                    hora_fin_dt = hora_inicio_dt + timedelta(minutes=30)
+                    hora_fin = hora_fin_dt.strftime('%H:%M:%S')
                 
                 # Normalizar el estado para el frontend
                 estado_frontend = reserva.estado
@@ -1434,17 +1236,6 @@ def api_reservas_dia(request, negocio_id):
                     estado_frontend = 'cancelada'
                 elif reserva.estado == 'completado':
                     estado_frontend = 'completada'
-                # 'inasistencia' se mantiene igual ya que CSS lo espera así
-                
-                # Verificar si el cliente tiene suscripción activa para este negocio en esta fecha
-                from suscripciones.models import Suscripcion
-                tiene_suscripcion_activa = Suscripcion.objects.filter(
-                    cliente=reserva.cliente,
-                    negocio=negocio,
-                    estado='activa',
-                    fecha_inicio__lte=fecha,
-                    fecha_fin__gte=fecha
-                ).exists()
                 
                 evento = {
                     'id': reserva.id,
@@ -1454,9 +1245,8 @@ def api_reservas_dia(request, negocio_id):
                     'cliente': reserva.cliente.username,
                     'servicio': reserva.servicio.nombre if reserva.servicio else 'Reserva',
                     'estado': estado_frontend,
-                    'color': get_color_by_estado(estado_frontend, tiene_suscripcion_activa),
-                    'notas': reserva.notas or '',
-                    'tiene_suscripcion': tiene_suscripcion_activa
+                    'color': get_color_by_estado(estado_frontend),
+                    'notas': reserva.notas or ''
                 }
                 
                 eventos.append(evento)
@@ -2114,70 +1904,36 @@ def api_profesionales_negocio(request, negocio_id):
         return JsonResponse({'error': f'Error interno del servidor: {str(e)}'}, status=500)
 
 
-@csrf_exempt  # Exento de CSRF ya que usa @login_required para autenticación
 @login_required
 @require_POST
 def api_cambiar_estado_reserva(request, negocio_id, reserva_id):
     """
     API para que el dueño del negocio cambie el estado de una reserva.
     Solo permite cambiar a 'completado' o 'inasistencia'.
+    Usa @login_required para autenticación (protección CSRF activa).
     """
     from clientes.models import Reserva
     
-    # Log para debug
-    logger.info(f"API cambiar estado: Usuario {request.user}, Negocio {negocio_id}, Reserva {reserva_id}")
-    
     try:
-        # Verificar que el usuario es el dueño del negocio
         negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
-        
-        # Obtener la reserva
         reserva = get_object_or_404(Reserva, id=reserva_id, peluquero=negocio)
         
-        # Obtener el nuevo estado del body de la request
-        try:
-            data = json.loads(request.body)
-            nuevo_estado = data.get('estado')
-            notas = data.get('notas', '')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Datos inválidos'}, status=400)
+        data = json.loads(request.body)
+        nuevo_estado = data.get('estado')
+        notas = data.get('notas', '')
         
-        # Validar que el estado sea válido
         estados_permitidos = ['completado', 'inasistencia']
         if nuevo_estado not in estados_permitidos:
-            return JsonResponse({
-                'error': f'Estado no permitido. Use: {", ".join(estados_permitidos)}'
-            }, status=400)
+            return JsonResponse({'error': f'Estado no permitido'}, status=400)
         
-        # Verificar que la reserva esté en un estado que permita el cambio
         if reserva.estado not in ['confirmado', 'pendiente']:
-            return JsonResponse({
-                'error': f'No se puede cambiar el estado de una reserva {reserva.estado}'
-            }, status=400)
+            return JsonResponse({'error': f'No se puede cambiar el estado de esta reserva'}, status=400)
         
-        # Cambiar el estado
         estado_anterior = reserva.estado
-        
-        if nuevo_estado == 'completado':
-            # Usar el método del modelo si existe
-            try:
-                reserva.completar(notas_adicionales=notas)
-            except Exception:
-                reserva.estado = 'completado'
-                if notas:
-                    reserva.notas = f"{reserva.notas}\n[Completado] {notas}" if reserva.notas else f"[Completado] {notas}"
-                reserva.save()
-                
-        elif nuevo_estado == 'inasistencia':
-            try:
-                reserva.marcar_inasistencia(motivo=notas)
-            except Exception:
-                reserva.estado = 'inasistencia'
-                if notas:
-                    reserva.notas = f"{reserva.notas}\n[Inasistencia] {notas}" if reserva.notas else f"[Inasistencia] {notas}"
-                reserva.save()
-        
-        logger.info(f"Reserva {reserva_id} cambió de {estado_anterior} a {nuevo_estado} por {request.user.username}")
+        reserva.estado = nuevo_estado
+        if notas:
+            reserva.notas = f"{reserva.notas or ''}\n[{nuevo_estado}] {notas}".strip()
+        reserva.save()
         
         return JsonResponse({
             'success': True,
@@ -2187,10 +1943,6 @@ def api_cambiar_estado_reserva(request, negocio_id, reserva_id):
             'mensaje': f'Reserva marcada como {nuevo_estado}'
         })
         
-    except Reserva.DoesNotExist:
-        return JsonResponse({'error': 'Reserva no encontrada'}, status=404)
-    except Negocio.DoesNotExist:
-        return JsonResponse({'error': 'Negocio no encontrado o no tienes permisos'}, status=404)
     except Exception as e:
         logger.error(f"Error cambiando estado de reserva: {e}")
         return JsonResponse({'error': str(e)}, status=500)

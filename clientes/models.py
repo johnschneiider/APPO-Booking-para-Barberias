@@ -154,9 +154,10 @@ class Reserva(models.Model):
             if self.precio_servicio is None:
                 self.precio_servicio = self.servicio.precio or 0
             
-            # Capturar duración si no está asignada
+            # Capturar duración si no está asignada (usar is None para permitir 0)
             if self.duracion_servicio is None:
-                self.duracion_servicio = self.servicio.duracion or 30  # Default 30 min
+                duracion = self.servicio.duracion
+                self.duracion_servicio = duracion if duracion is not None else 30  # Default 30 min solo si es None
         
         # Calcular total
         if self.precio_servicio is not None:

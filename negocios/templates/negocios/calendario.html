@@ -4527,10 +4527,11 @@ function mostrarDetallesReserva(reserva) {
             `}
         `;
         
-        // IMPORTANTE: Cerrar todos los backdrops y modales que puedan estar bloqueando
-        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-            backdrop.remove();
-        });
+        // Cerrar solo el backdrop específico del modal de detalles (no todos los backdrops)
+        const backdropDetalles = document.getElementById('backdropDetallesReserva');
+        if (backdropDetalles) {
+            backdropDetalles.remove();
+        }
         
         // Cerrar cualquier instancia previa del modal de detalles
         const existingModal = bootstrap.Modal.getInstance(modalElement);

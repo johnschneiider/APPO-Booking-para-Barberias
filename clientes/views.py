@@ -108,8 +108,7 @@ class DetallePeluqueroView(DetailView):
                     'Sunday': 'Domingo'
                 }.get(nombre_dia, nombre_dia)
                 
-                # Solo festivos colombianos, domingos dependen del horario del negocio
-                es_festivo = dia in co_holidays
+                es_festivo = dia in co_holidays or nombre_dia_es == 'Domingo'
                 
                 # Obtener horario del negocio para este día
                 horario = negocio.horario_atencion.get(nombre_dia_es, {}) if negocio.horario_atencion else {}
@@ -257,7 +256,7 @@ def reservar_turno(request, peluquero_id):
         logger.info(f"Negocio encontrado: {negocio.nombre}")
         
         if request.method == 'POST':
-            form = ReservaForm(request.POST, request.FILES, negocio=negocio)
+            form = ReservaForm(request.POST, negocio=negocio)
             if form.is_valid():
                 try:
                     # Obtener los datos del formulario
@@ -266,11 +265,10 @@ def reservar_turno(request, peluquero_id):
                     fecha = form.cleaned_data.get('fecha')
                     hora_inicio = form.cleaned_data.get('hora_inicio')
                     notas = form.cleaned_data.get('notas', '')
-                    imagen_referencia = form.cleaned_data.get('imagen_referencia')
                     
                     logger.info(f"Datos del formulario - servicio: {servicio}, profesional: {profesional}, fecha: {fecha}, hora_inicio: {hora_inicio}")
                     
-                    # Crear la reserva manualmente (estado confirmado por defecto)
+                    # Crear la reserva manualmente
                     reserva = Reserva(
                         cliente=request.user,
                         peluquero=negocio,
@@ -279,8 +277,7 @@ def reservar_turno(request, peluquero_id):
                         hora_inicio=hora_inicio,
                         servicio=servicio,
                         notas=notas,
-                        estado='confirmado',
-                        imagen_referencia=imagen_referencia
+                        estado='pendiente'
                     )
                     
                     # Calcular hora_fin usando la duración del servicio
@@ -307,14 +304,12 @@ def reservar_turno(request, peluquero_id):
                     # Crear notificación para el profesional si existe
                     if reserva.profesional:
                         from profesionales.models import Notificacion
-                        servicio_nombre = servicio.servicio.nombre if servicio else 'Sin especificar'
-                        tiene_referencia = ' 📷' if imagen_referencia else ''
                         Notificacion.objects.create(
                             profesional=reserva.profesional,
                             tipo='reserva',
-                            titulo=f'Nueva Reserva{tiene_referencia}',
-                            mensaje=f'Cliente: {reserva.cliente.get_full_name() or reserva.cliente.username}\nServicio: {servicio_nombre}\nFecha: {reserva.fecha.strftime("%d/%m/%Y")}\nHora: {reserva.hora_inicio.strftime("%H:%M")}',
-                            url_relacionada='/profesionales/mis-reservas/'
+                            titulo='Nueva Reserva',
+                            mensaje=f'Nueva reserva pendiente para el {reserva.fecha} a las {reserva.hora_inicio} con {reserva.cliente.username}.',
+                            url_relacionada='/profesionales/panel/'
                         )
                     
                     # Enviar email de confirmación y WhatsApp
@@ -425,12 +420,10 @@ def horarios_disponibles(request, negocio_id):
             'Saturday': 'sabado',
             'Sunday': 'domingo'
         }.get(nombre_dia, nombre_dia)
-        # Solo considerar festivos colombianos, NO los domingos automáticamente
-        # Los domingos se manejan según el horario configurado del profesional
-        es_festivo = fecha_obj in co_holidays
+        es_festivo = fecha_obj in co_holidays or nombre_dia_es == 'domingo'
         logger.info(f"[HORARIOS DISPONIBLES] Día de la semana: {nombre_dia} -> {nombre_dia_es}, es_festivo: {es_festivo}")
         if es_festivo:
-            logger.info("[HORARIOS DISPONIBLES] Es festivo colombiano, no hay horarios disponibles")
+            logger.info("[HORARIOS DISPONIBLES] Es festivo, no hay horarios disponibles")
             return JsonResponse({'disponibles': [], 'festivo': True})
         profesional = get_object_or_404(Profesional, id=profesional_id)
         logger.info(f"[HORARIOS DISPONIBLES] Profesional encontrado: {profesional.nombre_completo} (ID: {profesional.id})")
@@ -498,7 +491,7 @@ def horarios_disponibles_reagendar(request, reserva_id):
         except (ValueError, TypeError):
             return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
         
-        # Verificar si es festivo colombiano (domingos se manejan por horario del profesional)
+        # Verificar si es festivo
         co_holidays = holidays.CountryHoliday('CO')
         nombre_dia = fecha_obj.strftime('%A')
         nombre_dia_es = {
@@ -510,7 +503,7 @@ def horarios_disponibles_reagendar(request, reserva_id):
             'Saturday': 'sabado',
             'Sunday': 'domingo'
         }.get(nombre_dia, nombre_dia)
-        es_festivo = fecha_obj in co_holidays  # Solo festivos, no domingos automáticamente
+        es_festivo = fecha_obj in co_holidays or nombre_dia_es == 'domingo'
         
         if es_festivo:
             return JsonResponse({'disponibles': [], 'festivo': True})
@@ -800,9 +793,9 @@ def reservar_negocio(request, negocio_id):
                     'Saturday': 'sabado',
                     'Sunday': 'domingo'
                 }.get(nombre_dia, nombre_dia)
-                es_festivo = fecha in co_holidays  # Solo festivos colombianos
+                es_festivo = fecha in co_holidays or nombre_dia_es == 'domingo'
                 if es_festivo:
-                    form.add_error(None, "El profesional no trabaja en días festivos. Por favor, elige otra fecha.")
+                    form.add_error(None, "El profesional no trabaja en días festivos o domingos. Por favor, elige otra fecha.")
                     return render(request, 'clientes/reservar_negocio.html', {
                         'negocio': negocio,
                         'servicios': servicios,
@@ -881,9 +874,9 @@ def reservar_negocio(request, negocio_id):
                     'Saturday': 'sabado',
                     'Sunday': 'domingo'
                 }.get(nombre_dia, nombre_dia)
-                es_festivo = fecha in co_holidays  # Solo festivos colombianos
+                es_festivo = fecha in co_holidays or nombre_dia_es == 'domingo'
                 if es_festivo:
-                    form.add_error(None, "El profesional no trabaja en días festivos. Por favor, elige otra fecha.")
+                    form.add_error(None, "El profesional no trabaja en días festivos o domingos. Por favor, elige otra fecha.")
                     return render(request, 'clientes/reservar_negocio.html', {
                         'negocio': negocio,
                         'servicios': servicios,
@@ -927,14 +920,14 @@ def reservar_negocio(request, negocio_id):
                             'disponibilidad': {},
                         })
                 # ... existing code ...
-                # Crear la reserva (estado confirmado por defecto)
+                # Crear la reserva
                 reserva = Reserva(
                     cliente=request.user,
                     peluquero=negocio,
                     fecha=fecha,
                     hora_inicio=hora_inicio,
                     hora_fin=hora_fin or hora_inicio,
-                    estado='confirmado'
+                    estado='pendiente'
                 )
                 
                 # Agregar campos opcionales solo si existen
@@ -1004,7 +997,7 @@ def reservar_negocio(request, negocio_id):
         dia = primer_dia + timedelta(days=i)
         disponible = False
         if profesional and servicio:
-            # Verificar si es festivo colombiano
+            # Verificar si es festivo/domingo
             import holidays
             co_holidays = holidays.CountryHoliday('CO')
             nombre_dia = dia.strftime('%A')
@@ -1017,7 +1010,7 @@ def reservar_negocio(request, negocio_id):
                 'Saturday': 'sabado',
                 'Sunday': 'domingo'
             }.get(nombre_dia, nombre_dia)
-            es_festivo = dia in co_holidays  # Solo festivos colombianos
+            es_festivo = dia in co_holidays or nombre_dia_es == 'domingo'
             if not es_festivo:
                 from profesionales.models import HorarioProfesional
                 horario_prof = HorarioProfesional.objects.filter(profesional=profesional, dia_semana=nombre_dia_es, disponible=True).first()
@@ -1735,7 +1728,7 @@ def disponibilidad_dias(request):
     for i in range(dias_rango):
         dia = fecha_inicio + timedelta(days=i)
         disponible = False
-        # Verificar si es festivo colombiano (domingos dependen del horario del profesional)
+        # Verificar si es festivo/domingo
         co_holidays = holidays.CountryHoliday('CO')
         nombre_dia = dia.strftime('%A')
         nombre_dia_es = {
@@ -1747,7 +1740,7 @@ def disponibilidad_dias(request):
             'Saturday': 'sabado',
             'Sunday': 'domingo'
         }.get(nombre_dia, nombre_dia)
-        es_festivo = dia in co_holidays  # Solo festivos colombianos
+        es_festivo = dia in co_holidays or nombre_dia_es == 'domingo'
         if not es_festivo:
             horario_prof = HorarioProfesional.objects.filter(profesional=profesional, dia_semana=nombre_dia_es, disponible=True).first()
             if horario_prof:
