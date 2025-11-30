@@ -282,7 +282,7 @@ def reservar_turno(request, peluquero_id):
                     
                     # Calcular hora_fin usando la duración del servicio
                     if servicio and hora_inicio:
-                        duracion = servicio.duracion
+                        duracion = servicio.duracion if servicio.duracion is not None else 30
                         from datetime import datetime, timedelta
                         hora_inicio_dt = datetime.combine(fecha, hora_inicio)
                         hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
@@ -351,6 +351,13 @@ def reservar_turno(request, peluquero_id):
                     details=f"Errores: {form.errors}",
                     ip_address=request.META.get('REMOTE_ADDR')
                 )
+                logger.warning(f"Formulario inválido - errores: {form.errors}")
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                return render(request, 'clientes/reservar_turno.html', {
+                    'negocio': negocio,
+                    'form': form,
+                    'today': timezone.now().date()
+                })
         else:
             form = ReservaForm(negocio=negocio)
         
@@ -756,9 +763,7 @@ def reservar_negocio(request, negocio_id):
         logger.info(f"POST recibido en reservar_negocio - negocio_id: {negocio_id}")
         form = ReservaNegocioForm(request.POST, negocio=negocio, profesional_preseleccionado=profesional_preseleccionado)
         logger.info(f"Formulario creado - válido: {form.is_valid()}")
-        if not form.is_valid():
-            logger.warning(f"Formulario inválido - errores: {form.errors}")
-            logger.warning(f"Datos POST: {request.POST}")
+        
         if form.is_valid():
             try:
                 servicio = form.cleaned_data.get('servicio')
@@ -767,6 +772,7 @@ def reservar_negocio(request, negocio_id):
                 hora_inicio = form.cleaned_data.get('hora_inicio')
                 notas = form.cleaned_data.get('notas', '')
                 logger.info(f"Datos del formulario - servicio: {servicio}, profesional: {profesional}, fecha: {fecha}, hora_inicio: {hora_inicio}")
+                
                 # Validar que todos los campos requeridos estén presentes
                 if not fecha or not hora_inicio:
                     logger.error("Fecha o hora_inicio faltantes")
@@ -779,6 +785,7 @@ def reservar_negocio(request, negocio_id):
                         'fecha_preseleccionada': fecha_preseleccionada,
                         'disponibilidad': {},
                     })
+                
                 # Validar que el profesional esté disponible en ese horario
                 from profesionales.models import HorarioProfesional
                 import holidays
@@ -793,9 +800,10 @@ def reservar_negocio(request, negocio_id):
                     'Saturday': 'sabado',
                     'Sunday': 'domingo'
                 }.get(nombre_dia, nombre_dia)
-                es_festivo = fecha in co_holidays or nombre_dia_es == 'domingo'
+                # Solo considerar festivos de Colombia, NO todos los domingos automáticamente
+                es_festivo = fecha in co_holidays
                 if es_festivo:
-                    form.add_error(None, "El profesional no trabaja en días festivos o domingos. Por favor, elige otra fecha.")
+                    form.add_error(None, "El profesional no trabaja en días festivos. Por favor, elige otra fecha.")
                     return render(request, 'clientes/reservar_negocio.html', {
                         'negocio': negocio,
                         'servicios': servicios,
@@ -804,6 +812,8 @@ def reservar_negocio(request, negocio_id):
                         'fecha_preseleccionada': fecha_preseleccionada,
                         'disponibilidad': {},
                     })
+                
+                # Verificar si el profesional tiene horario para ese día
                 horario_prof = HorarioProfesional.objects.filter(profesional=profesional, dia_semana=nombre_dia_es, disponible=True).first()
                 if not horario_prof:
                     form.add_error(None, "El profesional no trabaja ese día. Por favor, elige otra fecha.")
@@ -815,18 +825,21 @@ def reservar_negocio(request, negocio_id):
                         'fecha_preseleccionada': fecha_preseleccionada,
                         'disponibilidad': {},
                     })
+                
                 # Validar que el horario no esté ocupado
                 reservas = Reserva.objects.filter(
                     peluquero=negocio,
                     profesional=profesional,
                     fecha=fecha,
                     estado__in=['pendiente', 'confirmado']
-                ).values_list('hora_inicio', 'hora_fin')
-                duracion = servicio.duracion if servicio else 30
+                ).exclude(estado='cancelado').values_list('hora_inicio', 'hora_fin')
+                
+                duracion = servicio.duracion if servicio and servicio.duracion is not None else 30
                 from datetime import datetime, timedelta
                 hora_inicio_dt = datetime.combine(fecha, hora_inicio)
                 hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
                 hora_fin = hora_fin_dt.time()
+                
                 for reserva_inicio, reserva_fin in reservas:
                     if not (hora_fin <= reserva_inicio or hora_inicio >= reserva_fin):
                         form.add_error(None, "¡Ups! Alguien más ya reservó ese horario. Por favor, elige otro disponible.")
@@ -838,95 +851,14 @@ def reservar_negocio(request, negocio_id):
                             'fecha_preseleccionada': fecha_preseleccionada,
                             'disponibilidad': {},
                         })
-                # ... existing code ...
-                # Obtener los datos del formulario
-                servicio = form.cleaned_data.get('servicio')
-                profesional = form.cleaned_data.get('profesional')
-                fecha = form.cleaned_data.get('fecha')
-                hora_inicio = form.cleaned_data.get('hora_inicio')
-                notas = form.cleaned_data.get('notas', '')
                 
-                logger.info(f"Datos del formulario - servicio: {servicio}, profesional: {profesional}, fecha: {fecha}, hora_inicio: {hora_inicio}")
-                
-                # Validar que todos los campos requeridos estén presentes
-                if not fecha or not hora_inicio:
-                    logger.error("Fecha o hora_inicio faltantes")
-                    form.add_error(None, "Debes seleccionar una fecha y un horario para tu reserva.")
-                    return render(request, 'clientes/reservar_negocio.html', {
-                        'negocio': negocio,
-                        'servicios': servicios,
-                        'form': form,
-                        'profesional_preseleccionado': profesional_preseleccionado,
-                        'fecha_preseleccionada': fecha_preseleccionada,
-                        'disponibilidad': {},
-                    })
-                # Validar que el profesional esté disponible en ese horario
-                from profesionales.models import HorarioProfesional
-                import holidays
-                co_holidays = holidays.CountryHoliday('CO')
-                nombre_dia = fecha.strftime('%A')
-                nombre_dia_es = {
-                    'Monday': 'lunes',
-                    'Tuesday': 'martes',
-                    'Wednesday': 'miercoles',
-                    'Thursday': 'jueves',
-                    'Friday': 'viernes',
-                    'Saturday': 'sabado',
-                    'Sunday': 'domingo'
-                }.get(nombre_dia, nombre_dia)
-                es_festivo = fecha in co_holidays or nombre_dia_es == 'domingo'
-                if es_festivo:
-                    form.add_error(None, "El profesional no trabaja en días festivos o domingos. Por favor, elige otra fecha.")
-                    return render(request, 'clientes/reservar_negocio.html', {
-                        'negocio': negocio,
-                        'servicios': servicios,
-                        'form': form,
-                        'profesional_preseleccionado': profesional_preseleccionado,
-                        'fecha_preseleccionada': fecha_preseleccionada,
-                        'disponibilidad': {},
-                    })
-                horario_prof = HorarioProfesional.objects.filter(profesional=profesional, dia_semana=nombre_dia_es, disponible=True).first()
-                if not horario_prof:
-                    form.add_error(None, "El profesional no trabaja ese día. Por favor, elige otra fecha.")
-                    return render(request, 'clientes/reservar_negocio.html', {
-                        'negocio': negocio,
-                        'servicios': servicios,
-                        'form': form,
-                        'profesional_preseleccionado': profesional_preseleccionado,
-                        'fecha_preseleccionada': fecha_preseleccionada,
-                        'disponibilidad': {},
-                    })
-                # Validar que el horario no esté ocupado
-                reservas = Reserva.objects.filter(
-                    peluquero=negocio,
-                    profesional=profesional,
-                    fecha=fecha,
-                    estado__in=['pendiente', 'confirmado']
-                ).values_list('hora_inicio', 'hora_fin')
-                duracion = servicio.duracion if servicio else 30
-                from datetime import datetime, timedelta
-                hora_inicio_dt = datetime.combine(fecha, hora_inicio)
-                hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
-                hora_fin = hora_fin_dt.time()
-                for reserva_inicio, reserva_fin in reservas:
-                    if not (hora_fin <= reserva_inicio or hora_inicio >= reserva_fin):
-                        form.add_error(None, "¡Ups! Alguien más ya reservó ese horario. Por favor, elige otro disponible.")
-                        return render(request, 'clientes/reservar_negocio.html', {
-                            'negocio': negocio,
-                            'servicios': servicios,
-                            'form': form,
-                            'profesional_preseleccionado': profesional_preseleccionado,
-                            'fecha_preseleccionada': fecha_preseleccionada,
-                            'disponibilidad': {},
-                        })
-                # ... existing code ...
                 # Crear la reserva
                 reserva = Reserva(
                     cliente=request.user,
                     peluquero=negocio,
                     fecha=fecha,
                     hora_inicio=hora_inicio,
-                    hora_fin=hora_fin or hora_inicio,
+                    hora_fin=hora_fin,
                     estado='pendiente'
                 )
                 
@@ -959,10 +891,31 @@ def reservar_negocio(request, negocio_id):
                 
             except Exception as e:
                 logger.error(f"Error guardando reserva: {str(e)}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 messages.error(request, 'Error al guardar la reserva. Por favor, intenta nuevamente.')
+                # Renderizar formulario con error
+                return render(request, 'clientes/reservar_negocio.html', {
+                    'negocio': negocio,
+                    'servicios': servicios,
+                    'form': form,
+                    'profesional_preseleccionado': profesional_preseleccionado,
+                    'fecha_preseleccionada': fecha_preseleccionada,
+                    'disponibilidad': {},
+                })
         else:
-            logger.error(f"Formulario inválido: {form.errors}")
+            logger.warning(f"Formulario inválido - errores: {form.errors}")
+            logger.warning(f"Datos POST: {request.POST}")
             messages.error(request, 'Por favor corrige los errores en el formulario.')
+            # Renderizar formulario con errores
+            return render(request, 'clientes/reservar_negocio.html', {
+                'negocio': negocio,
+                'servicios': servicios,
+                'form': form,
+                'profesional_preseleccionado': profesional_preseleccionado,
+                'fecha_preseleccionada': fecha_preseleccionada,
+                'disponibilidad': {},
+            })
     
     # Si no es POST, mostrar formulario normal
     form = ReservaNegocioForm(negocio=negocio, profesional_preseleccionado=profesional_preseleccionado, initial=initial)
