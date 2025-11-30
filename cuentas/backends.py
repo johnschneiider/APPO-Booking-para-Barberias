@@ -62,3 +62,4 @@ class CaseInsensitiveAuthBackend(ModelBackend):
         except User.DoesNotExist:
             return None
 
+

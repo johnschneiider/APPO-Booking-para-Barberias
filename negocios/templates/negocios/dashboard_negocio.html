@@ -143,9 +143,9 @@
                         </div>
                         <div class="flex-grow-1 ms-2 ms-md-3">
                             <h6 class="text-dark mb-1 small">Total Suscripciones</h6>
-                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ reporte.total_suscripciones|default:"0" }}</h3>
+                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ total_suscripciones|default:"0" }}</h3>
                             <small class="text-success">
-                                <i class="bi bi-arrow-up"></i> +{{ reporte.crecimiento_suscripciones|default:"0" }}% este mes
+                                <i class="bi bi-arrow-up"></i> +0% este mes
                             </small>
                         </div>
                     </div>
@@ -164,9 +164,9 @@
                         </div>
                         <div class="flex-grow-1 ms-2 ms-md-3">
                             <h6 class="text-dark mb-1 small">Suscripciones Activas</h6>
-                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ reporte.suscripciones_activas|default:"0" }}</h3>
+                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ suscripciones_activas|default:"0" }}</h3>
                             <small class="text-success">
-                                <i class="bi bi-arrow-up"></i> {{ reporte.tasa_activacion|default:"0" }}% tasa de activación
+                                <i class="bi bi-arrow-up"></i> {{ tasa_activacion|default:"0" }}% tasa de activación
                             </small>
                         </div>
                     </div>
@@ -185,9 +185,9 @@
                         </div>
                         <div class="flex-grow-1 ms-2 ms-md-3">
                             <h6 class="text-dark mb-1 small">Ingresos por Suscripciones</h6>
-                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">${{ reporte.ingresos_suscripciones|default:"0"|floatformat:0 }}</h3>
+                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">${{ ingresos_suscripciones|default:"0"|floatformat:0 }}</h3>
                             <small class="text-primary">
-                                <i class="bi bi-arrow-up"></i> +{{ reporte.crecimiento_ingresos_suscripciones|default:"0" }}% vs mes anterior
+                                <i class="bi bi-arrow-up"></i> +{{ cambio_ingresos_suscripciones|default:"0" }}% vs mes anterior
                             </small>
                         </div>
                     </div>
@@ -206,7 +206,7 @@
                         </div>
                         <div class="flex-grow-1 ms-2 ms-md-3">
                             <h6 class="text-dark mb-1 small">Próximas a Vencer</h6>
-                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ reporte.proximas_vencer|default:"0" }}</h3>
+                            <h3 class="mb-0 fw-bold text-dark fs-4 fs-md-3">{{ suscripciones_por_vencer|default:"0" }}</h3>
                             <small class="text-danger">
                                 <i class="bi bi-exclamation-triangle"></i> Requieren renovación
                             </small>

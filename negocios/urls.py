@@ -48,4 +48,7 @@ urlpatterns = [
     path('<int:negocio_id>/inasistencias/', views.gestionar_inasistencias, name='gestionar_inasistencias'),
     path('<int:negocio_id>/inasistencias/marcar/<int:reserva_id>/', views.marcar_inasistencia_manual, name='marcar_inasistencia_manual'),
     path('<int:negocio_id>/inasistencias/configurar/', views.configurar_politica_inasistencias, name='configurar_politica_inasistencias'),
+    
+    # API para cambiar estado de reserva desde el calendario
+    path('<int:negocio_id>/api/reserva/<int:reserva_id>/estado/', views.api_cambiar_estado_reserva, name='api_cambiar_estado_reserva'),
 ]

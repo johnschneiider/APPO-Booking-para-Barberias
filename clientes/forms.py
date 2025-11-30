@@ -16,10 +16,19 @@ class ReservaForm(forms.ModelForm):
         required=False,
         label="Profesional (opcional)"
     )
+    imagen_referencia = forms.ImageField(
+        required=False,
+        label="Imagen de referencia (opcional)",
+        help_text="Sube una imagen del corte que deseas",
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
     
     class Meta:
         model = Reserva
-        fields = ['fecha', 'hora_inicio', 'servicio', 'profesional', 'notas']
+        fields = ['fecha', 'hora_inicio', 'servicio', 'profesional', 'notas', 'imagen_referencia']
         widgets = {
             'fecha': forms.DateInput(attrs={'type': 'date'}),
             'hora_inicio': forms.TimeInput(attrs={'type': 'time'}),
@@ -163,9 +172,18 @@ class ReservaNegocioForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select'}))
     profesional = forms.ModelChoiceField(queryset=Profesional.objects.none(), required=True, label="Profesional",
         widget=forms.Select(attrs={'class': 'form-select'}))
+    imagen_referencia = forms.ImageField(
+        required=False,
+        label="Imagen de referencia (opcional)",
+        help_text="Sube una imagen del corte que deseas",
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
     class Meta:
         model = Reserva
-        fields = ['servicio', 'profesional', 'fecha', 'hora_inicio', 'notas']
+        fields = ['servicio', 'profesional', 'fecha', 'hora_inicio', 'notas', 'imagen_referencia']
         widgets = {
             'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control', 'readonly': 'readonly'}),

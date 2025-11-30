@@ -1013,7 +1013,7 @@ body {
 
     <!-- Cuerpo del formulario -->
     <div class="form-body">
-      <form method="post" id="reservaForm">
+      <form method="post" id="reservaForm" enctype="multipart/form-data">
         {% csrf_token %}
         
         <!-- Paso 1: Fecha -->
@@ -1214,6 +1214,31 @@ body {
           <div class="form-group">
             <label for="notas" class="form-label">Notas adicionales (opcional)</label>
             <textarea id="notas" name="notas" class="form-textarea" placeholder="Agrega cualquier detalle especial o preferencia..."></textarea>
+          </div>
+          
+          <!-- Campo de imagen de referencia -->
+          <div class="form-group">
+            <label for="imagen_referencia" class="form-label">
+              <i class="bi bi-image"></i> Imagen de referencia (opcional)
+            </label>
+            <p class="step-description" style="margin-bottom: 10px; font-size: 0.9rem;">
+              ¿Tienes una foto del corte que deseas? Súbela aquí para que el profesional la vea.
+            </p>
+            <div class="imagen-upload-container" style="border: 2px dashed #ccc; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease;" id="imagenContainer">
+              <input type="file" id="imagen_referencia" name="imagen_referencia" accept="image/*" style="display: none;" onchange="previewImage(this)">
+              <div id="uploadPlaceholder">
+                <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: #888;"></i>
+                <p style="margin: 10px 0 0 0; color: #666;">Haz clic o arrastra una imagen aquí</p>
+                <small style="color: #999;">JPG, PNG o GIF (máx. 5MB)</small>
+              </div>
+              <div id="imagePreview" style="display: none;">
+                <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 10px;">
+                <br>
+                <button type="button" class="btn btn-outline" style="padding: 5px 15px; font-size: 0.85rem;" onclick="removeImage()">
+                  <i class="bi bi-trash"></i> Quitar imagen
+                </button>
+              </div>
+            </div>
           </div>
           
           <div class="btn-group">
@@ -1894,6 +1919,98 @@ function selectHorario(optionElement) {
   
   // Ocultar error si existe
   hideError('horaError');
+}
+
+// ==================== Funciones de imagen de referencia ====================
+
+// Hacer clic en el contenedor abre el selector de archivos
+document.addEventListener('DOMContentLoaded', function() {
+  const imagenContainer = document.getElementById('imagenContainer');
+  const imagenInput = document.getElementById('imagen_referencia');
+  
+  if (imagenContainer && imagenInput) {
+    imagenContainer.addEventListener('click', function(e) {
+      if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+        imagenInput.click();
+      }
+    });
+    
+    // Soporte para arrastrar y soltar
+    imagenContainer.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.style.borderColor = 'var(--color-primary)';
+      this.style.background = 'rgba(108, 92, 231, 0.05)';
+    });
+    
+    imagenContainer.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.style.borderColor = '#ccc';
+      this.style.background = 'transparent';
+    });
+    
+    imagenContainer.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.style.borderColor = '#ccc';
+      this.style.background = 'transparent';
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type.startsWith('image/')) {
+        imagenInput.files = files;
+        previewImage(imagenInput);
+      }
+    });
+  }
+});
+
+function previewImage(input) {
+  const previewContainer = document.getElementById('imagePreview');
+  const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+  const previewImg = document.getElementById('previewImg');
+  
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen es muy grande. El tamaño máximo es 5MB.');
+      input.value = '';
+      return;
+    }
+    
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido.');
+      input.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewImg.src = e.target.result;
+      previewContainer.style.display = 'block';
+      uploadPlaceholder.style.display = 'none';
+      
+      // Cambiar estilo del contenedor
+      document.getElementById('imagenContainer').style.borderColor = 'var(--color-primary)';
+    };
+    reader.readAsDataURL(file);
+    
+    console.log(`📷 Imagen de referencia cargada: ${file.name}`);
+  }
+}
+
+function removeImage() {
+  const input = document.getElementById('imagen_referencia');
+  const previewContainer = document.getElementById('imagePreview');
+  const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+  const imagenContainer = document.getElementById('imagenContainer');
+  
+  input.value = '';
+  previewContainer.style.display = 'none';
+  uploadPlaceholder.style.display = 'block';
+  imagenContainer.style.borderColor = '#ccc';
+  
+  console.log('🗑️ Imagen de referencia eliminada');
 }
 </script>
 

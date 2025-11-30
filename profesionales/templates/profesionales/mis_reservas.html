@@ -1,0 +1,721 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Reservas - {{ profesional.nombre_completo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #6c5ce7;
+        --success: #00b894;
+        --warning: #fdcb6e;
+        --danger: #e17055;
+        --info: #74b9ff;
+        --dark: #2d3436;
+        --light: #f8f9fa;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, var(--primary), #a29bfe);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    
+    .page-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        flex: 1;
+        min-width: 150px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .stat-icon.today { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+    .stat-icon.pending { background: rgba(253, 203, 110, 0.2); color: #e67e22; }
+    .stat-icon.upcoming { background: rgba(116, 185, 255, 0.2); color: var(--info); }
+    
+    .stat-info h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dark);
+    }
+    
+    .stat-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .section-title i {
+        color: var(--primary);
+    }
+    
+    .reservas-table {
+        width: 100%;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .reservas-table thead {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    
+    .reservas-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .reservas-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+    
+    .reservas-table tbody tr:hover {
+        background: rgba(108, 92, 231, 0.03);
+    }
+    
+    .reservas-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .cliente-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .cliente-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), #a29bfe);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .cliente-nombre {
+        font-weight: 600;
+        color: var(--dark);
+    }
+    
+    .servicio-badge {
+        background: rgba(108, 92, 231, 0.1);
+        color: var(--primary);
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .hora-badge {
+        background: var(--dark);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .estado-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .estado-pendiente { background: rgba(253, 203, 110, 0.2); color: #e67e22; }
+    .estado-confirmado { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+    .estado-completado { background: rgba(116, 185, 255, 0.2); color: var(--info); }
+    .estado-cancelado { background: rgba(225, 112, 85, 0.15); color: var(--danger); }
+    .estado-inasistencia { background: rgba(45, 52, 54, 0.1); color: var(--dark); }
+    
+    .referencia-thumbnail {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.2s;
+        border: 2px solid #eee;
+    }
+    
+    .referencia-thumbnail:hover {
+        transform: scale(1.1);
+        border-color: var(--primary);
+    }
+    
+    .no-referencia {
+        color: #999;
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--dark);
+    }
+    
+    .fecha-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        min-width: 60px;
+    }
+    
+    .fecha-badge .dia {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    
+    .fecha-badge .mes {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #666;
+    }
+    
+    /* Modal para imagen */
+    .modal-imagen {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .modal-imagen.active {
+        display: flex;
+    }
+    
+    .modal-imagen img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 8px;
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .reservas-table {
+            display: block;
+            overflow-x: auto;
+        }
+        
+        .stats-row {
+            flex-direction: column;
+        }
+        
+        .stat-card {
+            min-width: 100%;
+        }
+    }
+    
+    .nav-tabs-custom {
+        border-bottom: none;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .nav-tabs-custom .nav-link {
+        border: none;
+        background: #f8f9fa;
+        color: #666;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .nav-tabs-custom .nav-link:hover {
+        background: #e9ecef;
+        color: var(--dark);
+    }
+    
+    .nav-tabs-custom .nav-link.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .tab-content {
+        background: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1><i class="bi bi-calendar-check me-2"></i>Mis Reservas</h1>
+                <p>{{ fecha_hoy|date:"l, d \d\e F \d\e Y" }}</p>
+            </div>
+            <a href="{% url 'profesionales:panel' %}" class="btn btn-light">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+            </a>
+        </div>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon today">
+                <i class="bi bi-calendar-day"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_hoy }}</h3>
+                <p>Reservas hoy</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon pending">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_pendientes }}</h3>
+                <p>Por confirmar</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon upcoming">
+                <i class="bi bi-calendar-week"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_proximas }}</h3>
+                <p>Próximos 7 días</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs nav-tabs-custom" id="reservasTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="hoy-tab" data-bs-toggle="tab" data-bs-target="#hoy" type="button" role="tab">
+                <i class="bi bi-calendar-day me-1"></i> Hoy ({{ total_hoy }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="proximas-tab" data-bs-toggle="tab" data-bs-target="#proximas" type="button" role="tab">
+                <i class="bi bi-calendar-week me-1"></i> Próximas ({{ total_proximas }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab">
+                <i class="bi bi-hourglass-split me-1"></i> Pendientes ({{ total_pendientes }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
+                <i class="bi bi-clock-history me-1"></i> Historial
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="reservasTabContent">
+        <!-- Tab: Hoy -->
+        <div class="tab-pane fade show active" id="hoy" role="tabpanel">
+            {% if reservas_hoy %}
+            <table class="reservas-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th>Referencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas_hoy %}
+                    <tr>
+                        <td>
+                            <span class="hora-badge">{{ reserva.hora_inicio|time:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                <div class="cliente-avatar">
+                                    {{ reserva.cliente.first_name|slice:":1"|upper }}{{ reserva.cliente.last_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="cliente-nombre">
+                                        {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="servicio-badge">
+                                {% if reserva.servicio %}
+                                    {{ reserva.servicio.servicio.nombre }}
+                                {% else %}
+                                    Sin especificar
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="estado-badge estado-{{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if reserva.imagen_referencia %}
+                                <img src="{{ reserva.imagen_referencia.url }}" 
+                                     alt="Referencia" 
+                                     class="referencia-thumbnail"
+                                     onclick="openImageModal('{{ reserva.imagen_referencia.url }}')">
+                            {% else %}
+                                <span class="no-referencia">Sin imagen</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <h4>No tienes reservas para hoy</h4>
+                <p>Cuando los clientes agenden contigo, aparecerán aquí.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tab: Próximas -->
+        <div class="tab-pane fade" id="proximas" role="tabpanel">
+            {% if reservas_proximas %}
+            <table class="reservas-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th>Referencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas_proximas %}
+                    <tr>
+                        <td>
+                            <div class="fecha-badge">
+                                <span class="dia">{{ reserva.fecha|date:"d" }}</span>
+                                <span class="mes">{{ reserva.fecha|date:"M" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="hora-badge">{{ reserva.hora_inicio|time:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                <div class="cliente-avatar">
+                                    {{ reserva.cliente.first_name|slice:":1"|upper }}{{ reserva.cliente.last_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="cliente-nombre">
+                                        {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="servicio-badge">
+                                {% if reserva.servicio %}
+                                    {{ reserva.servicio.servicio.nombre }}
+                                {% else %}
+                                    Sin especificar
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="estado-badge estado-{{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if reserva.imagen_referencia %}
+                                <img src="{{ reserva.imagen_referencia.url }}" 
+                                     alt="Referencia" 
+                                     class="referencia-thumbnail"
+                                     onclick="openImageModal('{{ reserva.imagen_referencia.url }}')">
+                            {% else %}
+                                <span class="no-referencia">Sin imagen</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar-week"></i>
+                <h4>No tienes reservas próximas</h4>
+                <p>Las reservas de los próximos 7 días aparecerán aquí.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tab: Pendientes -->
+        <div class="tab-pane fade" id="pendientes" role="tabpanel">
+            {% if reservas_pendientes %}
+            <table class="reservas-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Referencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas_pendientes %}
+                    <tr>
+                        <td>
+                            <div class="fecha-badge">
+                                <span class="dia">{{ reserva.fecha|date:"d" }}</span>
+                                <span class="mes">{{ reserva.fecha|date:"M" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="hora-badge">{{ reserva.hora_inicio|time:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                <div class="cliente-avatar">
+                                    {{ reserva.cliente.first_name|slice:":1"|upper }}{{ reserva.cliente.last_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="cliente-nombre">
+                                        {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="servicio-badge">
+                                {% if reserva.servicio %}
+                                    {{ reserva.servicio.servicio.nombre }}
+                                {% else %}
+                                    Sin especificar
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if reserva.imagen_referencia %}
+                                <img src="{{ reserva.imagen_referencia.url }}" 
+                                     alt="Referencia" 
+                                     class="referencia-thumbnail"
+                                     onclick="openImageModal('{{ reserva.imagen_referencia.url }}')">
+                            {% else %}
+                                <span class="no-referencia">Sin imagen</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-hourglass"></i>
+                <h4>No tienes reservas pendientes</h4>
+                <p>Las reservas sin confirmar aparecerán aquí.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tab: Historial -->
+        <div class="tab-pane fade" id="historial" role="tabpanel">
+            {% if reservas_historial %}
+            <table class="reservas-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th>Referencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas_historial %}
+                    <tr>
+                        <td>
+                            <div class="fecha-badge">
+                                <span class="dia">{{ reserva.fecha|date:"d" }}</span>
+                                <span class="mes">{{ reserva.fecha|date:"M" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="hora-badge">{{ reserva.hora_inicio|time:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                <div class="cliente-avatar">
+                                    {{ reserva.cliente.first_name|slice:":1"|upper }}{{ reserva.cliente.last_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="cliente-nombre">
+                                        {{ reserva.cliente.get_full_name|default:reserva.cliente.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="servicio-badge">
+                                {% if reserva.servicio %}
+                                    {{ reserva.servicio.servicio.nombre }}
+                                {% else %}
+                                    Sin especificar
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="estado-badge estado-{{ reserva.estado }}">
+                                {{ reserva.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if reserva.imagen_referencia %}
+                                <img src="{{ reserva.imagen_referencia.url }}" 
+                                     alt="Referencia" 
+                                     class="referencia-thumbnail"
+                                     onclick="openImageModal('{{ reserva.imagen_referencia.url }}')">
+                            {% else %}
+                                <span class="no-referencia">Sin imagen</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-clock-history"></i>
+                <h4>Sin historial reciente</h4>
+                <p>El historial de los últimos 30 días aparecerá aquí.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para imagen de referencia -->
+<div class="modal-imagen" id="imageModal" onclick="closeImageModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modalImage" src="" alt="Imagen de referencia">
+</div>
+
+<script>
+function openImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    document.getElementById('imageModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+{% endblock %}
+
+

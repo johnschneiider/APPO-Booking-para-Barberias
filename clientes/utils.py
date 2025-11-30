@@ -41,31 +41,32 @@ def get_hora_en_tres_horas():
 
 def procesar_reservas_pasadas():
     """
-    Procesa automáticamente las reservas que ya pasaron.
-    Las marca como 'completadas' si no fueron canceladas.
+    NO marca automáticamente las reservas como completadas.
+    El negocio debe decidir si fue una cita exitosa o una inasistencia.
+    
+    Solo procesa reservas MUY antiguas (más de 7 días) que no fueron gestionadas.
+    Esto es para limpieza, no para el flujo normal.
     """
     from .models import Reserva
+    from datetime import timedelta
     
     ahora = get_current_time_in_timezone()
-    reservas_pasadas = Reserva.objects.filter(
-        fecha__lt=ahora.date(),
+    
+    # Solo procesar reservas de hace más de 7 días que nunca fueron gestionadas
+    # Esto es para limpieza de datos, no para el flujo normal del negocio
+    fecha_limite = ahora.date() - timedelta(days=7)
+    
+    reservas_muy_antiguas = Reserva.objects.filter(
+        fecha__lt=fecha_limite,
         estado__in=['pendiente', 'confirmado']
     )
-    
-    # También incluir reservas de hoy que ya pasaron la hora
-    reservas_hoy_pasadas = Reserva.objects.filter(
-        fecha=ahora.date(),
-        hora_fin__lt=ahora.time(),
-        estado__in=['pendiente', 'confirmado']
-    )
-    
-    todas_reservas_pasadas = reservas_pasadas | reservas_hoy_pasadas
     
     completadas = 0
-    for reserva in todas_reservas_pasadas:
-        # Solo marcar como completada si no fue cancelada explícitamente
+    for reserva in reservas_muy_antiguas:
+        # Marcar como completada solo reservas muy antiguas no gestionadas
         if reserva.estado in ['pendiente', 'confirmado']:
             reserva.estado = 'completado'
+            reserva.notas = (reserva.notas or '') + '\n[Sistema] Completada automáticamente después de 7 días sin gestionar.'
             reserva.save()
             completadas += 1
             
@@ -75,7 +76,7 @@ def procesar_reservas_pasadas():
                 cliente=reserva.cliente,
                 tipo='sistema',
                 titulo='Cita Completada',
-                mensaje=f'Tu cita del {reserva.fecha} a las {reserva.hora_inicio} ha sido marcada como completada automáticamente.',
+                mensaje=f'Tu cita del {reserva.fecha} a las {reserva.hora_inicio} ha sido marcada como completada automáticamente (no fue gestionada por el negocio).',
                 url_relacionada='/clientes/mis_reservas/'
             )
     

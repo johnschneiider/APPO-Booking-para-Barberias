@@ -316,3 +316,70 @@ def cancelar_solicitud_ausencia(request, solicitud_id):
         messages.error(request, 'Solicitud no encontrada o no se puede cancelar.')
     
     return redirect('profesionales:gestionar_ausencias')
+
+
+@login_required
+def mis_reservas(request):
+    """Vista para que el profesional vea todas sus reservas pendientes y del día"""
+    user = request.user
+    if user.tipo != 'profesional':
+        messages.error(request, 'Acceso solo para profesionales.')
+        return redirect('inicio')
+    
+    profesional = getattr(user, 'perfil_profesional', None)
+    if not profesional:
+        messages.error(request, 'No tienes un perfil profesional configurado.')
+        return redirect('profesionales:completar_perfil')
+    
+    from clientes.models import Reserva
+    from datetime import date, timedelta
+    
+    hoy = date.today()
+    
+    # Reservas de hoy
+    reservas_hoy = Reserva.objects.filter(
+        profesional=profesional,
+        fecha=hoy,
+        estado__in=['pendiente', 'confirmado']
+    ).select_related('cliente', 'servicio', 'servicio__servicio').order_by('hora_inicio')
+    
+    # Reservas próximas (próximos 7 días, excluyendo hoy)
+    reservas_proximas = Reserva.objects.filter(
+        profesional=profesional,
+        fecha__gt=hoy,
+        fecha__lte=hoy + timedelta(days=7),
+        estado__in=['pendiente', 'confirmado']
+    ).select_related('cliente', 'servicio', 'servicio__servicio').order_by('fecha', 'hora_inicio')
+    
+    # Reservas pendientes (todas las futuras sin confirmar)
+    reservas_pendientes = Reserva.objects.filter(
+        profesional=profesional,
+        fecha__gte=hoy,
+        estado='pendiente'
+    ).select_related('cliente', 'servicio', 'servicio__servicio').order_by('fecha', 'hora_inicio')
+    
+    # Historial de reservas (últimos 30 días completadas/canceladas)
+    reservas_historial = Reserva.objects.filter(
+        profesional=profesional,
+        fecha__gte=hoy - timedelta(days=30),
+        estado__in=['completado', 'cancelado', 'inasistencia']
+    ).select_related('cliente', 'servicio', 'servicio__servicio').order_by('-fecha', '-hora_inicio')[:20]
+    
+    # Estadísticas
+    total_hoy = reservas_hoy.count()
+    total_pendientes = reservas_pendientes.count()
+    total_proximas = reservas_proximas.count()
+    
+    context = {
+        'profesional': profesional,
+        'reservas_hoy': reservas_hoy,
+        'reservas_proximas': reservas_proximas,
+        'reservas_pendientes': reservas_pendientes,
+        'reservas_historial': reservas_historial,
+        'total_hoy': total_hoy,
+        'total_pendientes': total_pendientes,
+        'total_proximas': total_proximas,
+        'fecha_hoy': hoy,
+    }
+    
+    return render(request, 'profesionales/mis_reservas.html', context)

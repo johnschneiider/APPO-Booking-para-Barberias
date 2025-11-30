@@ -199,25 +199,33 @@ class TwilioWhatsAppService:
             return {'success': False, 'error': 'Cliente sin teléfono'}
         
         # Preparar datos para el mensaje personalizado
-        fecha_formateada = reserva.fecha.strftime('%d de %B de %Y')
+        fecha_formateada = reserva.fecha.strftime('%d/%m/%Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
-        negocio_nombre = reserva.peluquero.nombre
+        negocio = reserva.peluquero
+        negocio_nombre = negocio.nombre
         servicio_nombre = reserva.servicio.servicio.nombre if reserva.servicio else "Servicio general"
         cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        profesional_nombre = reserva.profesional.nombre_completo if reserva.profesional else negocio_nombre
+        
+        # Obtener dirección del negocio
+        direccion = getattr(negocio, 'direccion', None) or 'Dirección no disponible'
         
         # Crear mensaje personalizado y ameno
-        mensaje = f"""🎉 ¡Hola {cliente_nombre}! 
+        mensaje = f"""✅ *Confirmación de Reserva*
 
-¡Tu cita está confirmada! ✨
+Hola {cliente_nombre},
 
+Tu reserva ha sido confirmada:
+
+📍 *Negocio:* {negocio_nombre}
+👤 *Profesional:* {profesional_nombre}
+✂️ *Servicio:* {servicio_nombre}
 📅 *Fecha:* {fecha_formateada}
 🕐 *Hora:* {hora_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-💄 *Servicio:* {servicio_nombre}
 
-¡Te esperamos con muchas ganas! Si necesitas hacer algún cambio, no dudes en contactarnos.
+🏠 *Dirección:* {direccion}
 
-¡Que tengas un hermoso día! 💖
+¡Te esperamos!
 
 _Equipo Melissa_"""
         

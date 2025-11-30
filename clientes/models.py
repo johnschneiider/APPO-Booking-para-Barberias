@@ -94,7 +94,20 @@ class Reserva(models.Model):
     recordatorio_dia_enviado = models.BooleanField(default=False, help_text='Recordatorio de 1 día antes enviado')
     recordatorio_tres_horas_enviado = models.BooleanField(default=False, help_text='Recordatorio de 3 horas antes enviado')
     
-    # ========== CAMPOS FINANCIEROS (Snapshot del precio al momento de la reserva) ==========
+    # Imagen de referencia (para que el cliente muestre el corte que desea)
+    imagen_referencia = models.ImageField(
+        upload_to='reservas/referencias/',
+        blank=True, null=True,
+        help_text='Imagen de referencia del corte deseado'
+    )
+    
+    # ========== SNAPSHOT DEL SERVICIO (captura valores al momento de la reserva) ==========
+    # Esto asegura que si el negocio cambia precio/duración después, las reservas pasadas conservan sus valores
+    
+    duracion_servicio = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text='Duración del servicio en minutos al momento de la reserva'
+    )
     precio_servicio = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True,
         help_text='Precio del servicio al momento de la reserva'
@@ -129,10 +142,21 @@ class Reserva(models.Model):
         return f"Reserva de {self.cliente} con {self.profesional or self.peluquero} el {self.fecha} a las {self.hora_inicio}"
     
     def save(self, *args, **kwargs):
-        """Guarda el precio del servicio al momento de crear la reserva"""
-        # Solo capturar precio si es una nueva reserva o si no tiene precio asignado
-        if self.servicio and self.precio_servicio is None:
-            self.precio_servicio = self.servicio.precio or 0
+        """
+        Guarda el precio y duración del servicio al momento de crear la reserva.
+        Esto crea un 'snapshot' de los valores actuales, así si el negocio
+        cambia el precio o duración después, las reservas pasadas conservan
+        los valores que tenían cuando fueron creadas.
+        """
+        # Solo capturar valores si es una nueva reserva o si no tienen valores asignados
+        if self.servicio:
+            # Capturar precio si no está asignado
+            if self.precio_servicio is None:
+                self.precio_servicio = self.servicio.precio or 0
+            
+            # Capturar duración si no está asignada
+            if self.duracion_servicio is None:
+                self.duracion_servicio = self.servicio.duracion or 30  # Default 30 min
         
         # Calcular total
         if self.precio_servicio is not None:
