@@ -16,7 +16,7 @@ class Command(BaseCommand):
                 username='negocio_demo',
                 defaults={
                     'email': 'negocio_demo@demo.com',
-                    'first_name': 'Salón',
+                    'first_name': 'Barbería',
                     'last_name': 'Demo',
                     'tipo': 'negocio',
                     'is_active': True
@@ -36,17 +36,17 @@ class Command(BaseCommand):
 
             # Crear negocio si no existe
             negocio, created = Negocio.objects.get_or_create(
-                nombre='Salón de Belleza "Glamour"',
+                nombre='Barbería "El Patrón Demo"',
                 defaults={
                     'propietario': negocio_user,
-                    'descripcion': 'Salón de belleza premium con los mejores profesionales y servicios de calidad.',
+                    'descripcion': 'Barbería premium con los mejores barberos y servicios de calidad para el caballero moderno.',
                     'direccion': 'Cra. 29 #42a-10, Cali, Valle del Cauca',
                     'ciudad': 'Cali',
                     'provincia': 'Valle del Cauca',
                     'telefono': '+57 300 123 4567',
-                    'email': 'info@glamour.com',
+                    'email': 'info@elpatron.com',
                     'activo': True,
-                    'categoria': 'peluqueria',
+                    'categoria': 'barberia',
                     'horario_apertura': '09:00:00',
                     'horario_cierre': '18:00:00',
                 }
@@ -65,49 +65,49 @@ class Command(BaseCommand):
             planes_data = [
                 {
                     'nombre': 'Plan Básico',
-                    'descripcion': 'Acceso a servicios básicos de peluquería',
-                    'precio_mensual': 88.00,
-                    'max_servicios_mes': 1,
+                    'descripcion': 'Acceso a servicios básicos de barbería',
+                    'precio_mensual': 50000.00,  # COP
+                    'max_servicios_mes': 2,
                     'descuento_servicios': 10,
                     'prioridad_reservas': False,
                     'beneficios': [
-                        '1 corte de cabello por mes',
+                        '2 cortes de cabello por mes',
                         'Descuento del 10% en productos',
-                        'Acceso prioritario a reservas',
-                        'Newsletter con tips de belleza'
+                        'Reserva prioritaria',
+                        'Tips de cuidado masculino'
                     ]
                 },
                 {
                     'nombre': 'Plan Premium',
-                    'descripcion': 'Servicios completos de belleza y tratamientos especiales',
-                    'precio_mensual': 150.00,
-                    'max_servicios_mes': 2,
+                    'descripcion': 'Servicios completos de barbería con barba incluida',
+                    'precio_mensual': 80000.00,  # COP
+                    'max_servicios_mes': 4,
                     'descuento_servicios': 20,
                     'prioridad_reservas': True,
                     'beneficios': [
-                        '2 servicios por mes (corte, color, peinado)',
+                        '4 servicios por mes (corte, barba, fade)',
                         'Descuento del 20% en productos',
                         'Reservas prioritarias',
-                        'Tratamientos especiales incluidos',
-                        'Acceso a eventos exclusivos',
-                        'Consultas personalizadas'
+                        'Diseño de barba incluido',
+                        'Acceso a promociones exclusivas',
+                        'Asesoría de estilo personalizada'
                     ]
                 },
                 {
                     'nombre': 'Plan VIP',
-                    'descripcion': 'Experiencia premium con todos los servicios incluidos',
-                    'precio_mensual': 250.00,
+                    'descripcion': 'Experiencia premium con todos los servicios de barbería incluidos',
+                    'precio_mensual': 120000.00,  # COP
                     'max_servicios_mes': 0,  # 0 = ilimitado
                     'descuento_servicios': 30,
                     'prioridad_reservas': True,
                     'beneficios': [
                         'Servicios ilimitados por mes',
                         'Descuento del 30% en productos',
-                        'Reservas VIP con horarios exclusivos',
-                        'Tratamientos premium incluidos',
-                        'Acceso a masterclass',
+                        'Reservas VIP en horarios exclusivos',
+                        'Todos los servicios premium incluidos',
+                        'Afeitado tradicional con toalla caliente',
                         'Productos de regalo mensuales',
-                        'Soporte personalizado 24/7'
+                        'Atención preferencial 24/7'
                     ]
                 }
             ]

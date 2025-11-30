@@ -12,7 +12,7 @@ import random
 User = get_user_model()
 
 class Command(BaseCommand):
-    help = 'Pobla la base de datos con datos de ejemplo para demo/pruebas'
+    help = 'Pobla la base de datos con datos de demo para barberías masculinas'
 
     def handle(self, *args, **options):
         # Superadmin
@@ -20,37 +20,37 @@ class Command(BaseCommand):
             superadmin = User.objects.create_superuser(username='superadmin', email='super@demo.com', password='Malware01', tipo='super_admin')
             self.stdout.write(self.style.SUCCESS('Superadmin creado'))
 
-        # Servicios base
-        servicios_base = [
-            'Corte de cabello',
-            'Coloración',
-            'Peinado',
-            'Manicura',
-            'Pedicura',
-            'Depilación',
-            'Barbería',
-            'Tratamiento capilar',
-            'Maquillaje',
+        # Servicios de barbería masculina (coherente con SERVICIOS_FIJOS en negocios/models.py)
+        servicios_barberia = [
+            'Corte con barba',
+            'Corte sin barba',
+            'Corte con cejas',
+            'Solo trazo (Mickey)',
+            'Barba completa',
+            'Diseño de cejas',
+            'Corte clásico',
+            'Corte degradado (Fade)',
+            'Afeitado tradicional',
         ]
         
         servicios = []
-        for nombre in servicios_base:
+        for nombre in servicios_barberia:
             serv, _ = Servicio.objects.get_or_create(nombre=nombre)
             servicios.append(serv)
-        self.stdout.write(self.style.SUCCESS(f'{len(servicios)} servicios base creados'))
+        self.stdout.write(self.style.SUCCESS(f'{len(servicios)} servicios de barbería creados'))
 
-        # Nombres reales para negocios
+        # Nombres reales para barberías masculinas
         nombres_negocios = [
-            'Salón de Belleza "Glamour"',
-            'Peluquería "Estilo & Moda"',
-            'Beauty Studio "Elegance"',
-            'Hair Salon "Trendy"',
-            'Salón "Belleza Natural"',
-            'Peluquería "Modern Style"',
-            'Beauty Center "Divine"',
-            'Salón "Chic & Fashion"',
-            'Peluquería "Elite Beauty"',
-            'Beauty Studio "Premium"'
+            'Barbería "El Patrón"',
+            'Barber Shop "Classic Cut"',
+            'Barbería "Los Capos"',
+            'Barbería "Fade Masters"',
+            'Barber Studio "The Gentlemen"',
+            'Barbería "Royal Cut"',
+            'Barber Shop "Urban Style"',
+            'Barbería "El Corte Perfecto"',
+            'Barbería "Blade & Fade"',
+            'Barber House "Premium Cuts"'
         ]
 
         # Negocios y usuarios tipo negocio
@@ -163,17 +163,17 @@ class Command(BaseCommand):
             negocio.save()
             negocios.append(negocio)
             
-            # Asignar servicios al negocio con precios realistas
+            # Asignar servicios al negocio con precios realistas de barbería (COP)
             precios_servicios = {
-                'Corte de cabello': (80, 120),
-                'Coloración': (150, 300),
-                'Peinado': (100, 180),
-                'Manicura': (60, 100),
-                'Pedicura': (80, 120),
-                'Depilación': (50, 150),
-                'Barbería': (90, 140),
-                'Tratamiento capilar': (120, 250),
-                'Maquillaje': (100, 200),
+                'Corte con barba': (20000, 35000),
+                'Corte sin barba': (15000, 25000),
+                'Corte con cejas': (18000, 28000),
+                'Solo trazo (Mickey)': (8000, 15000),
+                'Barba completa': (12000, 20000),
+                'Diseño de cejas': (8000, 12000),
+                'Corte clásico': (15000, 22000),
+                'Corte degradado (Fade)': (18000, 30000),
+                'Afeitado tradicional': (15000, 25000),
             }
             
             for servicio in servicios:
@@ -190,64 +190,61 @@ class Command(BaseCommand):
                     }
                 )
             
-            # Crear imágenes de galería para el negocio
+            # Crear imágenes de galería para la barbería
             for k in range(1, 4):  # 3 imágenes por negocio
                 ImagenNegocio.objects.get_or_create(
                     negocio=negocio,
                     titulo=f'Galería {k} - {negocio.nombre}',
-                    descripcion=f'Imagen profesional del salón {negocio.nombre}',
+                    descripcion=f'Imagen profesional de la barbería {negocio.nombre}',
                     defaults={
                         'imagen': negocio.logo  # Usar el logo como imagen de galería por ahora
                     }
                 )
         
-        self.stdout.write(self.style.SUCCESS('10 negocios creados con logos, portadas y servicios'))
+        self.stdout.write(self.style.SUCCESS('10 barberías creadas con logos, portadas y servicios'))
 
-        # Nombres reales para profesionales
+        # Nombres de barberos (masculinos)
         nombres_profesionales = [
-            'María González', 'Carlos Rodríguez', 'Ana Martínez', 'Luis Fernández',
-            'Carmen López', 'Javier Pérez', 'Isabel García', 'Miguel Torres',
-            'Elena Ruiz', 'Diego Morales', 'Sofia Herrera', 'Roberto Jiménez',
-            'Valentina Silva', 'Andrés Castro', 'Camila Vargas', 'Fernando Rojas',
-            'Daniela Mendoza', 'Ricardo Ortega', 'Natalia Guzmán', 'Héctor Salazar',
-            'Gabriela Vega', 'Oscar Mendoza', 'Lucía Paredes', 'Manuel Ríos',
-            'Adriana Cortés', 'Felipe Navarro', 'Carolina Soto', 'Eduardo Bravo',
-            'Patricia Valenzuela', 'Raúl Espinoza', 'Monica Fuentes', 'Alberto Reyes',
-            'Verónica Molina', 'Cristian Herrera', 'Diana Ponce', 'Gustavo Cárdenas',
-            'Rosa Miranda', 'José Valdez', 'Teresa Sandoval', 'Mario Acosta',
-            'Claudia Rivas', 'Francisco Campos', 'Elena Figueroa', 'Roberto Guzmán',
-            'Silvia Carrillo', 'Alfonso Méndez', 'Graciela Luna', 'Humberto Delgado',
-            'Norma Escobar', 'Rogelio Valencia', 'Blanca Cisneros', 'Federico Rangel',
-            'Lourdes Villanueva', 'Arturo Zamora', 'Consuelo Aguirre', 'René Mejía',
-            'Estela Barrios', 'César Galván', 'Alicia Cervantes', 'Mauro Montoya',
-            'Dolores Salas', 'Ernesto Ávila', 'Beatriz Zúñiga', 'Rolando Ibarra',
-            'Margarita Solís', 'Fabián Juárez', 'Rosario Ochoa', 'Damián Lara',
-            'Amparo Maldonado', 'Gerardo Robles', 'Concepción Zavala', 'Nicolás Bernal',
-            'Esperanza Medrano', 'Baltazar Rosales', 'Clementina Cuevas', 'Teodoro Lozano',
-            'Prudencia de la Cruz', 'Cipriano Vázquez', 'Modesta Rocha', 'Fortunato Trejo',
-            'Eulalia Tovar', 'Benjamín Peña', 'Justina Ríos', 'Clemente Luna',
-            'Digna Espinosa', 'Evaristo Coronel', 'Honorata Valdez', 'Fermín Rangel',
-            'Veneranda Bustos', 'Crisóstomo Cárdenas', 'Eusebia Galván', 'Feliciano Rocha',
-            'Modesta Tovar', 'Cipriano Luna', 'Prudencia Espinosa', 'Teodoro Coronel',
-            'Clementina Valdez', 'Fortunato Rangel', 'Esperanza Bustos', 'Baltazar Cárdenas',
-            'Concepción Galván', 'Gerardo Rocha', 'Amparo Tovar', 'Damián Luna',
-            'Dolores Espinosa', 'César Coronel', 'Beatriz Valdez', 'Mauro Rangel',
-            'Estela Bustos', 'Ernesto Cárdenas', 'Alicia Galván', 'Rolando Rocha'
+            'Carlos Rodríguez', 'Luis Fernández', 'Javier Pérez', 'Miguel Torres',
+            'Diego Morales', 'Roberto Jiménez', 'Andrés Castro', 'Fernando Rojas',
+            'Ricardo Ortega', 'Héctor Salazar', 'Oscar Mendoza', 'Manuel Ríos',
+            'Felipe Navarro', 'Eduardo Bravo', 'Raúl Espinoza', 'Alberto Reyes',
+            'Cristian Herrera', 'Gustavo Cárdenas', 'José Valdez', 'Mario Acosta',
+            'Francisco Campos', 'Roberto Guzmán', 'Alfonso Méndez', 'Humberto Delgado',
+            'Rogelio Valencia', 'Federico Rangel', 'Arturo Zamora', 'René Mejía',
+            'César Galván', 'Mauro Montoya', 'Ernesto Ávila', 'Rolando Ibarra',
+            'Fabián Juárez', 'Damián Lara', 'Gerardo Robles', 'Nicolás Bernal',
+            'Baltazar Rosales', 'Teodoro Lozano', 'Cipriano Vázquez', 'Fortunato Trejo',
+            'Benjamín Peña', 'Clemente Luna', 'Evaristo Coronel', 'Fermín Rangel',
+            'Crisóstomo Cárdenas', 'Feliciano Rocha', 'Santiago Moreno', 'Alejandro Ruiz',
+            'Sebastián Díaz', 'Mateo García', 'Nicolás Martínez', 'Samuel López',
+            'Daniel Hernández', 'Tomás González', 'Lucas Pérez', 'Emiliano Sánchez',
+            'Juan Pablo Torres', 'David Ramírez', 'Iván Flores', 'Gabriel Vega',
+            'Adrián Mendoza', 'Pablo Reyes', 'Mauricio Castro', 'Camilo Ortiz',
+            'Julián Vargas', 'Sergio Medina', 'Rafael Guerrero', 'Antonio Romero',
+            'Pedro Navarro', 'Óscar Delgado', 'Martín Soto', 'Enrique Mora',
+            'Jorge Acosta', 'Ramón Figueroa', 'Leonardo Cruz', 'Víctor Peña',
+            'Hugo Ríos', 'Alfredo Campos', 'Rodrigo Herrera', 'Gonzalo Salazar',
+            'Ignacio Carrillo', 'Patricio Luna', 'Simón Espinoza', 'Marcos Valenzuela',
+            'Cristóbal Fuentes', 'Esteban Molina', 'Bernardo Ponce', 'Ismael Miranda',
+            'Ángel Sandoval', 'Reinaldo Rivas', 'Armando Cervantes', 'Darío Montoya',
+            'Octavio Salas', 'Leandro Ávila', 'Gonzalo Zúñiga', 'Braulio Ibarra',
+            'Néstor Solís', 'Aurelio Ochoa', 'Edmundo Lara', 'Ceferino Maldonado'
         ]
 
-        # Profesionales y usuarios tipo profesional
+        # Profesionales y usuarios tipo profesional (barberos)
         profesionales = []
         especialidades = [
-            'Cortes y peinados',
-            'Coloración y mechas',
-            'Tratamientos capilares',
-            'Manicura y pedicura',
-            'Barbería',
-            'Maquillaje',
-            'Depilación',
-            'Estilismo',
-            'Técnicas avanzadas',
-            'Cuidado del cabello'
+            'Cortes clásicos',
+            'Degradados y Fades',
+            'Diseño de barba',
+            'Afeitado tradicional',
+            'Cortes modernos',
+            'Trazos y diseños',
+            'Barbería integral',
+            'Técnicas de navaja',
+            'Estilos urbanos',
+            'Cortes ejecutivos'
         ]
         
         for i in range(1, 101):
@@ -262,11 +259,11 @@ class Command(BaseCommand):
             experiencia = random.randint(2, 15)  # 2-15 años de experiencia
             
             descripciones = [
-                f'Especialista en {especialidad} con {experiencia} años de experiencia. Apasionada por crear looks únicos y modernos.',
-                f'Profesional dedicado a {especialidad} con {experiencia} años en el rubro. Comprometido con la excelencia y la satisfacción del cliente.',
-                f'Experta en {especialidad} con {experiencia} años de trayectoria. Especializada en técnicas innovadoras y tendencias actuales.',
-                f'Profesional de {especialidad} con {experiencia} años de experiencia. Enfoque en resultados naturales y duraderos.',
-                f'Especialista en {especialidad} con {experiencia} años en la industria. Dedicada a transformar y realzar la belleza natural.'
+                f'Barbero especialista en {especialidad} con {experiencia} años de experiencia. Apasionado por crear estilos únicos y modernos.',
+                f'Barbero profesional dedicado a {especialidad} con {experiencia} años en el rubro. Comprometido con la excelencia y la satisfacción del cliente.',
+                f'Experto en {especialidad} con {experiencia} años de trayectoria. Especializado en técnicas de vanguardia y tendencias actuales.',
+                f'Barbero profesional de {especialidad} con {experiencia} años de experiencia. Enfoque en cortes precisos y acabados impecables.',
+                f'Maestro barbero especialista en {especialidad} con {experiencia} años en la industria. Dedicado a transformar y realzar el estilo masculino.'
             ]
             
             prof, _ = Profesional.objects.get_or_create(usuario=user_prof, defaults={
@@ -301,7 +298,7 @@ class Command(BaseCommand):
             for servicio in servicios_profesional:
                 prof.servicios.add(servicio)
         
-        self.stdout.write(self.style.SUCCESS('100 profesionales creados con fotos, portadas y servicios'))
+        self.stdout.write(self.style.SUCCESS('100 barberos creados con fotos, portadas y servicios'))
 
         # Distribuir profesionales entre negocios de manera más realista
         # Cada negocio tendrá entre 3-8 profesionales
@@ -318,7 +315,7 @@ class Command(BaseCommand):
                 # Simular solicitud y aprobación
                 matricula, _ = Matriculacion.objects.get_or_create(profesional=prof, negocio=negocio, defaults={
                     'estado': 'pendiente',
-                    'mensaje_solicitud': f'Me interesa formar parte del equipo de {negocio.nombre}. Tengo experiencia en {prof.especialidad}.',
+                    'mensaje_solicitud': f'Me interesa formar parte del equipo de {negocio.nombre}. Soy barbero con experiencia en {prof.especialidad}.',
                     'salario_propuesto': 1500 + (i * 100),
                     'horario_propuesto': 'Lunes a Viernes, 8:00 - 17:00'
                 })
@@ -357,13 +354,13 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('Profesionales matriculados y aprobados en negocios'))
 
-        # Crear clientes ficticios con nombres reales
+        # Crear clientes ficticios (mayormente masculinos para barbería)
         nombres_clientes = [
-            'Laura Sánchez', 'Pedro Ramírez', 'Ana Torres', 'Carlos Morales',
-            'María Jiménez', 'Juan Herrera', 'Sofia Castro', 'Diego Rojas',
-            'Valentina Mendoza', 'Andrés Ortega', 'Camila Guzmán', 'Fernando Salazar',
-            'Daniela Vega', 'Ricardo Mendoza', 'Natalia Paredes', 'Héctor Ríos',
-            'Gabriela Cortés', 'Oscar Navarro', 'Lucía Soto', 'Manuel Bravo'
+            'Pedro Ramírez', 'Carlos Morales', 'Juan Herrera', 'Diego Rojas',
+            'Andrés Ortega', 'Fernando Salazar', 'Ricardo Mendoza', 'Héctor Ríos',
+            'Oscar Navarro', 'Manuel Bravo', 'Santiago Silva', 'Sebastián Torres',
+            'Mateo García', 'Nicolás López', 'Samuel Hernández', 'Daniel González',
+            'Lucas Pérez', 'Emiliano Sánchez', 'David Flores', 'Gabriel Vega'
         ]
         
         clientes = []
@@ -403,38 +400,38 @@ class Command(BaseCommand):
                         hora_fin=time(10 + random.randint(0, 6), 30),
                         servicio=servicio_negocio,
                         estado=estado,
-                        notas=f'Reserva de {cli.first_name} para {servicio_negocio.servicio.nombre}'
+                        notas=f'Cita de {cli.first_name} para {servicio_negocio.servicio.nombre}'
                     )
         self.stdout.write(self.style.SUCCESS('Reservas de ejemplo creadas'))
 
-        # Crear calificaciones realistas para cada negocio
+        # Crear calificaciones realistas para cada barbería
         comentarios_positivos = [
-            'Excelente servicio, muy profesional y puntual. Definitivamente volveré.',
-            'Muy satisfecha con el resultado. El profesional es muy talentoso.',
+            'Excelente corte, muy profesional y puntual. Definitivamente volveré.',
+            'Muy satisfecho con el fade, el barbero es muy talentoso.',
             'Increíble atención y calidad de trabajo. Altamente recomendado.',
-            'Servicio de primera calidad. El salón está impecable.',
-            'Muy profesional y amable. El resultado superó mis expectativas.',
-            'Excelente trabajo, muy detallista y cuidadoso con el cabello.',
-            'Muy buena experiencia, el profesional es muy experto en su área.',
-            'Servicio excepcional, ambiente agradable y resultados perfectos.',
-            'Muy recomendable, el profesional tiene mucha experiencia.',
-            'Excelente atención al cliente y resultados de alta calidad.'
+            'Servicio de primera calidad. La barbería está impecable.',
+            'Muy profesional y amable. El corte superó mis expectativas.',
+            'Excelente trabajo con la barba, muy detallista y cuidadoso.',
+            'Muy buena experiencia, el barbero es muy experto en degradados.',
+            'Servicio excepcional, ambiente de barbería clásica y resultados perfectos.',
+            'Muy recomendable, el barbero tiene mucha experiencia con la navaja.',
+            'Excelente atención al cliente y cortes de alta calidad.'
         ]
         
         comentarios_neutros = [
             'Buen servicio en general, podría mejorar en puntualidad.',
-            'Servicio aceptable, el resultado fue bueno.',
-            'Correcto, el profesional es competente.',
-            'Buen trabajo, aunque podría ser más detallista.',
+            'Servicio aceptable, el corte quedó bien.',
+            'Correcto, el barbero es competente.',
+            'Buen trabajo, aunque podría pulir más el fade.',
             'Servicio adecuado, cumple con lo esperado.'
         ]
         
         comentarios_negativos = [
-            'No quedé satisfecha con el resultado.',
+            'No quedé satisfecho con el corte.',
             'El servicio no cumplió mis expectativas.',
             'Podría mejorar mucho en atención al cliente.',
-            'No recomendaría este servicio.',
-            'El resultado no fue el esperado.'
+            'No recomendaría esta barbería.',
+            'El corte no fue el esperado.'
         ]
         
         # Crear múltiples calificaciones por negocio
@@ -468,11 +465,11 @@ class Command(BaseCommand):
                         }
                     )
         
-        self.stdout.write(self.style.SUCCESS('Calificaciones realistas creadas para todos los negocios'))
+        self.stdout.write(self.style.SUCCESS('Calificaciones realistas creadas para todas las barberías'))
 
-        self.stdout.write(self.style.SUCCESS('¡Base de datos de demo lista!'))
+        self.stdout.write(self.style.SUCCESS('¡Base de datos de demo para BARBERÍAS lista!'))
         self.stdout.write(self.style.SUCCESS('Credenciales de acceso:'))
         self.stdout.write(self.style.SUCCESS('- Superadmin: superadmin / Malware01'))
-        self.stdout.write(self.style.SUCCESS('- Negocios: negocio1-negocio10 / Malware01'))
-        self.stdout.write(self.style.SUCCESS('- Profesionales: profesional1-profesional100 / Malware01'))
+        self.stdout.write(self.style.SUCCESS('- Barberías: negocio1-negocio10 / Malware01'))
+        self.stdout.write(self.style.SUCCESS('- Barberos: profesional1-profesional100 / Malware01'))
         self.stdout.write(self.style.SUCCESS('- Clientes: cliente1-cliente20 / Malware01')) 

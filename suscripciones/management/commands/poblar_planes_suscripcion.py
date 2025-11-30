@@ -29,8 +29,8 @@ class Command(BaseCommand):
                 negocio=negocio,
                 nombre='Básico',
                 defaults={
-                    'descripcion': 'Plan básico con beneficios esenciales para clientes frecuentes',
-                    'precio_mensual': Decimal('29.99'),
+                    'descripcion': 'Plan básico con beneficios esenciales para clientes frecuentes de la barbería',
+                    'precio_mensual': Decimal('50000'),  # COP
                     'max_servicios_mes': 3,
                     'descuento_servicios': 10,
                     'prioridad_reservas': False,
@@ -66,8 +66,8 @@ class Command(BaseCommand):
                 negocio=negocio,
                 nombre='Premium',
                 defaults={
-                    'descripcion': 'Plan premium con beneficios exclusivos y prioridad en reservas',
-                    'precio_mensual': Decimal('59.99'),
+                    'descripcion': 'Plan premium con beneficios exclusivos para clientes VIP de la barbería',
+                    'precio_mensual': Decimal('80000'),  # COP
                     'max_servicios_mes': 6,
                     'descuento_servicios': 20,
                     'prioridad_reservas': True,
@@ -112,8 +112,8 @@ class Command(BaseCommand):
                 negocio=negocio,
                 nombre='VIP',
                 defaults={
-                    'descripcion': 'Plan VIP con servicios ilimitados y beneficios exclusivos',
-                    'precio_mensual': Decimal('99.99'),
+                    'descripcion': 'Plan VIP con servicios ilimitados de barbería y beneficios exclusivos',
+                    'precio_mensual': Decimal('120000'),  # COP
                     'max_servicios_mes': 0,  # 0 = ilimitado
                     'descuento_servicios': 30,
                     'prioridad_reservas': True,
