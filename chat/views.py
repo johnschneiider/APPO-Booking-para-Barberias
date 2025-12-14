@@ -172,20 +172,9 @@ def api_mensajes_no_leidos(request):
     """API para obtener el total de mensajes no leídos del usuario autenticado"""
     from django.core.cache import cache
     from django.http import JsonResponse
-    import time
     
     user = request.user
     cache_key = f'mensajes_no_leidos_{user.id}'
-    rate_limit_key = f'rate_limit_mensajes_{user.id}'
-    
-    # Rate limiting: máximo 1 request por 5 segundos
-    last_request = cache.get(rate_limit_key)
-    current_time = time.time()
-    
-    if last_request and (current_time - last_request) < 5:
-        return JsonResponse({'error': 'Rate limit exceeded'}, status=429)
-    
-    cache.set(rate_limit_key, current_time, 10)
     
     # Intentar obtener del caché primero
     total_no_leidos = cache.get(cache_key)

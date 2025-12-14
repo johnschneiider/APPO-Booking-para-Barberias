@@ -245,3 +245,4 @@ print(verificar_conexion_signals())
 
 
 
+

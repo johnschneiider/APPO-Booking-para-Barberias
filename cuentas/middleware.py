@@ -88,16 +88,26 @@ class RateLimitMiddleware(MiddlewareMixin):
         # Obtener IP del cliente
         ip = self.get_client_ip(request)
         
+        # Rutas que NO requieren rate limiting (APIs de polling legítimas)
+        excluded_routes = [
+            '/chat/api/mensajes-no-leidos/',
+            '/cuentas/api/notificaciones/',
+        ]
+        
+        # Verificar si la ruta está excluida
+        current_path = request.path
+        if any(current_path.startswith(excluded) for excluded in excluded_routes):
+            return None  # No aplicar rate limiting a estas rutas
+        
         # Rutas sensibles que requieren rate limiting
         sensitive_routes = {
             '/cuentas/login/': {'rate': '5/m', 'key': f'login_{ip}'},
             '/cuentas/registro/': {'rate': '3/h', 'key': f'register_{ip}'},
             '/clientes/reserva/': {'rate': '10/h', 'key': f'reservation_{ip}'},
-            '/api/': {'rate': '100/h', 'key': f'api_{ip}'},
+            '/api/': {'rate': '200/h', 'key': f'api_{ip}'},  # Aumentado de 100 a 200
         }
         
         # Verificar si la ruta actual requiere rate limiting
-        current_path = request.path
         for route, config in sensitive_routes.items():
             if current_path.startswith(route):
                 if self.is_rate_limited(config['key'], config['rate']):

@@ -4276,8 +4276,21 @@ async function crearNuevaReserva(formData) {
     }
 }
 
-// Función para obtener el token CSRF
+// Función para obtener el token CSRF (mejorada)
 function getCookie(name) {
+    // Primero intentar obtener del input hidden (más confiable)
+    const inputToken = document.getElementById('csrf_token_js');
+    if (inputToken && inputToken.value) {
+        return inputToken.value;
+    }
+    
+    // Si no está en el input, buscar en el formulario
+    const formToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (formToken && formToken.value) {
+        return formToken.value;
+    }
+    
+    // Finalmente, intentar obtener de las cookies
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -4754,8 +4767,21 @@ async function ejecutarMarcarInasistencia(reservaId) {
     }
 }
 
-// Función para obtener el token CSRF
+// Función para obtener el token CSRF (mejorada)
 function getCookie(name) {
+    // Primero intentar obtener del input hidden (más confiable)
+    const inputToken = document.getElementById('csrf_token_js');
+    if (inputToken && inputToken.value) {
+        return inputToken.value;
+    }
+    
+    // Si no está en el input, buscar en el formulario
+    const formToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (formToken && formToken.value) {
+        return formToken.value;
+    }
+    
+    // Finalmente, intentar obtener de las cookies
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');

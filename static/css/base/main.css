@@ -1,10 +1,10 @@
 body, html, main {
-  background: #fff !important;
-  color: #222 !important;
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-primary) !important;
   font-family: var(--font-ui) !important;
 }
 * {
-  color: #222 !important;
+  color: var(--color-text-primary) !important;
   font-family: var(--font-ui) !important;
 }
 

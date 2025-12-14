@@ -1,260 +1,201 @@
-/* Paleta NeoWellness reforzada */
+/* ============================================
+   SISTEMA DE COLORES PROFESIONAL - APPO
+   Paleta simplificada para startup internacional
+   ============================================ */
+
 :root {
-  /* Colores de marca APPO */
-  --color-primary: #1E40AF; /* Azul oscuro */
-  --color-secondary: #10B981; /* Verde/Teal */
-  --color-background: #F3F4F6; /* Blanco off-white */
+  /* ===== COLORES PRIMARIOS ===== */
+  /* Un solo color primario con variaciones */
+  --color-primary: #1E40AF;        /* Azul principal - Confianza, profesionalismo */
+  --color-primary-hover: #1E3A8A;  /* Hover más oscuro */
+  --color-primary-light: #3B82F6;  /* Versión clara para fondos */
+  --color-primary-lighter: #DBEAFE; /* Muy claro para backgrounds suaves */
   
-  /* Colores existentes actualizados */
-  --color-mint-green: #10B981;
-  --color-smoke-white: #6B7280;
-  --color-dark: #1E40AF;
-  --color-light: #F3F4F6;
+  /* ===== COLORES SECUNDARIOS ===== */
+  /* Solo si realmente necesario - aquí verde para éxito/confirmación */
+  --color-accent: #10B981;         /* Verde para acciones positivas */
+  --color-accent-hover: #059669;
   
-  /* Tipografías */
+  /* ===== ESCALA DE GRISES (Texto y Fondos) ===== */
+  /* Sistema estándar internacional */
+  --color-text-primary: #111827;   /* Texto principal - casi negro */
+  --color-text-secondary: #6B7280; /* Texto secundario - gris medio */
+  --color-text-muted: #9CA3AF;     /* Texto deshabilitado - gris claro */
+  
+  --color-bg-primary: #FFFFFF;     /* Fondo principal - blanco */
+  --color-bg-secondary: #F9FAFB;   /* Fondo secundario - gris muy claro */
+  --color-bg-tertiary: #F3F4F6;    /* Fondo terciario - gris claro */
+  
+  --color-border: #E5E7EB;         /* Bordes - gris suave */
+  --color-border-light: #F3F4F6;   /* Bordes muy suaves */
+  
+  /* ===== COLORES SEMÁNTICOS ===== */
+  /* Solo para estados específicos */
+  --color-success: #10B981;        /* Éxito - verde */
+  --color-warning: #F59E0B;        /* Advertencia - amarillo/naranja */
+  --color-error: #EF4444;          /* Error - rojo */
+  --color-info: #3B82F6;           /* Información - azul */
+  
+  /* ===== TIPOGRAFÍA ===== */
   --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif-title: 'Playfair Display', Georgia, serif;
-  --font-display: 'Space Grotesk', sans-serif;
+  --font-display: 'Inter', sans-serif; /* Simplificado - una fuente es suficiente */
   
-  /* Espaciado */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
+  /* ===== ESPACIADO ===== */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
   
-  /* Bordes */
-  --border-radius-sm: 0.375rem;
-  --border-radius-md: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
-  --border-radius-2xl: 1.5rem;
+  /* ===== BORDES ===== */
+  --border-radius-sm: 0.375rem;   /* 6px */
+  --border-radius-md: 0.5rem;     /* 8px */
+  --border-radius-lg: 0.75rem;    /* 12px */
+  --border-radius-xl: 1rem;       /* 16px */
   
-  /* Sombras */
+  /* ===== SOMBRAS ===== */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   
-  /* Transiciones */
+  /* ===== TRANSICIONES ===== */
   --transition-fast: 0.15s ease-in-out;
   --transition-normal: 0.3s ease-in-out;
-  --transition-slow: 0.5s ease-in-out;
+  
+  /* ===== ALIAS PARA COMPATIBILIDAD (LEGACY) ===== */
+  /* Estos alias apuntan a la paleta nueva para evitar roturas en CSS antiguo */
+  --color-background: var(--color-bg-secondary);
+  --color-light: var(--color-bg-tertiary);
+  --color-dark: var(--color-primary);
+  --color-mint-green: var(--color-accent);
+  --color-smoke-white: var(--color-text-secondary);
+  --color-champagne-beige: var(--color-text-secondary);
+  --color-light-blue-gray: var(--color-border);
+  --color-black-deep: var(--color-text-primary);
+  --color-graphite-gray: var(--color-bg-tertiary);
+  --primary-color: var(--color-primary);
+  --primary-hover: var(--color-primary-hover);
+  --accent-color: var(--color-accent);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --border-color: var(--color-border);
+  /* Alias heredados de estilos antiguos */
+  --color-teal-accent: var(--color-accent);
+  --color-aqua-mint: var(--color-primary-light);
+  --color-coral-blush: var(--color-warning);
+  --color-soft-lavender-gray: var(--color-bg-tertiary);
+  --color-deep-charcoal: var(--color-text-primary);
+  --font-branding: var(--font-display);
 }
 
+/* ===== APLICACIÓN GLOBAL ===== */
 body {
-  background: #F4F3F1 !important;
-  color: #181818 !important;
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-primary) !important;
   font-family: var(--font-ui);
 }
 
 .header, header {
-  background: #F4F3F1 !important;
-  color: #181818 !important;
+  background: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+  border-bottom: 1px solid var(--color-border);
 }
 
 footer {
-  background: #F4F3F1 !important;
-  color: #181818 !important;
+  background: var(--color-bg-primary) !important;
+  color: var(--color-text-secondary) !important;
+  border-top: 1px solid var(--color-border);
 }
 
+/* ===== TARJETAS Y CONTENEDORES ===== */
 .card, .tarjeta, .box, .modal-content {
-  background: #fff !important;
-  color: #181818 !important;
-  border-radius: 1rem;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-primary, .btn-success, .btn-accent, .btn-mint {
-  background: #133A7F !important;
+/* ===== BOTONES ===== */
+.btn-primary, .btn-success, .btn-accent {
+  background: var(--color-primary) !important;
   color: #FFFFFF !important;
   border: none;
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-fast);
+}
+
+.btn-primary:hover, .btn-success:hover, .btn-accent:hover {
+  background: var(--color-primary-hover) !important;
 }
 
 .btn-outline-primary, .btn-outline-accent {
-  color: #133A7F !important;
-  border-color: #133A7F !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  background: transparent;
 }
 
 .btn-outline-primary:hover, .btn-outline-accent:hover {
-  background: #133A7F !important;
+  background: var(--color-primary) !important;
   color: #FFFFFF !important;
 }
 
-.divider, hr, .border-top {
-  border-color: var(--color-light-blue-gray) !important;
+/* Botones semánticos */
+.btn-success {
+  background: var(--color-success) !important;
 }
 
-.bg-soft, .bg-light, .bg-fondo-suave {
-  background: var(--color-light-blue-gray) !important;
-  color: var(--color-black-deep) !important;
-}
-
-.text-strong {
+.btn-warning {
+  background: var(--color-warning) !important;
   color: #FFFFFF !important;
-  font-weight: 600;
 }
 
-.text-accent {
-  color: var(--color-mint-green) !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.12);
+.btn-danger {
+  background: var(--color-error) !important;
+  color: #FFFFFF !important;
+}
+
+/* ===== TEXTOS ===== */
+.text-primary {
+  color: var(--color-text-primary) !important;
 }
 
 .text-secondary {
-  color: var(--color-champagne-beige) !important;
-  opacity: 0.85;
+  color: var(--color-text-secondary) !important;
 }
 
-.light-mode {
-  --color-black-deep: #fff;
-  --color-graphite-gray: #F5F5F5;
-  --color-smoke-white: #0D0D0D;
-  --color-mint-green: var(--color-mint-green-dark);
-  --color-champagne-beige: #EFE5DC;
-  --color-light-blue-gray: #DDE6E8;
-}
-
-.light-mode body,
-.light-mode .header,
-.light-mode header,
-.light-mode footer,
-.light-mode .card, .light-mode .tarjeta, .light-mode .box, .light-mode .modal-content {
-  background: var(--color-black-deep) !important;
-  color: var(--color-smoke-white) !important;
-}
-
-.light-mode .btn, .light-mode .btn-primary, .light-mode .btn-success, .light-mode .btn-accent, .light-mode .btn-mint {
-  background: #133A7F !important;
-  color: #FFFFFF !important;
-}
-
-.light-mode .btn-outline-primary, .light-mode .btn-outline-accent {
-  color: #133A7F !important;
-  border-color: #133A7F !important;
-}
-
-.light-mode .btn-outline-primary:hover, .light-mode .btn-outline-accent:hover {
-  background: #133A7F !important;
-  color: #FFFFFF !important;
-}
-
-.light-mode .divider, .light-mode hr, .light-mode .border-top {
-  border-color: var(--color-light-blue-gray) !important;
-}
-
-.light-mode .bg-soft, .light-mode .bg-light, .light-mode .bg-fondo-suave {
-  background: var(--color-light-blue-gray) !important;
-  color: var(--color-smoke-white) !important;
-}
-
-.light-mode .text-strong {
-  color: var(--color-smoke-white) !important;
-  font-weight: 600;
-}
-
-.light-mode .text-accent {
-  color: var(--color-mint-green) !important;
-}
-
-.light-mode .text-secondary {
-  color: var(--color-champagne-beige) !important;
-}
-
-/* Colores de texto globales para modo claro y oscuro */
 .text-muted {
-  color: #6c757d !important;
-}
-.text-dark {
-  color: #181818 !important;
-}
-.text-light {
-  color: #f5f5f5 !important;
-}
-.text-secondary {
-  color: var(--color-champagne-beige) !important;
-  opacity: 0.85;
-}
-@media (prefers-color-scheme: dark) {
-  .text-muted {
-    color: #bdbdbd !important;
-  }
-  .text-dark {
-    color: #f5f5f5 !important;
-  }
-  .text-light {
-    color: #fff !important;
-  }
-  .text-secondary {
-    color: #e0e0e0 !important;
-    opacity: 0.92;
-  }
+  color: var(--color-text-muted) !important;
 }
 
-/* CTA Section global styles */
-.cta-section {
-  background: var(--color-mint-green) !important;
-}
-.cta-section .cta-title, .cta-section .cta-desc {
-  color: var(--color-smoke-white);
-  font-family: var(--font-ui);
-}
-.light-mode .cta-section {
-  background: #F5F5F5 !important;
-}
-.light-mode .cta-section .cta-title, .light-mode .cta-section .cta-desc {
-  color: #0D0D0D;
-}
-section.cta-section .cta-title, section.cta-section .cta-desc {
-  color: var(--color-smoke-white) !important;
-  font-family: var(--font-ui);
-}
-.light-mode section.cta-section .cta-title, .light-mode section.cta-section .cta-desc {
-  color: #0D0D0D !important;
-}
-section.cta-section .btn {
-  color: #0D0D0D !important;
-}
-.light-mode section.cta-section .btn {
-  color: #0D0D0D !important;
+/* ===== FONDOS ===== */
+.bg-primary {
+  background: var(--color-bg-primary) !important;
 }
 
-/* Botones de tema: solo glifos puros, sin fondo ni borde */
-#toggle-theme, #toggle-theme-mobile {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: none;
+.bg-secondary {
+  background: var(--color-bg-secondary) !important;
 }
 
-#toggle-theme:hover, #toggle-theme-mobile:hover {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+.bg-tertiary {
+  background: var(--color-bg-tertiary) !important;
 }
 
-#toggle-theme:focus, #toggle-theme-mobile:focus {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
+/* ===== BORDES ===== */
+.border, .border-top, .border-bottom, hr {
+  border-color: var(--color-border) !important;
 }
 
-#toggle-theme span, #toggle-theme-mobile span {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: var(--color-smoke-white) !important;
+/* ===== MODO CLARO (por defecto) ===== */
+/* Ya está configurado arriba - no necesita cambios */
+
+/* ===== UTILIDADES ===== */
+.text-accent {
+  color: var(--color-accent) !important;
 }
 
-.light-mode #toggle-theme span, .light-mode #toggle-theme-mobile span {
-  color: var(--color-smoke-white) !important;
-} 
+.bg-accent {
+  background: var(--color-accent) !important;
+  color: #FFFFFF !important;
+}

@@ -278,20 +278,9 @@ def completar_perfil_google(request):
 @login_required
 def api_notificaciones(request):
     from django.core.cache import cache
-    import time
     
     user = request.user
     cache_key = f'notificaciones_{user.id}'
-    rate_limit_key = f'rate_limit_notificaciones_{user.id}'
-    
-    # Rate limiting: máximo 1 request por 5 segundos
-    last_request = cache.get(rate_limit_key)
-    current_time = time.time()
-    
-    if last_request and (current_time - last_request) < 5:
-        return JsonResponse({'error': 'Rate limit exceeded'}, status=429)
-    
-    cache.set(rate_limit_key, current_time, 10)
     
     # Intentar obtener del caché primero
     cached_data = cache.get(cache_key)
