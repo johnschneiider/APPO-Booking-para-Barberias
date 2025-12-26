@@ -1155,56 +1155,41 @@
     overflow: hidden; /* Oculta cualquier desbordamiento */
 }
 
-/* Colores de reservas */
-/* ========== SISTEMA DE COLORES POR ESTADO ========== */
+/* Colores de reservas - SISTEMA SIMPLIFICADO */
+/* ========== 3 COLORES BASE + BORDE DORADO PARA SUSCRIPCIONES ========== */
 
-/* Completada - Gris oscuro con letra blanca */
+/* VERDE - Confirmadas (todas las reservas confirmadas/pendientes) */
+.appointment-block[data-status="confirmed"],
+.appointment-block[data-status="confirmada"],
+.appointment-block[data-status="pending"],
+.appointment-block[data-status="pendiente"] {
+    background: linear-gradient(135deg, #48bb78, #38a169) !important;
+    border: 2px solid rgba(72, 187, 120, 0.5) !important;
+    color: white !important;
+}
+
+/* GRIS - Atendidas/Completadas */
 .appointment-block[data-status="completed"],
 .appointment-block[data-status="completada"] {
     background: linear-gradient(135deg, #4a5568, #2d3748) !important;
-    border-color: rgba(74, 85, 104, 0.5) !important;
+    border: 2px solid rgba(74, 85, 104, 0.5) !important;
     color: white !important;
 }
 
-/* Inasistencia - Rosado */
+/* ROJO - Inasistencias/Canceladas */
 .appointment-block[data-status="inasistencia"],
-.appointment-block[data-status="no_show"] {
-    background: linear-gradient(135deg, #f687b3, #ed64a6) !important;
-    border-color: rgba(246, 135, 179, 0.5) !important;
-    color: white !important;
-}
-
-/* Confirmada SIN suscripción - Verde */
-.appointment-block[data-status="confirmed"],
-.appointment-block[data-status="confirmada"] {
-    background: linear-gradient(135deg, #48bb78, #38a169) !important;
-    border-color: rgba(72, 187, 120, 0.5) !important;
-    color: white !important;
-}
-
-/* Confirmada CON suscripción activa - Azul con borde dorado */
-.appointment-block[data-status="confirmed"][data-suscripcion="true"],
-.appointment-block[data-status="confirmada"][data-suscripcion="true"] {
-    background: linear-gradient(135deg, #3182ce, #2b6cb0) !important;
-    border: 3px solid #ffd700 !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 4px 16px rgba(49, 130, 206, 0.3) !important;
-    color: white !important;
-}
-
-/* Pendiente - Amarillo */
-.appointment-block[data-status="pending"],
-.appointment-block[data-status="pendiente"] {
-    background: linear-gradient(135deg, #ecc94b, #d69e2e) !important;
-    border-color: rgba(236, 201, 75, 0.5) !important;
-    color: #1a202c !important;
-}
-
-/* Cancelada - Rojo (aunque no se muestran en el calendario) */
+.appointment-block[data-status="no_show"],
 .appointment-block[data-status="cancelled"],
 .appointment-block[data-status="cancelada"] {
     background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-    border-color: rgba(239, 68, 68, 0.3) !important;
+    border: 2px solid rgba(239, 68, 68, 0.5) !important;
     color: white !important;
+}
+
+/* BORDE DORADO PARA SUSCRIPCIONES - Se aplica a TODOS los estados */
+.appointment-block[data-suscripcion="true"] {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Indicador de suscripción - Estrella dorada visible */
@@ -1225,44 +1210,6 @@
 .appointment-block[data-suscripcion="true"][style*="height: 2"]::after {
     font-size: 0.8rem;
     right: 4px;
-}
-
-/* Colores por tipo de servicio - Mejorados */
-.appointment-block[data-service="corte"] {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    border-color: rgba(249, 115, 22, 0.4);
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
-}
-
-.appointment-block[data-service="color"] {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
-}
-
-.appointment-block[data-service="peinado"] {
-    background: linear-gradient(135deg, #ec4899, #db2777);
-    border-color: rgba(236, 72, 153, 0.4);
-    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
-}
-
-.appointment-block[data-service="tratamiento"] {
-    background: linear-gradient(135deg, #14b8a6, #0d9488);
-    border-color: rgba(20, 184, 166, 0.4);
-    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
-}
-
-.appointment-block[data-service="masaje"] {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-}
-
-/* Color por defecto para servicios no especificados */
-.appointment-block:not([data-service]) {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
 }
 
 /* Responsive */
@@ -2480,56 +2427,41 @@
     text-overflow: ellipsis;
 }
 
-/* Colores de reservas en el modal */
-/* ========== COLORES MODAL FULLSCREEN ========== */
+/* Colores de reservas en el modal - SISTEMA SIMPLIFICADO */
+/* ========== 3 COLORES BASE + BORDE DORADO PARA SUSCRIPCIONES ========== */
 
-/* Completada - Gris oscuro */
+/* VERDE - Confirmadas (todas las reservas confirmadas/pendientes) */
+.calendar-fullscreen-container .appointment-block[data-status="confirmed"],
+.calendar-fullscreen-container .appointment-block[data-status="confirmada"],
+.calendar-fullscreen-container .appointment-block[data-status="pending"],
+.calendar-fullscreen-container .appointment-block[data-status="pendiente"] {
+    background: linear-gradient(135deg, #48bb78, #38a169) !important;
+    border: 2px solid rgba(72, 187, 120, 0.5) !important;
+    color: white !important;
+}
+
+/* GRIS - Atendidas/Completadas */
 .calendar-fullscreen-container .appointment-block[data-status="completed"],
 .calendar-fullscreen-container .appointment-block[data-status="completada"] {
     background: linear-gradient(135deg, #4a5568, #2d3748) !important;
-    border-color: rgba(74, 85, 104, 0.5) !important;
+    border: 2px solid rgba(74, 85, 104, 0.5) !important;
     color: white !important;
 }
 
-/* Inasistencia - Rosado */
+/* ROJO - Inasistencias/Canceladas */
 .calendar-fullscreen-container .appointment-block[data-status="inasistencia"],
-.calendar-fullscreen-container .appointment-block[data-status="no_show"] {
-    background: linear-gradient(135deg, #f687b3, #ed64a6) !important;
-    border-color: rgba(246, 135, 179, 0.5) !important;
-    color: white !important;
-}
-
-/* Confirmada SIN suscripción - Verde */
-.calendar-fullscreen-container .appointment-block[data-status="confirmed"],
-.calendar-fullscreen-container .appointment-block[data-status="confirmada"] {
-    background: linear-gradient(135deg, #48bb78, #38a169) !important;
-    border-color: rgba(72, 187, 120, 0.5) !important;
-    color: white !important;
-}
-
-/* Confirmada CON suscripción - Azul con borde dorado */
-.calendar-fullscreen-container .appointment-block[data-status="confirmed"][data-suscripcion="true"],
-.calendar-fullscreen-container .appointment-block[data-status="confirmada"][data-suscripcion="true"] {
-    background: linear-gradient(135deg, #3182ce, #2b6cb0) !important;
-    border: 3px solid #ffd700 !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 4px 16px rgba(49, 130, 206, 0.3) !important;
-    color: white !important;
-}
-
-/* Pendiente - Amarillo */
-.calendar-fullscreen-container .appointment-block[data-status="pending"],
-.calendar-fullscreen-container .appointment-block[data-status="pendiente"] {
-    background: linear-gradient(135deg, #ecc94b, #d69e2e) !important;
-    border-color: rgba(236, 201, 75, 0.5) !important;
-    color: #1a202c !important;
-}
-
-/* Cancelada - Rojo */
+.calendar-fullscreen-container .appointment-block[data-status="no_show"],
 .calendar-fullscreen-container .appointment-block[data-status="cancelled"],
 .calendar-fullscreen-container .appointment-block[data-status="cancelada"] {
     background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-    border-color: rgba(239, 68, 68, 0.3) !important;
+    border: 2px solid rgba(239, 68, 68, 0.5) !important;
     color: white !important;
+}
+
+/* BORDE DORADO PARA SUSCRIPCIONES - Se aplica a TODOS los estados */
+.calendar-fullscreen-container .appointment-block[data-suscripcion="true"] {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Indicador de suscripción - Estrella dorada en fullscreen */
@@ -2543,37 +2475,6 @@
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
     pointer-events: none;
     z-index: 5;
-}
-
-/* Colores por tipo de servicio en el modal */
-.calendar-fullscreen-container .appointment-block[data-service="corte"] {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    border-color: rgba(249, 115, 22, 0.4);
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
-}
-
-.calendar-fullscreen-container .appointment-block[data-service="color"] {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
-}
-
-.calendar-fullscreen-container .appointment-block[data-service="peinado"] {
-    background: linear-gradient(135deg, #ec4899, #db2777);
-    border-color: rgba(236, 72, 153, 0.4);
-    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
-}
-
-.calendar-fullscreen-container .appointment-block[data-service="tratamiento"] {
-    background: linear-gradient(135deg, #14b8a6, #0d9488);
-    border-color: rgba(20, 184, 166, 0.4);
-    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
-}
-
-.calendar-fullscreen-container .appointment-block[data-service="masaje"] {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
 }
 
 /* Color por defecto para servicios no especificados en el modal */
@@ -3718,19 +3619,8 @@ function mostrarReservasEnCalendario() {
                     console.log(`⏰ Reserva larga detectada: ${duracionMinutos} minutos`);
                 }
                 
-                // Aplicar clase CSS específica para el tipo de servicio
-                const tipoServicio = (reserva.servicio || '').toLowerCase();
-                if (tipoServicio.includes('corte') || tipoServicio.includes('cabello')) {
-                    appointmentBlock.classList.add('appointment-corte');
-                } else if (tipoServicio.includes('color') || tipoServicio.includes('tinte')) {
-                    appointmentBlock.classList.add('appointment-color');
-                } else if (tipoServicio.includes('peinado')) {
-                    appointmentBlock.classList.add('appointment-peinado');
-                } else if (tipoServicio.includes('tratamiento')) {
-                    appointmentBlock.classList.add('appointment-tratamiento');
-                } else if (tipoServicio.includes('masaje')) {
-                    appointmentBlock.classList.add('appointment-masaje');
-                }
+                // Sistema simplificado: no se aplican colores por tipo de servicio
+                // Solo se usan 3 colores base (verde, gris, rojo) + borde dorado para suscripciones
                 
                 // Calcular altura basada en la duración real
                 // 80px = 1 hora, entonces: altura = (duracion / 60) * 80
