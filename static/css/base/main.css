@@ -36,13 +36,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .horario-card.bg-gradient-primary {
-  background: linear-gradient(135deg, var(--color-aqua-mint), var(--color-teal-accent));
-  color: var(--color-deep-charcoal);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #FFFFFF;
 }
 
 .horario-card.bg-light {
-  background: var(--color-coral-blush);
-  color: var(--color-deep-charcoal);
+  background: var(--color-warning);
+  color: #FFFFFF;
 }
 
 .btn-primary, .btn-outline-primary {
@@ -56,16 +56,17 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.2s, color 0.2s;
 }
 .btn-primary:hover, .btn-outline-primary:hover {
-  background: var(--color-aqua-mint);
-  color: var(--color-deep-charcoal);
+  background: var(--color-primary-hover);
+  color: #FFFFFF;
 }
 
 .btn-secondary, .btn-outline-secondary {
   background: var(--color-coral-blush);
   border-color: var(--color-coral-blush);
-  color: var(--color-deep-charcoal);
+  color: #FFFFFF;
   font-family: var(--font-ui);
   border-radius: 2rem;
+  font-weight: 600;
 }
 
 input, select, textarea {
@@ -83,14 +84,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 .toast, .alert-success {
-  background: var(--color-aqua-mint);
-  color: var(--color-deep-charcoal);
+  background: var(--color-success);
+  color: #FFFFFF;
   font-family: var(--font-ui);
 }
 
 .alert-danger, .alert-error {
-  background: var(--color-coral-blush);
-  color: var(--color-deep-charcoal);
+  background: var(--color-error);
+  color: #FFFFFF;
 }
 
 /* Espaciado y separación */
@@ -223,8 +224,8 @@ header, .header {
 }
 /* Toasts globales */
 .toast {
-  background: var(--color-aqua-mint);
-  color: var(--color-deep-charcoal);
+  background: var(--color-success);
+  color: #FFFFFF;
   border-radius: 1.1rem;
   font-family: var(--font-ui);
   font-size: 1.1rem;

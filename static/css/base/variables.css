@@ -19,8 +19,8 @@
   /* ===== ESCALA DE GRISES (Texto y Fondos) ===== */
   /* Sistema estándar internacional */
   --color-text-primary: #111827;   /* Texto principal - casi negro */
-  --color-text-secondary: #6B7280; /* Texto secundario - gris medio */
-  --color-text-muted: #9CA3AF;     /* Texto deshabilitado - gris claro */
+  --color-text-secondary: #4B5563; /* Texto secundario - gris medio oscuro (mejor contraste) */
+  --color-text-muted: #6B7280;     /* Texto deshabilitado - gris medio (mejor contraste) */
   
   --color-bg-primary: #FFFFFF;     /* Fondo principal - blanco */
   --color-bg-secondary: #F9FAFB;   /* Fondo secundario - gris muy claro */
