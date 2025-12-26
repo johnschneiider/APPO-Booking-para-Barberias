@@ -9,7 +9,7 @@ sudo cat /etc/systemd/system/appo.service
 
 echo ""
 echo "🔍 Verificando qué puerto está usando..."
-sudo grep -E "bind|8015|8016|8000" /etc/systemd/system/appo.service
+sudo grep -E "bind|8015|8016|8000|8888" /etc/systemd/system/appo.service
 
 echo ""
 echo "📊 Estado del servicio appo:"
@@ -17,22 +17,24 @@ sudo systemctl status appo --no-pager -l
 
 echo ""
 echo "🔍 Verificando qué puerto está usando realmente (netstat):"
-sudo netstat -tulpn | grep -E "8015|8016|8000" | grep python
+sudo netstat -tulpn | grep -E "8015|8016|8000|8888" | grep python
 
 echo ""
 echo "🛑 Deteniendo servicio appo..."
 sudo systemctl stop appo
 
 echo ""
-echo "✏️  Actualizando puerto a 8016 en appo.service..."
-sudo sed -i 's/:8000/:8016/g' /etc/systemd/system/appo.service
-sudo sed -i 's/:8015/:8016/g' /etc/systemd/system/appo.service
-sudo sed -i 's/127.0.0.1:8000/127.0.0.1:8016/g' /etc/systemd/system/appo.service
-sudo sed -i 's/127.0.0.1:8015/127.0.0.1:8016/g' /etc/systemd/system/appo.service
+echo "✏️  Actualizando puerto a 8888 en appo.service..."
+sudo sed -i 's/:8000/:8888/g' /etc/systemd/system/appo.service
+sudo sed -i 's/:8015/:8888/g' /etc/systemd/system/appo.service
+sudo sed -i 's/:8016/:8888/g' /etc/systemd/system/appo.service
+sudo sed -i 's/127.0.0.1:8000/127.0.0.1:8888/g' /etc/systemd/system/appo.service
+sudo sed -i 's/127.0.0.1:8015/127.0.0.1:8888/g' /etc/systemd/system/appo.service
+sudo sed -i 's/127.0.0.1:8016/127.0.0.1:8888/g' /etc/systemd/system/appo.service
 
 echo ""
 echo "✅ Archivo actualizado. Verificando cambios:"
-sudo grep -E "bind|8016" /etc/systemd/system/appo.service
+sudo grep -E "bind|8888" /etc/systemd/system/appo.service
 
 echo ""
 echo "🔄 Recargando systemd..."
@@ -51,8 +53,8 @@ echo "📊 Estado final del servicio:"
 sudo systemctl status appo --no-pager -l
 
 echo ""
-echo "🔍 Verificando puerto 8016 en uso:"
-sudo netstat -tulpn | grep 8016
+echo "🔍 Verificando puerto 8888 en uso:"
+sudo netstat -tulpn | grep 8888
 
 echo ""
 echo "✅ ¡Completado!"

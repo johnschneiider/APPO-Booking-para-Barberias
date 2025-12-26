@@ -3726,13 +3726,25 @@ function mostrarReservasEnCalendario() {
                     return hora.substring(0, 5); // Solo HH:MM
                 };
                 
-                // SIMPLIFICAR: Solo mostrar rango de horas
-                appointmentBlock.innerHTML = `
-                    <span class="appointment-time-only">${formatHora(horaInicio)} - ${formatHora(horaFin)}</span>
-                `;
+                // Mostrar nombre del cliente y rango de horas
+                const nombreCliente = reserva.cliente || 'Cliente';
+                const nombreServicio = reserva.servicio || 'Servicio';
                 
-                // Tooltip simple
-                appointmentBlock.title = `${reserva.cliente || 'Cliente'} - ${reserva.servicio || 'Servicio'} (${duracionMinutos} min)`;
+                // Si la reserva es muy pequeña (menos de 40px), solo mostrar el nombre
+                // Si es más grande, mostrar nombre y hora
+                if (alturaPx < 40) {
+                    appointmentBlock.innerHTML = `
+                        <span class="appointment-cliente-name" style="font-size: 0.7rem; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nombreCliente}</span>
+                    `;
+                } else {
+                    appointmentBlock.innerHTML = `
+                        <span class="appointment-cliente-name" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nombreCliente}</span>
+                        <span class="appointment-time-only" style="font-size: 0.65rem; opacity: 0.9;">${formatHora(horaInicio)} - ${formatHora(horaFin)}</span>
+                    `;
+                }
+                
+                // Tooltip con información completa
+                appointmentBlock.title = `${nombreCliente} - ${nombreServicio} (${duracionMinutos} min)`;
                 
                 console.log(`📐 Reserva ${reserva.id}: ${duracionMinutos}min = ${alturaPx}px de altura`);
                 

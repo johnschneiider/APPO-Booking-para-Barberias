@@ -86,11 +86,11 @@ fi
 echo ""
 
 # 4. Verificar que Gunicorn responda
-print_status "4. Verificando que Gunicorn responda en localhost:8000..."
-if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health/ | grep -q "200\|404"; then
-    print_success "Gunicorn responde en localhost:8000"
+print_status "4. Verificando que Gunicorn responda en localhost:8888..."
+if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8888/health/ | grep -q "200\|404"; then
+    print_success "Gunicorn responde en localhost:8888"
 else
-    print_error "Gunicorn NO responde en localhost:8000"
+    print_error "Gunicorn NO responde en localhost:8888"
     echo "   Verifica logs: sudo journalctl -u appo -n 50"
 fi
 

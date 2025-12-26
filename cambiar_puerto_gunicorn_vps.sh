@@ -1,7 +1,7 @@
 #!/bin/bash
-# Script para cambiar el puerto de Gunicorn de 8015 a 8016 en la VPS
+# Script para cambiar el puerto de Gunicorn a 8888 en la VPS
 
-echo "🔧 Cambiando puerto de Gunicorn de 8015 a 8016..."
+echo "🔧 Cambiando puerto de Gunicorn a 8888..."
 
 # 1. Verificar qué servicios están corriendo
 echo "📋 Servicios Gunicorn encontrados:"
@@ -24,17 +24,21 @@ fi
 
 echo "📄 Archivo de servicio: $SERVICE_FILE"
 
-# 4. Editar el archivo de servicio (reemplazar 8015 por 8016)
+# 4. Editar el archivo de servicio (reemplazar cualquier puerto por 8888)
 if [ -f "$SERVICE_FILE" ]; then
     echo "✏️  Actualizando puerto en $SERVICE_FILE..."
-    sudo sed -i 's/:8015/:8016/g' "$SERVICE_FILE"
-    sudo sed -i 's/8015/8016/g' "$SERVICE_FILE"
+    sudo sed -i 's/:8000/:8888/g' "$SERVICE_FILE"
+    sudo sed -i 's/:8015/:8888/g' "$SERVICE_FILE"
+    sudo sed -i 's/:8016/:8888/g' "$SERVICE_FILE"
+    sudo sed -i 's/127.0.0.1:8000/127.0.0.1:8888/g' "$SERVICE_FILE"
+    sudo sed -i 's/127.0.0.1:8015/127.0.0.1:8888/g' "$SERVICE_FILE"
+    sudo sed -i 's/127.0.0.1:8016/127.0.0.1:8888/g' "$SERVICE_FILE"
     echo "✅ Archivo actualizado"
 else
     echo "📝 Creando nuevo archivo de servicio..."
     sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
-Description=Gunicorn daemon for Predicta
+Description=Gunicorn daemon for APPO
 After=network.target
 
 [Service]
@@ -45,7 +49,7 @@ Environment="PATH=/var/www/appo.com.co/venv/bin"
 ExecStart=/var/www/appo.com.co/venv/bin/gunicorn \\
     --workers 3 \\
     --timeout 120 \\
-    --bind 127.0.0.1:8016 \\
+    --bind 127.0.0.1:8888 \\
     melissa.wsgi:application
 
 [Install]
@@ -58,8 +62,9 @@ fi
 echo "📝 Actualizando configuración de Nginx..."
 NGINX_CONFIG="/etc/nginx/sites-available/appo.com.co"
 if [ -f "$NGINX_CONFIG" ]; then
-    sudo sed -i 's/127.0.0.1:8000/127.0.0.1:8016/g' "$NGINX_CONFIG"
-    sudo sed -i 's/127.0.0.1:8015/127.0.0.1:8016/g' "$NGINX_CONFIG"
+    sudo sed -i 's/127.0.0.1:8000/127.0.0.1:8888/g' "$NGINX_CONFIG"
+    sudo sed -i 's/127.0.0.1:8015/127.0.0.1:8888/g' "$NGINX_CONFIG"
+    sudo sed -i 's/127.0.0.1:8016/127.0.0.1:8888/g' "$NGINX_CONFIG"
     echo "✅ Nginx actualizado"
 else
     echo "⚠️  No se encontró $NGINX_CONFIG, verifica manualmente"
@@ -86,7 +91,7 @@ sleep 2
 sudo systemctl status gunicorn 2>/dev/null || sudo systemctl status appo 2>/dev/null
 
 echo ""
-echo "🎉 ¡Completado! El puerto ahora es 8016"
+echo "🎉 ¡Completado! El puerto ahora es 8888"
 echo "📊 Verifica con: sudo systemctl status gunicorn"
 
 

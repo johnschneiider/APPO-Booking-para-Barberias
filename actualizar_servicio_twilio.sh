@@ -55,7 +55,7 @@ Environment="TWILIO_WHATSAPP_NUMBER=$TWILIO_WHATSAPP_NUMBER_VAL"
 ExecStart=/var/www/appo.com.co/venv/bin/gunicorn \\
     --workers 3 \\
     --timeout 120 \\
-    --bind 127.0.0.1:8000 \\
+    --bind 127.0.0.1:8888 \\
     --access-logfile /var/www/appo.com.co/logs/gunicorn-access.log \\
     --error-logfile /var/www/appo.com.co/logs/gunicorn-error.log \\
     melissa.wsgi:application

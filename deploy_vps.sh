@@ -290,7 +290,7 @@ Environment="TWILIO_WHATSAPP_NUMBER=$TWILIO_WHATSAPP_NUMBER_VAL"
 ExecStart=$PROJECT_DIR/venv/bin/gunicorn \\
     --workers 3 \\
     --timeout 120 \\
-    --bind 127.0.0.1:8000 \\
+    --bind 127.0.0.1:8888 \\
     --access-logfile $PROJECT_DIR/logs/gunicorn-access.log \\
     --error-logfile $PROJECT_DIR/logs/gunicorn-error.log \\
     melissa.wsgi:application
