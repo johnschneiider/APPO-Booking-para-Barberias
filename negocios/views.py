@@ -1647,12 +1647,35 @@ def configurar_politica_inasistencias(request, negocio_id):
     # Obtener configuración actual
     config_actual = getattr(negocio, 'configuracion_inasistencias', {})
     
+    # Obtener clientes bloqueados
+    from clientes.models import BloqueoCliente
+    clientes_bloqueados = BloqueoCliente.objects.filter(
+        negocio=negocio,
+        activo=True
+    ).select_related('cliente').order_by('-fecha_creacion')
+    
     context = {
         'negocio': negocio,
         'config_actual': config_actual,
+        'clientes_bloqueados': clientes_bloqueados,
     }
     
     return render(request, 'negocios/configurar_politica_inasistencias.html', context)
+
+@login_required
+def desbloquear_cliente(request, negocio_id, bloqueo_id):
+    """Vista para desbloquear manualmente a un cliente"""
+    negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
+    from clientes.models import BloqueoCliente
+    
+    try:
+        bloqueo = BloqueoCliente.objects.get(id=bloqueo_id, negocio=negocio, activo=True)
+        bloqueo.desbloquear(usuario=request.user)
+        messages.success(request, f'Cliente {bloqueo.cliente.username} desbloqueado correctamente')
+    except BloqueoCliente.DoesNotExist:
+        messages.error(request, 'Bloqueo no encontrado o ya fue desbloqueado')
+    
+    return redirect('negocios:configurar_politica_inasistencias', negocio_id=negocio_id)
 
 @login_required
 def api_agendas_profesionales(request, negocio_id):

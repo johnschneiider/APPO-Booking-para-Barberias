@@ -141,6 +141,67 @@
         </div>
 
         <div class="col-lg-4">
+            <!-- Clientes Bloqueados -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-ban text-danger"></i>
+                        Clientes Bloqueados
+                        {% if clientes_bloqueados %}
+                            <span class="badge bg-danger">{{ clientes_bloqueados|length }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if clientes_bloqueados %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Inasistencias</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for bloqueo in clientes_bloqueados %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ bloqueo.cliente.username }}</strong><br>
+                                            <small class="text-muted">{{ bloqueo.cliente.email }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ bloqueo.inasistencias_que_causaron }}</span>
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{% url 'negocios:desbloquear_cliente' negocio.id bloqueo.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" 
+                                                        onclick="return confirm('¿Estás seguro de desbloquear a {{ bloqueo.cliente.username }}?')">
+                                                    <i class="fas fa-unlock"></i> Desbloquear
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Los clientes bloqueados no verán horarios disponibles al intentar agendar.
+                            </small>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                            <p class="text-muted mb-0">No hay clientes bloqueados</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Información de ayuda -->
             <div class="card">
                 <div class="card-header">
@@ -158,11 +219,11 @@
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-ban text-danger"></i>
-                            <strong>Penalización:</strong> Días sin poder reservar
+                            <strong>Bloqueo:</strong> Al alcanzar el máximo de inasistencias, el cliente no verá horarios disponibles
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-exclamation-triangle text-warning"></i>
-                            <strong>Máximo:</strong> Límite antes de restricciones
+                            <strong>Máximo:</strong> Número de inasistencias antes del bloqueo automático
                         </li>
                     </ul>
 
@@ -176,35 +237,9 @@
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-check text-success"></i>
-                            Penalización: 7-14 días
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
                             Máximo: 3-5 inasistencias
                         </li>
                     </ul>
-                </div>
-            </div>
-
-            <!-- Estadísticas actuales -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar text-primary"></i>
-                        Estadísticas Actuales
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <h4 class="text-danger">{{ total_inasistencias|default:0 }}</h4>
-                            <small>Total Inasistencias</small>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-warning">{{ clientes_problematicos|length|default:0 }}</h4>
-                            <small>Clientes Problemáticos</small>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

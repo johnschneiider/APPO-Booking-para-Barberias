@@ -400,6 +400,14 @@ def horarios_disponibles(request, negocio_id):
         profesional_id = request.GET.get('profesional_id')
         duracion = None
         logger.info(f"[HORARIOS DISPONIBLES] Params: negocio_id={negocio_id}, fecha={fecha}, profesional_id={profesional_id}, servicio_negocio_id={servicio_negocio_id}")
+        
+        # Verificar si el cliente está bloqueado (solo si está autenticado)
+        if request.user.is_authenticated:
+            from clientes.models import BloqueoCliente
+            if BloqueoCliente.esta_bloqueado(request.user, negocio):
+                logger.info(f"[HORARIOS DISPONIBLES] Cliente {request.user.username} está bloqueado para {negocio.nombre}")
+                # Retornar lista vacía sin mensaje (bloqueo silencioso)
+                return JsonResponse({'disponibles': [], 'festivo': False})
         if servicio_negocio_id:
             try:
                 servicio_negocio = ServicioNegocio.objects.get(id=servicio_negocio_id, negocio=negocio)
@@ -1654,6 +1662,7 @@ def buscar_negocios(request):
 @require_GET
 def disponibilidad_dias(request):
     from datetime import date, timedelta
+    from clientes.models import BloqueoCliente
     import calendar
     import holidays
     from profesionales.models import HorarioProfesional
@@ -1673,6 +1682,15 @@ def disponibilidad_dias(request):
         servicio = negocio.servicios_negocio.get(id=servicio_id)
         fecha_inicio = date.fromisoformat(fecha_inicio_str)
         fecha_fin = date.fromisoformat(fecha_fin_str)
+        
+        # Verificar si el cliente está bloqueado (solo si está autenticado)
+        if request.user.is_authenticated:
+            if BloqueoCliente.esta_bloqueado(request.user, negocio):
+                # Si está bloqueado, retornar todos los días como no disponibles
+                for i in range((fecha_fin - fecha_inicio).days + 1):
+                    dia = fecha_inicio + timedelta(days=i)
+                    disponibilidad[dia.strftime('%Y-%m-%d')] = False
+                return JsonResponse({'disponibilidad': disponibilidad})
     except Exception:
         return JsonResponse({'disponibilidad': disponibilidad})
     

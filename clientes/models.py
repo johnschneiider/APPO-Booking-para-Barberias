@@ -320,6 +320,9 @@ class Reserva(models.Model):
                 '/profesionales/panel/'
             )
             
+            # Verificar si se debe bloquear al cliente según la política del negocio
+            self._verificar_y_aplicar_bloqueo()
+            
             # Log de actividad
             from cuentas.utils import log_reservation_activity
             log_reservation_activity(
@@ -363,6 +366,43 @@ class Reserva(models.Model):
         if notas_adicionales:
             self.notas = f"{self.notas}\n[Completado] {notas_adicionales}" if self.notas else f"[Completado] {notas_adicionales}"
         self.save()
+
+    def _verificar_y_aplicar_bloqueo(self):
+        """
+        Verifica si el cliente debe ser bloqueado según la política de inasistencias del negocio
+        y aplica el bloqueo si es necesario.
+        """
+        logger = logging.getLogger(__name__)
+        
+        try:
+            # Obtener configuración del negocio
+            config = getattr(self.peluquero, 'configuracion_inasistencias', {})
+            max_inasistencias = config.get('max_inasistencias', 3)
+            
+            # Contar inasistencias del cliente en este negocio
+            total_inasistencias = Reserva.objects.filter(
+                cliente=self.cliente,
+                peluquero=self.peluquero,
+                estado='inasistencia'
+            ).count()
+            
+            logger.info(f"Cliente {self.cliente.username} tiene {total_inasistencias} inasistencias en {self.peluquero.nombre} (máximo permitido: {max_inasistencias})")
+            
+            # Si alcanza o supera el máximo, bloquear
+            if total_inasistencias >= max_inasistencias:
+                # Importar aquí para evitar importación circular (BloqueoCliente está definido después)
+                from clientes.models import BloqueoCliente
+                motivo = f"Cliente bloqueado por {total_inasistencias} inasistencias (máximo permitido: {max_inasistencias})"
+                BloqueoCliente.crear_bloqueo(
+                    cliente=self.cliente,
+                    negocio=self.peluquero,
+                    motivo=motivo,
+                    inasistencias_count=total_inasistencias
+                )
+                logger.info(f"Cliente {self.cliente.username} bloqueado automáticamente en {self.peluquero.nombre}")
+        except Exception as e:
+            logger.error(f"Error al verificar bloqueo para cliente {self.cliente.username}: {str(e)}")
+            # No lanzar excepción para no interrumpir el flujo de marcar inasistencia
         
         # Crear notificación para el cliente
         self._crear_notificacion_cliente(
@@ -539,3 +579,74 @@ class NotificacionCliente(models.Model):
         self.leida = True
         self.fecha_lectura = timezone.now()
         self.save()
+
+
+class BloqueoCliente(models.Model):
+    """
+    Modelo para rastrear bloqueos de clientes por inasistencias en un negocio específico.
+    El bloqueo impide que el cliente vea horarios disponibles al intentar agendar.
+    """
+    cliente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bloqueos_cliente')
+    negocio = models.ForeignKey(Negocio, on_delete=models.CASCADE, related_name='bloqueos_negocio')
+    fecha_bloqueo = models.DateTimeField(auto_now_add=True, help_text='Fecha en que se aplicó el bloqueo')
+    fecha_desbloqueo = models.DateTimeField(null=True, blank=True, help_text='Fecha en que se desbloqueó (si es manual)')
+    motivo = models.TextField(help_text='Motivo del bloqueo (ej: múltiples inasistencias)')
+    inasistencias_que_causaron = models.IntegerField(default=0, help_text='Número de inasistencias que causaron el bloqueo')
+    activo = models.BooleanField(default=True, help_text='Si el bloqueo está activo')
+    desbloqueado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='bloqueos_desbloqueados',
+        help_text='Usuario que desbloqueó manualmente'
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Bloqueo de Cliente'
+        verbose_name_plural = 'Bloqueos de Clientes'
+        ordering = ['-fecha_creacion']
+        unique_together = [['cliente', 'negocio', 'activo']]
+        indexes = [
+            models.Index(fields=['cliente', 'negocio', 'activo']),
+            models.Index(fields=['negocio', 'activo']),
+        ]
+
+    def __str__(self):
+        estado = "Activo" if self.activo else "Desbloqueado"
+        return f"{self.cliente.username} - {self.negocio.nombre} ({estado})"
+
+    def desbloquear(self, usuario=None):
+        """Desbloquea al cliente manualmente"""
+        self.activo = False
+        self.fecha_desbloqueo = timezone.now()
+        if usuario:
+            self.desbloqueado_por = usuario
+        self.save()
+
+    @classmethod
+    def esta_bloqueado(cls, cliente, negocio):
+        """Verifica si un cliente está bloqueado para un negocio específico"""
+        return cls.objects.filter(
+            cliente=cliente,
+            negocio=negocio,
+            activo=True
+        ).exists()
+
+    @classmethod
+    def crear_bloqueo(cls, cliente, negocio, motivo, inasistencias_count):
+        """Crea un nuevo bloqueo para un cliente"""
+        # Desactivar bloqueos anteriores si existen
+        cls.objects.filter(cliente=cliente, negocio=negocio, activo=True).update(activo=False)
+        
+        # Crear nuevo bloqueo
+        bloqueo = cls.objects.create(
+            cliente=cliente,
+            negocio=negocio,
+            motivo=motivo,
+            inasistencias_que_causaron=inasistencias_count,
+            activo=True
+        )
+        return bloqueo
