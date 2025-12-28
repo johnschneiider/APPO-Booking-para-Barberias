@@ -166,21 +166,31 @@
 .current-date-large .date-day {
     font-size: 1.75rem;
     font-weight: 800;
-    color: white;
+    color: white !important;
     line-height: 1;
 }
 
 .current-date-large .date-month {
     font-size: 0.85rem;
     font-weight: 600;
-    color: white;
+    color: white !important;
     text-transform: capitalize;
 }
 
 .current-date-large .date-weekday {
     font-size: 0.75rem;
-    color: white;
+    color: white !important;
     text-transform: capitalize;
+}
+
+/* Input de fecha oculto (pero existente) para abrir el datepicker nativo */
+.fecha-picker-header {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .today-btn-header {
@@ -2983,11 +2993,12 @@
                 <button class="nav-btn-large" onclick="anteriorDia()" title="Día anterior">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                <div class="current-date-large" id="fechaActualHeader">
+                <div class="current-date-large" id="fechaActualHeader" title="Cambiar fecha">
                     <span class="date-day" id="fechaDia">{{ fecha_actual|date:"d" }}</span>
                     <span class="date-month" id="fechaMesAno">{{ fecha_actual|date:"F Y" }}</span>
                     <span class="date-weekday" id="fechaDiaSemana">{{ fecha_actual|date:"l" }}</span>
                 </div>
+                <input type="date" id="fechaPickerHeader" class="fecha-picker-header" value="{{ fecha_actual|date:'Y-m-d' }}">
                 <button class="nav-btn-large" onclick="siguienteDia()" title="Día siguiente">
                     <i class="bi bi-chevron-right"></i>
                 </button>
@@ -4786,36 +4797,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Solo cargar profesionales, no generar calendario automáticamente
     cargarProfesionalesSinCalendario();
     
-    // Agregar event listener para abrir selector de fecha al hacer click en la fecha
+    // Abrir selector de fecha nativo al hacer click en la fecha del header
     const fechaActualHeader = document.getElementById('fechaActualHeader');
-    if (fechaActualHeader) {
+    const fechaPickerHeader = document.getElementById('fechaPickerHeader');
+    if (fechaPickerHeader) {
+        // Mantener el input sincronizado
+        fechaPickerHeader.value = fechaSeleccionada;
+        fechaPickerHeader.addEventListener('change', function() {
+            if (!this.value) return;
+            fechaSeleccionada = this.value;
+            actualizarFechaEnHeader();
+            cargarReservas();
+        });
+    }
+    if (fechaActualHeader && fechaPickerHeader) {
         fechaActualHeader.addEventListener('click', function() {
-            const inputFecha = document.createElement('input');
-            inputFecha.type = 'date';
-            inputFecha.value = fechaSeleccionada;
-            inputFecha.style.position = 'absolute';
-            inputFecha.style.opacity = '0';
-            inputFecha.style.pointerEvents = 'none';
-            inputFecha.style.width = '1px';
-            inputFecha.style.height = '1px';
-            
-            document.body.appendChild(inputFecha);
-            inputFecha.focus();
-            inputFecha.click();
-            
-            inputFecha.addEventListener('change', function() {
-                fechaSeleccionada = this.value;
-                actualizarFechaEnHeader();
-                cargarReservas();
-                document.body.removeChild(inputFecha);
-            });
-            
-            // Limpiar si no se selecciona nada
-            setTimeout(() => {
-                if (document.body.contains(inputFecha)) {
-                    document.body.removeChild(inputFecha);
+            try {
+                // Chromium (y algunos navegadores) soportan showPicker()
+                if (typeof fechaPickerHeader.showPicker === 'function') {
+                    fechaPickerHeader.showPicker();
+                } else {
+                    // Fallback
+                    fechaPickerHeader.focus();
+                    fechaPickerHeader.click();
                 }
-            }, 1000);
+            } catch (e) {
+                // Fallback robusto
+                fechaPickerHeader.focus();
+                fechaPickerHeader.click();
+            }
         });
     }
     
