@@ -155,25 +155,31 @@
     align-items: center;
     min-width: 140px;
     padding: 0 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.current-date-large:hover {
+    opacity: 0.8;
 }
 
 .current-date-large .date-day {
     font-size: 1.75rem;
     font-weight: 800;
-    color: var(--primary-color);
+    color: white;
     line-height: 1;
 }
 
 .current-date-large .date-month {
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--dark-color);
+    color: white;
     text-transform: capitalize;
 }
 
 .current-date-large .date-weekday {
     font-size: 0.75rem;
-    color: var(--secondary-color);
+    color: white;
     text-transform: capitalize;
 }
 
@@ -4779,6 +4785,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Solo cargar profesionales, no generar calendario automáticamente
     cargarProfesionalesSinCalendario();
+    
+    // Agregar event listener para abrir selector de fecha al hacer click en la fecha
+    const fechaActualHeader = document.getElementById('fechaActualHeader');
+    if (fechaActualHeader) {
+        fechaActualHeader.addEventListener('click', function() {
+            const inputFecha = document.createElement('input');
+            inputFecha.type = 'date';
+            inputFecha.value = fechaSeleccionada;
+            inputFecha.style.position = 'absolute';
+            inputFecha.style.opacity = '0';
+            inputFecha.style.pointerEvents = 'none';
+            inputFecha.style.width = '1px';
+            inputFecha.style.height = '1px';
+            
+            document.body.appendChild(inputFecha);
+            inputFecha.focus();
+            inputFecha.click();
+            
+            inputFecha.addEventListener('change', function() {
+                fechaSeleccionada = this.value;
+                actualizarFechaEnHeader();
+                cargarReservas();
+                document.body.removeChild(inputFecha);
+            });
+            
+            // Limpiar si no se selecciona nada
+            setTimeout(() => {
+                if (document.body.contains(inputFecha)) {
+                    document.body.removeChild(inputFecha);
+                }
+            }, 1000);
+        });
+    }
     
     // DELEGACIÓN DE EVENTOS: Capturar clics en reservas de forma global
     // Esto es más confiable que agregar listeners individuales
