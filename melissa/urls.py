@@ -57,9 +57,9 @@ def inicio(request):
         # Reservas activas del cliente
         reservas_cliente = obtener_reservas_activas(request.user)
 
-        # Total de reservas del cliente autenticado
+        # Total histórico de reservas en toda la plataforma (independiente del usuario)
         from clientes.models import Reserva
-        total_reservas = Reserva.objects.filter(cliente=request.user).count()
+        total_reservas = Reserva.objects.count()
 
         context = {
             'is_cliente': True,
@@ -79,9 +79,9 @@ def inicio(request):
         }
         return render(request, 'inicio.html', context)
     else:
-        # Para usuarios no autenticados o no clientes
+        # Para usuarios no autenticados o no clientes: total histórico global
         from clientes.models import Reserva
-        total_reservas = Reserva.objects.filter(cliente=request.user).count() if request.user.is_authenticated else Reserva.objects.count()
+        total_reservas = Reserva.objects.count()
         
         # Lista de todos los negocios activos
         todos_negocios = Negocio.objects.filter(activo=True).select_related().annotate(
