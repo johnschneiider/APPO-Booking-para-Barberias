@@ -7,6 +7,22 @@ echo "🔄 Sincronizando proyecto desde GitHub..."
 
 cd /var/www/appo.com.co
 
+# 0. Proteger migraciones no trackeadas (evita que git pull falle)
+# Esto pasa cuando alguien ejecuta makemigrations en la VPS y queda el archivo sin commit.
+echo "🧩 Verificando migraciones no trackeadas..."
+UNTRACKED_MIGRATIONS=$(git ls-files --others --exclude-standard "clientes/migrations/*.py" 2>/dev/null || true)
+if [ -n "$UNTRACKED_MIGRATIONS" ]; then
+    BACKUP_DIR="/var/www/appo.com.co/.backup_untracked_migrations_$(date +%Y-%m-%d_%H-%M-%S)"
+    mkdir -p "$BACKUP_DIR"
+    echo "⚠️  Se encontraron migraciones no trackeadas. Moviéndolas a: $BACKUP_DIR"
+    while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        mkdir -p "$BACKUP_DIR/$(dirname "$f")"
+        mv "$f" "$BACKUP_DIR/$f"
+        echo "   ✅ Movido: $f"
+    done <<< "$UNTRACKED_MIGRATIONS"
+fi
+
 # 1. Hacer backup del .env (por si acaso)
 if [ -f ".env" ]; then
     cp .env .env.backup
