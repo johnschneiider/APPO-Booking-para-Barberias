@@ -460,6 +460,14 @@ WHATSAPP_CONFIG = {
     }
 }
 
+# Configuración de Meta WhatsApp Business API
+META_WHATSAPP_ENABLED = os.getenv('META_WHATSAPP_ENABLED', 'False').lower() == 'true'
+META_WHATSAPP_PHONE_NUMBER_ID = os.getenv('META_WHATSAPP_PHONE_NUMBER_ID', '')
+META_WHATSAPP_ACCESS_TOKEN = os.getenv('META_WHATSAPP_ACCESS_TOKEN', '')
+META_WHATSAPP_VERIFY_TOKEN = os.getenv('META_WHATSAPP_VERIFY_TOKEN', 'appo_whatsapp_verify_2024')
+META_WHATSAPP_WEBHOOK_SECRET = os.getenv('META_WHATSAPP_WEBHOOK_SECRET', 'appo_webhook_secret_2024')
+META_WHATSAPP_API_VERSION = os.getenv('META_WHATSAPP_API_VERSION', 'v21.0')
+
 # Google Maps API Key (Places, Maps JavaScript, Geocoding)
 # API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg'
 

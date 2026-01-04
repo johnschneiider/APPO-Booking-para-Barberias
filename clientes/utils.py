@@ -7,6 +7,34 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def get_whatsapp_service():
+    """
+    Obtiene el servicio de WhatsApp disponible (Meta o Twilio)
+    Prioriza Meta WhatsApp si está habilitado, sino usa Twilio
+    """
+    # Intentar Meta WhatsApp primero
+    try:
+        from .meta_whatsapp_service import meta_whatsapp_service
+        if meta_whatsapp_service.is_enabled():
+            return meta_whatsapp_service
+    except ImportError:
+        pass
+    except Exception as e:
+        logger.warning(f"Error inicializando Meta WhatsApp: {e}")
+    
+    # Fallback a Twilio
+    try:
+        from .twilio_whatsapp_service import twilio_whatsapp_service
+        if twilio_whatsapp_service.is_enabled():
+            return twilio_whatsapp_service
+    except ImportError:
+        pass
+    except Exception as e:
+        logger.warning(f"Error inicializando Twilio WhatsApp: {e}")
+    
+    return None
+
 def get_current_time_in_timezone():
     """
     Obtiene la hora actual en la zona horaria configurada del proyecto
@@ -150,9 +178,9 @@ def enviar_email_reserva_confirmada(reserva):
         # Enviar notificación por WhatsApp si está habilitado (independiente del email)
         whatsapp_enviado = False
         try:
-            from .twilio_whatsapp_service import twilio_whatsapp_service
-            if twilio_whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = twilio_whatsapp_service.send_reserva_confirmada(reserva)
+            whatsapp_service = get_whatsapp_service()
+            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
+                resultado = whatsapp_service.send_reserva_confirmada(reserva)
                 if resultado.get('success'):
                     logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para reserva #{reserva.id}")
                     whatsapp_enviado = True
@@ -217,9 +245,9 @@ def enviar_email_reserva_cancelada(reserva, motivo=""):
         
         # Enviar notificación por WhatsApp
         try:
-            from .twilio_whatsapp_service import twilio_whatsapp_service
-            if twilio_whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = twilio_whatsapp_service.send_reserva_cancelada(reserva, motivo)
+            whatsapp_service = get_whatsapp_service()
+            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
+                resultado = whatsapp_service.send_reserva_cancelada(reserva, motivo)
                 if resultado.get('success'):
                     logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para cancelación #{reserva.id}")
                 else:
@@ -269,9 +297,9 @@ def enviar_email_reserva_reagendada(reserva, fecha_anterior, hora_anterior):
         
         # Enviar notificación por WhatsApp
         try:
-            from .twilio_whatsapp_service import twilio_whatsapp_service
-            if twilio_whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = twilio_whatsapp_service.send_reserva_reagendada(reserva, fecha_anterior, hora_anterior)
+            whatsapp_service = get_whatsapp_service()
+            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
+                resultado = whatsapp_service.send_reserva_reagendada(reserva, fecha_anterior, hora_anterior)
                 if resultado.get('success'):
                     logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para reagendamiento #{reserva.id}")
                 else:

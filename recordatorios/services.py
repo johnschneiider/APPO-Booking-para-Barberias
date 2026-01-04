@@ -40,18 +40,30 @@ class ServicioRecordatorios:
             logger.warning("Servicio de email no disponible para recordatorios")
         
         try:
-            # Servicio de WhatsApp (usando Twilio como principal)
-            from clientes.twilio_whatsapp_service import twilio_whatsapp_service
-            self.whatsapp_service = twilio_whatsapp_service
-            logger.info("Servicio de WhatsApp (Twilio) inicializado para recordatorios")
-        except ImportError:
+            # Intentar Meta WhatsApp primero
+            from clientes.meta_whatsapp_service import meta_whatsapp_service
+            if meta_whatsapp_service.is_enabled():
+                self.whatsapp_service = meta_whatsapp_service
+                logger.info("Servicio de WhatsApp (Meta) inicializado para recordatorios")
+            else:
+                raise ImportError("Meta WhatsApp no está habilitado")
+        except (ImportError, AttributeError):
             try:
-                # Fallback al servicio de WhatsApp existente
-                from clientes.whatsapp_service import whatsapp_service
-                self.whatsapp_service = whatsapp_service
-                logger.info("Servicio de WhatsApp (API directa) inicializado para recordatorios")
-            except ImportError:
-                logger.warning("Servicio de WhatsApp no disponible para recordatorios")
+                # Fallback a Twilio
+                from clientes.twilio_whatsapp_service import twilio_whatsapp_service
+                if twilio_whatsapp_service.is_enabled():
+                    self.whatsapp_service = twilio_whatsapp_service
+                    logger.info("Servicio de WhatsApp (Twilio) inicializado para recordatorios")
+                else:
+                    raise ImportError("Twilio WhatsApp no está habilitado")
+            except (ImportError, AttributeError):
+                try:
+                    # Fallback al servicio de WhatsApp existente
+                    from clientes.whatsapp_service import whatsapp_service
+                    self.whatsapp_service = whatsapp_service
+                    logger.info("Servicio de WhatsApp (API directa) inicializado para recordatorios")
+                except ImportError:
+                    logger.warning("Servicio de WhatsApp no disponible para recordatorios")
         
         try:
             # Servicio de SMS (usando Twilio)
