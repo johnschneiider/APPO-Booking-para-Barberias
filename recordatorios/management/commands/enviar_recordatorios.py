@@ -66,7 +66,7 @@ class Command(BaseCommand):
         # Buscar reservas para mañana
         reservas_mañana = Reserva.objects.filter(
             fecha=fecha_mañana,
-            estado='confirmada'
+            estado='confirmado'
         ).select_related('cliente', 'peluquero', 'servicio__servicio')
         
         if verbose:
@@ -125,7 +125,7 @@ class Command(BaseCommand):
             fecha=ahora.date(),
             hora_inicio__gte=ahora.time(),
             hora_inicio__lte=tres_horas_desde_ahora.time(),
-            estado='confirmada'
+            estado='confirmado'
         ).select_related('cliente', 'peluquero', 'servicio__servicio')
         
         if verbose:
