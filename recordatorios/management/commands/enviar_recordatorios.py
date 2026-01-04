@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q
 from clientes.models import Reserva
-from clientes.twilio_whatsapp_service import twilio_whatsapp_service
+from clientes.utils import get_whatsapp_service
 import logging
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,11 @@ class Command(BaseCommand):
                 
                 if not dry_run:
                     # Enviar recordatorio real
-                    resultado = twilio_whatsapp_service.send_recordatorio_dia_antes(reserva)
+                    whatsapp_service = get_whatsapp_service()
+                    if whatsapp_service and whatsapp_service.is_enabled():
+                        resultado = whatsapp_service.send_recordatorio_dia_antes(reserva)
+                    else:
+                        resultado = {'success': False, 'error': 'WhatsApp no disponible'}
                     
                     if resultado.get('success'):
                         enviados += 1
@@ -137,7 +141,11 @@ class Command(BaseCommand):
                 
                 if not dry_run:
                     # Enviar recordatorio real
-                    resultado = twilio_whatsapp_service.send_recordatorio_tres_horas(reserva)
+                    whatsapp_service = get_whatsapp_service()
+                    if whatsapp_service and whatsapp_service.is_enabled():
+                        resultado = whatsapp_service.send_recordatorio_tres_horas(reserva)
+                    else:
+                        resultado = {'success': False, 'error': 'WhatsApp no disponible'}
                     
                     if resultado.get('success'):
                         enviados += 1

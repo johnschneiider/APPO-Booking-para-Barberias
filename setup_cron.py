@@ -19,13 +19,16 @@ def crear_cron_jobs():
         print("❌ Error: No se encontró manage.py en el directorio actual")
         return False
     
+    # Obtener la ruta del Python del venv
+    venv_python = proyecto_path / "venv" / "bin" / "python"
+    
     # Crear el contenido del cron job
     cron_content = f"""# Cron jobs para recordatorios de APPO
 # Ejecutar cada hora para verificar recordatorios de 3 horas
-0 * * * * cd {proyecto_path} && python manage.py enviar_recordatorios --tipo tres_horas >> logs/recordatorios.log 2>&1
+0 * * * * cd {proyecto_path} && {venv_python} manage.py enviar_recordatorios --tipo tres_horas >> logs/recordatorios.log 2>&1
 
 # Ejecutar diariamente a las 9:00 AM para recordatorios de 1 día
-0 9 * * * cd {proyecto_path} && python manage.py enviar_recordatorios --tipo dia_antes >> logs/recordatorios.log 2>&1
+0 9 * * * cd {proyecto_path} && {venv_python} manage.py enviar_recordatorios --tipo dia_antes >> logs/recordatorios.log 2>&1
 """
     
     # Crear directorio de logs si no existe
