@@ -107,25 +107,24 @@ class TwilioWhatsAppService:
             }
             
         except TwilioException as e:
-            # 63016 suele ocurrir cuando WhatsApp exige template (primer contacto / fuera de ventana 24h).
-            # Si existe una plantilla genérica, intentamos reenviar como template.
-            try:
-                error_code = getattr(e, "code", None)
-                if str(error_code) == "63016":
-                    template_sid = (self.config.get("TEMPLATES") or {}).get("texto_libre")
-                    if template_sid:
-                        logger.warning("Twilio 63016: reintentando como template texto_libre")
-                        return self.send_template_message(
-                            to_phone=to_phone,
-                            template_name=template_sid,
-                            variables={"1": message},
-                        )
-            except Exception as retry_err:
-                logger.warning(f"No se pudo reintentar como template tras 63016: {retry_err}")
+            error_code = getattr(e, 'code', None)
+            # 63112: Meta/WhatsApp deshabilitó la cuenta/sender (no es un problema de código).
+            if str(error_code) == "63112":
+                logger.error(
+                    "Twilio 63112: Sender/WABA deshabilitado por Meta. "
+                    "Debes reactivar el WhatsApp Sender en Twilio/Meta para poder enviar."
+                )
+                # Evitar ruido: marcar como deshabilitado en runtime hasta reinicio.
+                self.enabled = False
+                return {
+                    'success': False,
+                    'error_code': error_code,
+                    'error': 'WhatsApp deshabilitado por Meta (Twilio 63112).',
+                }
 
             error_msg = f"Error de Twilio enviando mensaje: {str(e)}"
             logger.error(error_msg)
-            return {'success': False, 'error': error_msg, 'error_code': getattr(e, 'code', None)}
+            return {'success': False, 'error': error_msg, 'error_code': error_code}
         except Exception as e:
             error_msg = f"Error enviando mensaje: {str(e)}"
             logger.error(error_msg)
@@ -178,9 +177,22 @@ class TwilioWhatsAppService:
             }
             
         except TwilioException as e:
+            error_code = getattr(e, 'code', None)
+            if str(error_code) == "63112":
+                logger.error(
+                    "Twilio 63112: Sender/WABA deshabilitado por Meta. "
+                    "Debes reactivar el WhatsApp Sender en Twilio/Meta para poder enviar."
+                )
+                self.enabled = False
+                return {
+                    'success': False,
+                    'error_code': error_code,
+                    'error': 'WhatsApp deshabilitado por Meta (Twilio 63112).',
+                }
+
             error_msg = f"Error de Twilio enviando template: {str(e)}"
             logger.error(error_msg)
-            return {'success': False, 'error': error_msg}
+            return {'success': False, 'error': error_msg, 'error_code': error_code}
         except Exception as e:
             error_msg = f"Error enviando template: {str(e)}"
             logger.error(error_msg)
