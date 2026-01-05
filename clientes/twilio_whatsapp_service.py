@@ -98,11 +98,12 @@ class TwilioWhatsAppService:
             templates = self.config.get("TEMPLATES") or {}
             texto_libre_sid = templates.get("texto_libre")
             if texto_libre_sid:
+                var_key = str(self.config.get("TEXTO_LIBRE_VAR_KEY") or "1").strip()
                 logger.info("Enviando WhatsApp como template texto_libre (Content SID)")
                 return self.send_template_message(
                     to_phone=to_phone,
                     template_name=texto_libre_sid,
-                    variables={"1": self._prepare_template_variable(message)},
+                    variables={var_key: self._prepare_template_variable(message)},
                 )
 
             # Formatear número de teléfono
@@ -210,6 +211,26 @@ class TwilioWhatsAppService:
                     'error_code': error_code,
                     'error': 'WhatsApp deshabilitado por Meta (Twilio 63112).',
                 }
+
+            # 21656: Content Variables inválidas (normalmente clave de variable no coincide con el template)
+            if str(error_code) == "21656" and variables:
+                try:
+                    templates = self.config.get("TEMPLATES") or {}
+                    texto_libre_sid = templates.get("texto_libre")
+                    if texto_libre_sid and template_name == texto_libre_sid:
+                        # Reintentar con claves comunes: "1" y "body"
+                        msg = next(iter(variables.values()))
+                        for alt_key in ("1", "body"):
+                            if alt_key in variables:
+                                continue
+                            logger.warning(f"Twilio 21656: reintentando texto_libre con variable '{alt_key}'")
+                            return self.send_template_message(
+                                to_phone=to_phone,
+                                template_name=template_name,
+                                variables={alt_key: msg},
+                            )
+                except Exception as retry_err:
+                    logger.warning(f"No se pudo reintentar tras 21656: {retry_err}")
 
             error_msg = f"Error de Twilio enviando template: {str(e)}"
             logger.error(error_msg)
