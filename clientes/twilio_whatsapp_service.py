@@ -73,6 +73,18 @@ class TwilioWhatsAppService:
             return {'success': False, 'error': 'WhatsApp no configurado'}
         
         try:
+            # Si existe una plantilla genérica (texto_libre), enviamos SIEMPRE como template.
+            # Esto evita "undelivered 63016" (WhatsApp exige template fuera de ventana / primer contacto).
+            templates = self.config.get("TEMPLATES") or {}
+            texto_libre_sid = templates.get("texto_libre")
+            if texto_libre_sid:
+                logger.info("Enviando WhatsApp como template texto_libre (Content SID)")
+                return self.send_template_message(
+                    to_phone=to_phone,
+                    template_name=texto_libre_sid,
+                    variables={"1": message},
+                )
+
             # Formatear número de teléfono
             formatted_phone = self.format_phone_number(to_phone)
             

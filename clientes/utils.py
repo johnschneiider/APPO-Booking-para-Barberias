@@ -13,15 +13,16 @@ def get_whatsapp_service():
     Obtiene el servicio de WhatsApp disponible (Meta o Twilio)
     Prioriza Meta WhatsApp si está habilitado, sino usa Twilio
     """
-    # Intentar Meta WhatsApp primero
-    try:
-        from .meta_whatsapp_service import meta_whatsapp_service
-        if meta_whatsapp_service.is_enabled():
-            return meta_whatsapp_service
-    except ImportError:
-        pass
-    except Exception as e:
-        logger.warning(f"Error inicializando Meta WhatsApp: {e}")
+    # Intentar Meta WhatsApp primero SOLO si está habilitado (evita warnings en logs)
+    if getattr(settings, 'META_WHATSAPP_ENABLED', False):
+        try:
+            from .meta_whatsapp_service import meta_whatsapp_service
+            if meta_whatsapp_service.is_enabled():
+                return meta_whatsapp_service
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.warning(f"Error inicializando Meta WhatsApp: {e}")
     
     # Fallback a Twilio
     try:
