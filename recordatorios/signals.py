@@ -12,7 +12,6 @@ Uso:
 """
 
 from django.db.models.signals import post_save, pre_save, post_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 import logging
@@ -48,7 +47,6 @@ def get_whatsapp_service():
 # SEÑALES PARA RESERVAS
 # =============================================================================
 
-@receiver(pre_save, sender='clientes.Reserva')
 def guardar_estado_anterior_reserva(sender, instance, **kwargs):
     """
     Guarda el estado anterior de la reserva antes de guardar.
@@ -70,7 +68,6 @@ def guardar_estado_anterior_reserva(sender, instance, **kwargs):
             logger.error(f"Error guardando estado anterior de reserva: {e}")
 
 
-@receiver(post_save, sender='clientes.Reserva')
 def manejar_cambios_reserva(sender, instance, created, **kwargs):
     """
     Maneja las notificaciones cuando se crea o modifica una reserva.
@@ -181,7 +178,6 @@ def _notificar_cita_reprogramada(reserva, fecha_anterior, hora_anterior, whatsap
         logger.error(f"Error notificando cita reprogramada: {e}")
 
 
-@receiver(post_delete, sender='clientes.Reserva')
 def manejar_eliminacion_reserva(sender, instance, **kwargs):
     """
     Maneja la eliminación de reservas.
@@ -250,18 +246,20 @@ def verificar_conexion_signals():
     if not Reserva:
         return {'connected': False, 'error': 'Modelo Reserva no encontrado'}
     
-    # Verificar señales conectadas
-    pre_save_receivers = pre_save.receivers
-    post_save_receivers = post_save.receivers
-    post_delete_receivers = post_delete.receivers
-    
+    # Verificar señales conectadas (real)
     return {
         'connected': True,
         'reserva_model': str(Reserva),
-        'pre_save_count': len([r for r in pre_save_receivers if 'Reserva' in str(r)]),
-        'post_save_count': len([r for r in post_save_receivers if 'Reserva' in str(r)]),
-        'post_delete_count': len([r for r in post_delete_receivers if 'Reserva' in str(r)]),
-        'whatsapp_enabled': get_whatsapp_service() is not None
+        'pre_save_has_listeners': pre_save.has_listeners(Reserva),
+        'post_save_has_listeners': post_save.has_listeners(Reserva),
+        'post_delete_has_listeners': post_delete.has_listeners(Reserva),
+        'uids': {
+            'pre_save': 'recordatorios.guardar_estado_anterior_reserva',
+            'post_save': 'recordatorios.manejar_cambios_reserva',
+            'post_delete': 'recordatorios.manejar_eliminacion_reserva',
+        },
+        'whatsapp_service': type(get_whatsapp_service()).__name__ if get_whatsapp_service() else None,
+        'whatsapp_enabled': bool(get_whatsapp_service() and getattr(get_whatsapp_service(), 'is_enabled', lambda: False)()),
     }
 
 
@@ -276,12 +274,32 @@ def conectar_senales():
     """
     try:
         Reserva = get_reserva_model()
-        if Reserva:
-            logger.info("✅ Señales de notificaciones conectadas para Reserva")
-            return True
-        else:
+        if not Reserva:
             logger.warning("⚠️ No se pudieron conectar las señales - Modelo Reserva no disponible")
             return False
+
+        # Conectar explícitamente con dispatch_uid para evitar duplicados.
+        pre_save.connect(
+            guardar_estado_anterior_reserva,
+            sender=Reserva,
+            dispatch_uid='recordatorios.guardar_estado_anterior_reserva',
+            weak=False,
+        )
+        post_save.connect(
+            manejar_cambios_reserva,
+            sender=Reserva,
+            dispatch_uid='recordatorios.manejar_cambios_reserva',
+            weak=False,
+        )
+        post_delete.connect(
+            manejar_eliminacion_reserva,
+            sender=Reserva,
+            dispatch_uid='recordatorios.manejar_eliminacion_reserva',
+            weak=False,
+        )
+
+        logger.info("✅ Señales de notificaciones conectadas para Reserva (dispatch_uid)")
+        return True
     except Exception as e:
-        logger.error(f"❌ Error conectando señales: {e}")
+        logger.error(f"❌ Error conectando señales: {e}", exc_info=True)
         return False
