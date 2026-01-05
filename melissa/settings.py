@@ -93,7 +93,7 @@ INSTALLED_APPS = [
     'chat',
     'ia_visagismo',
     'suscripciones',
-    'recordatorios',
+    'recordatorios.apps.RecordatoriosConfig',
     'fidelizacion',
     'django.contrib.humanize',
 ]
@@ -646,3 +646,7 @@ TWILIO_SMS_NUMBER = os.getenv('TWILIO_SMS_NUMBER', '+18578871809')  # SMS sigue 
 RECORDATORIOS_EMAIL_ENABLED = True
 RECORDATORIOS_WHATSAPP_ENABLED = True
 RECORDATORIOS_SMS_ENABLED = False
+
+# Fidelización (sistema alterno de mensajes programados). Para evitar duplicados
+# con el sistema de recordatorios, la confirmación inmediata se puede activar explícitamente.
+FIDELIZACION_CONFIRMACION_INMEDIATA = os.getenv('FIDELIZACION_CONFIRMACION_INMEDIATA', 'False').lower() == 'true'

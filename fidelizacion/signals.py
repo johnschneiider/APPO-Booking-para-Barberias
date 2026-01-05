@@ -5,6 +5,7 @@ import logging
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from clientes.models import Reserva
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,10 @@ def crear_mensajes_fidelizacion(sender, instance, created, **kwargs):
     try:
         from fidelizacion.services import MensajeFidelizacionService
         
-        # 1. Crear mensaje de confirmación inmediato
-        MensajeFidelizacionService.crear_mensaje_confirmacion(instance)
+        # 1. Confirmación inmediata (deshabilitada por defecto para evitar duplicados
+        # con el sistema de recordatorios/signals)
+        if getattr(settings, 'FIDELIZACION_CONFIRMACION_INMEDIATA', False):
+            MensajeFidelizacionService.crear_mensaje_confirmacion(instance)
         
         # 2. Crear recordatorio 24h antes
         MensajeFidelizacionService.crear_recordatorio_24h(instance)
