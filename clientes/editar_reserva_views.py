@@ -96,15 +96,11 @@ def cancelar_reserva_desde_whatsapp(request, reserva_id):
     
     try:
         with transaction.atomic():
-            # Cancelar la reserva
-            reserva.estado = 'cancelado'
-            reserva.save()
-            
-            # Enviar notificación de cancelación por WhatsApp
-            from .twilio_whatsapp_service import twilio_whatsapp_service
-            twilio_whatsapp_service.send_reserva_cancelada(
-                reserva, 
-                motivo="Cancelada por el cliente desde WhatsApp"
+            # Cancelar la reserva (esto actualiza notas/validaciones y disparará la señal
+            # de recordatorios para enviar WhatsApp SIN duplicados)
+            reserva.cancelar(
+                motivo="Cancelada por el cliente desde WhatsApp",
+                cancelado_por="cliente"
             )
             
             logger.info(f"Reserva {reserva_id} cancelada por {request.user.username}")

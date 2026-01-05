@@ -312,13 +312,13 @@ def reservar_turno(request, peluquero_id):
                             url_relacionada='/profesionales/panel/'
                         )
                     
-                    # Enviar email de confirmación y WhatsApp
+                    # Enviar email de confirmación (WhatsApp se envía por señales de recordatorios)
                     try:
                         resultado = enviar_email_reserva_confirmada(reserva)
                         if resultado:
-                            logger.info(f"Notificación de reserva enviada exitosamente para reserva #{reserva.id}")
+                            logger.info(f"Email de confirmación enviado para reserva #{reserva.id}")
                         else:
-                            logger.warning(f"No se pudo enviar notificación de reserva para reserva #{reserva.id}")
+                            logger.warning(f"No se pudo enviar email de confirmación para reserva #{reserva.id}")
                     except Exception as e:
                         logger.error(f"Error enviando notificación de reserva #{reserva.id}: {str(e)}")
                         log_error(

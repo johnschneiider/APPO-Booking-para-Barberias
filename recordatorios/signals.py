@@ -36,8 +36,9 @@ def get_reserva_model():
 def get_whatsapp_service():
     """Obtiene el servicio de WhatsApp de manera segura"""
     try:
-        from .whatsapp_service import notificacion_whatsapp
-        return notificacion_whatsapp
+        # Unificar el envío en un solo servicio (Meta/Twilio) con fallback a templates (p.ej 63016)
+        from clientes.utils import get_whatsapp_service as _get
+        return _get()
     except ImportError as e:
         logger.error(f"No se pudo importar el servicio de WhatsApp: {e}")
         return None
@@ -105,7 +106,7 @@ def _notificar_cita_agendada(reserva, whatsapp):
     try:
         # Solo notificar si la reserva está en estado válido
         if reserva.estado in ['pendiente', 'confirmado']:
-            resultado = whatsapp.notificar_cita_agendada(reserva)
+            resultado = whatsapp.send_reserva_confirmada(reserva)
             
             if resultado.get('success'):
                 logger.info(f"✅ Notificación de cita agendada enviada - Reserva {reserva.id}")
@@ -155,7 +156,7 @@ def _notificar_cita_cancelada(reserva, whatsapp):
             if match:
                 motivo = match.group(1).strip()
         
-        resultado = whatsapp.notificar_cita_cancelada(reserva, motivo)
+        resultado = whatsapp.send_reserva_cancelada(reserva, motivo)
         
         if resultado.get('success'):
             logger.info(f"✅ Notificación de cancelación enviada - Reserva {reserva.id}")
@@ -169,11 +170,7 @@ def _notificar_cita_cancelada(reserva, whatsapp):
 def _notificar_cita_reprogramada(reserva, fecha_anterior, hora_anterior, whatsapp):
     """Envía notificación de cita reprogramada"""
     try:
-        resultado = whatsapp.notificar_cita_reprogramada(
-            reserva=reserva,
-            fecha_anterior=fecha_anterior,
-            hora_anterior=hora_anterior
-        )
+        resultado = whatsapp.send_reserva_reagendada(reserva, fecha_anterior, hora_anterior)
         
         if resultado.get('success'):
             logger.info(f"✅ Notificación de reprogramación enviada - Reserva {reserva.id}")
@@ -233,15 +230,11 @@ def enviar_notificacion_manual(reserva, tipo: str, **kwargs):
         return {'success': False, 'error': 'Servicio WhatsApp no disponible'}
     
     if tipo == 'agendada':
-        return whatsapp.notificar_cita_agendada(reserva)
+        return whatsapp.send_reserva_confirmada(reserva)
     elif tipo == 'cancelada':
-        return whatsapp.notificar_cita_cancelada(reserva, kwargs.get('motivo', ''))
+        return whatsapp.send_reserva_cancelada(reserva, kwargs.get('motivo', ''))
     elif tipo == 'reprogramada':
-        return whatsapp.notificar_cita_reprogramada(
-            reserva,
-            kwargs.get('fecha_anterior'),
-            kwargs.get('hora_anterior')
-        )
+        return whatsapp.send_reserva_reagendada(reserva, kwargs.get('fecha_anterior'), kwargs.get('hora_anterior'))
     else:
         return {'success': False, 'error': f'Tipo de notificación no válido: {tipo}'}
 

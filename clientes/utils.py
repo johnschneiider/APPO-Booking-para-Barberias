@@ -175,20 +175,6 @@ def enviar_email_reserva_confirmada(reserva):
         html_content = render_to_string('emails/reserva_confirmada.html', context)
         text_content = render_to_string('emails/reserva_confirmada.txt', context)
         
-        # Enviar notificación por WhatsApp si está habilitado (independiente del email)
-        whatsapp_enviado = False
-        try:
-            whatsapp_service = get_whatsapp_service()
-            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = whatsapp_service.send_reserva_confirmada(reserva)
-                if resultado.get('success'):
-                    logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para reserva #{reserva.id}")
-                    whatsapp_enviado = True
-                else:
-                    logger.warning(f"Error enviando WhatsApp: {resultado.get('error')}")
-        except Exception as e:
-            logger.warning(f"No se pudo enviar notificación de WhatsApp: {str(e)}")
-        
         # Enviar email
         try:
             send_mail(
@@ -201,10 +187,10 @@ def enviar_email_reserva_confirmada(reserva):
             )
             
             logger.info(f"Email de confirmación enviado a {cliente.email} para reserva #{reserva.id}")
+            return True
         except Exception as e:
             logger.warning(f"Error enviando email: {str(e)}")
-        
-        return whatsapp_enviado
+            return False
         
     except Exception as e:
         logger.error(f"Error enviando email de confirmación a {cliente.email}: {str(e)}")
@@ -242,19 +228,6 @@ def enviar_email_reserva_cancelada(reserva, motivo=""):
         )
         
         logger.info(f"Email de cancelación enviado a {cliente.email} para reserva #{reserva.id}")
-        
-        # Enviar notificación por WhatsApp
-        try:
-            whatsapp_service = get_whatsapp_service()
-            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = whatsapp_service.send_reserva_cancelada(reserva, motivo)
-                if resultado.get('success'):
-                    logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para cancelación #{reserva.id}")
-                else:
-                    logger.warning(f"Error enviando WhatsApp: {resultado.get('error')}")
-        except Exception as e:
-            logger.warning(f"No se pudo enviar notificación de WhatsApp: {str(e)}")
-        
         return True
         
     except Exception as e:
@@ -294,19 +267,6 @@ def enviar_email_reserva_reagendada(reserva, fecha_anterior, hora_anterior):
         )
         
         logger.info(f"Email de reagendamiento enviado a {cliente.email} para reserva #{reserva.id}")
-        
-        # Enviar notificación por WhatsApp
-        try:
-            whatsapp_service = get_whatsapp_service()
-            if whatsapp_service and whatsapp_service.is_enabled() and cliente.telefono:
-                resultado = whatsapp_service.send_reserva_reagendada(reserva, fecha_anterior, hora_anterior)
-                if resultado.get('success'):
-                    logger.info(f"Notificación de WhatsApp enviada a {cliente.telefono} para reagendamiento #{reserva.id}")
-                else:
-                    logger.warning(f"Error enviando WhatsApp: {resultado.get('error')}")
-        except Exception as e:
-            logger.warning(f"No se pudo enviar notificación de WhatsApp: {str(e)}")
-        
         return True
         
     except Exception as e:
