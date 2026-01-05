@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Any
 from django.conf import settings
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioException
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,25 @@ class TwilioWhatsAppService:
                 cleaned = '+57' + cleaned
         
         return cleaned
+
+    def _prepare_template_variable(self, text: str, max_len: int = 900) -> str:
+        """
+        WhatsApp templates (Content API) pueden ser más estrictos con algunos caracteres/formato.
+        Normalizamos para minimizar rechazos y limitamos el tamaño del parámetro.
+        """
+        if text is None:
+            return ""
+        s = str(text)
+        # Normalizar saltos de línea
+        s = s.replace("\r\n", "\n").replace("\r", "\n")
+        # Evitar caracteres de formato que a veces generan problemas como parámetro template
+        s = s.replace("\u200e", "").replace("\u200f", "")  # LRM/RLM
+        # Reducir exceso de espacios
+        s = re.sub(r"[ \t]+", " ", s)
+        # Limitar longitud (dejamos margen)
+        if len(s) > max_len:
+            s = s[: max_len - 1] + "…"
+        return s.strip()
     
     def send_text_message(self, to_phone: str, message: str) -> Dict[str, Any]:
         """
@@ -82,7 +102,7 @@ class TwilioWhatsAppService:
                 return self.send_template_message(
                     to_phone=to_phone,
                     template_name=texto_libre_sid,
-                    variables={"1": message},
+                    variables={"1": self._prepare_template_variable(message)},
                 )
 
             # Formatear número de teléfono
@@ -155,7 +175,8 @@ class TwilioWhatsAppService:
             content_variables = '{}'
             if variables:
                 import json
-                content_variables = json.dumps(variables)
+                safe_vars = {str(k): self._prepare_template_variable(v) for k, v in variables.items()}
+                content_variables = json.dumps(safe_vars)
             
             # Enviar mensaje de plantilla
             message_obj = self.client.messages.create(
