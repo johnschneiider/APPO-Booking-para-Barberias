@@ -436,6 +436,7 @@ TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
 TWILIO_WHATSAPP_NUMBER = os.getenv('TWILIO_WHATSAPP_NUMBER', '+14155238886')  # Número de WhatsApp de Twilio
 TWILIO_WHATSAPP_ENABLED = True
+TWILIO_TEMPLATE_TEXTO_LIBRE = os.getenv('TWILIO_TEMPLATE_TEXTO_LIBRE', '')  # Content SID (HX...) para primer contacto
 
 # URL base de la aplicación
 if not DEBUG:
@@ -457,6 +458,8 @@ WHATSAPP_CONFIG = {
         'reserva_cancelada': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
         'reserva_reagendada': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
         'inasistencia': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
+        # Template genérica para “primer mensaje” / fuera de ventana (por ejemplo: body = "{{1}}")
+        'texto_libre': TWILIO_TEMPLATE_TEXTO_LIBRE,
     }
 }
 
