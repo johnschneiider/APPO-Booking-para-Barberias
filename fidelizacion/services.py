@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import transaction
-from clientes.whatsapp_service import whatsapp_service
+from clientes.utils import get_whatsapp_service
 
 logger = logging.getLogger(__name__)
 
@@ -288,8 +288,9 @@ class MensajeLoopService:
     def _enviar_mensaje(self, mensaje):
         """Envía un mensaje usando el servicio de WhatsApp"""
         try:
-            if not whatsapp_service.is_enabled():
-                logger.warning("WhatsApp no está habilitado")
+            whatsapp_service = get_whatsapp_service()
+            if not whatsapp_service or not whatsapp_service.is_enabled():
+                logger.warning("WhatsApp no está habilitado o no está disponible")
                 return False
             
             if not mensaje.destinatario.telefono:
@@ -297,12 +298,22 @@ class MensajeLoopService:
                 return False
             
             # Enviar mensaje personalizado
-            resultado = whatsapp_service.send_custom_message(
-                mensaje.destinatario.telefono,
-                mensaje.mensaje
-            )
-            
-            return resultado
+            telefono = mensaje.destinatario.telefono
+            texto = mensaje.mensaje
+
+            # Compatibilidad entre servicios (Twilio/Meta/Legacy)
+            if hasattr(whatsapp_service, "send_custom_message"):
+                return bool(whatsapp_service.send_custom_message(telefono, texto))
+
+            if hasattr(whatsapp_service, "send_text_message"):
+                resp = whatsapp_service.send_text_message(telefono, texto)
+                return bool(resp.get("success"))
+
+            if hasattr(whatsapp_service, "send_message"):
+                return bool(whatsapp_service.send_message(telefono, texto))
+
+            logger.warning("Servicio WhatsApp no soporta envío de texto")
+            return False
             
         except Exception as e:
             logger.error(f"Error enviando mensaje {mensaje.id}: {e}", exc_info=True)

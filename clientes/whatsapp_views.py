@@ -6,7 +6,7 @@ import json
 import logging
 import hmac
 import hashlib
-from .whatsapp_service import whatsapp_service
+from .utils import get_whatsapp_service
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +196,11 @@ def handle_list_selection(from_number, selected_option, timestamp):
 # Funciones de respuesta
 def send_welcome_message(to_number):
     """Envía mensaje de bienvenida"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar welcome_message")
+        return
+
     message = """¡Hola! 👋
 
 Bienvenido a Melissa, tu sistema de reservas de belleza.
@@ -209,10 +214,18 @@ Bienvenido a Melissa, tu sistema de reservas de belleza.
 
 ¡Estamos aquí para ayudarte! 💅✨"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_help_message(to_number):
     """Envía mensaje de ayuda"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar help_message")
+        return
+
     message = """🔧 Ayuda - Melissa
 
 Comandos disponibles:
@@ -224,10 +237,18 @@ Para hacer una nueva reserva, visita nuestra página web.
 
 ¿Necesitas algo más? 😊"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_reservas_info(to_number):
     """Envía información de reservas"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar reservas_info")
+        return
+
     message = """📅 Tus Reservas
 
 Para ver tus reservas actuales, visita:
@@ -240,10 +261,18 @@ También puedes:
 
 ¿Necesitas ayuda con algo específico? 🤔"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_cancel_instructions(to_number):
     """Envía instrucciones para cancelar"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar cancel_instructions")
+        return
+
     message = """❌ Cancelar Reserva
 
 Para cancelar una reserva:
@@ -257,10 +286,18 @@ O escribe "ayuda" para más opciones.
 
 ¿Te ayudo con algo más? 😊"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_new_reservation_info(to_number):
     """Envía información para nuevas reservas"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar new_reservation_info")
+        return
+
     message = """🆕 Nueva Reserva
 
 Para hacer una nueva reserva:
@@ -274,10 +311,18 @@ Para hacer una nueva reserva:
 
 ¿Necesitas ayuda? 😊"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_contact_info(to_number):
     """Envía información de contacto"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar contact_info")
+        return
+
     message = """📞 Contacto
 
 ¿Necesitas ayuda personalizada?
@@ -288,10 +333,18 @@ def send_contact_info(to_number):
 
 ¡Estamos aquí para ayudarte! 😊"""
     
-    whatsapp_service.send_custom_message(to_number, message)
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)
 
 def send_default_response(to_number):
     """Envía respuesta por defecto"""
+    whatsapp_service = get_whatsapp_service()
+    if not whatsapp_service or not whatsapp_service.is_enabled():
+        logger.warning("WhatsApp no disponible para enviar default_response")
+        return
+
     message = """🤔 No entiendo ese comando.
 
 Comandos disponibles:
@@ -303,4 +356,7 @@ O visita nuestra web para más opciones.
 
 ¿Necesitas ayuda? 😊"""
     
-    whatsapp_service.send_custom_message(to_number, message) 
+    if hasattr(whatsapp_service, "send_custom_message"):
+        whatsapp_service.send_custom_message(to_number, message)
+    else:
+        whatsapp_service.send_text_message(to_number, message)

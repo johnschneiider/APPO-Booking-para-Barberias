@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from clientes.whatsapp_service import whatsapp_service
+from clientes.utils import get_whatsapp_service
 from clientes.models import Reserva
 from django.utils import timezone
 from datetime import timedelta
@@ -32,8 +32,9 @@ class Command(BaseCommand):
         tipo = options.get('tipo')
         reserva_id = options.get('reserva_id')
         telefono = options.get('telefono')
+        whatsapp_service = get_whatsapp_service()
         
-        if not whatsapp_service.is_enabled():
+        if not whatsapp_service or not whatsapp_service.is_enabled():
             self.stdout.write(
                 self.style.ERROR('❌ WhatsApp no está habilitado. Verifica la configuración.')
             )
@@ -43,15 +44,15 @@ class Command(BaseCommand):
         
         if telefono:
             # Probar mensaje personalizado
-            self.test_custom_message(telefono)
+            self.test_custom_message(telefono, whatsapp_service)
         elif reserva_id:
             # Probar con reserva específica
-            self.test_with_reserva(reserva_id, tipo)
+            self.test_with_reserva(reserva_id, tipo, whatsapp_service)
         else:
             # Probar con reserva de ejemplo
-            self.test_with_sample_reserva(tipo)
+            self.test_with_sample_reserva(tipo, whatsapp_service)
     
-    def test_custom_message(self, telefono):
+    def test_custom_message(self, telefono, whatsapp_service):
         """Prueba mensaje personalizado"""
         self.stdout.write(f"📱 Enviando mensaje personalizado a {telefono}...")
         
@@ -68,7 +69,11 @@ Funcionalidades disponibles:
 
 ¡El sistema está funcionando correctamente! ✅"""
         
-        success = whatsapp_service.send_custom_message(telefono, message)
+        if hasattr(whatsapp_service, "send_custom_message"):
+            success = whatsapp_service.send_custom_message(telefono, message)
+        else:
+            resp = whatsapp_service.send_text_message(telefono, message)
+            success = bool(resp.get("success"))
         
         if success:
             self.stdout.write(
@@ -79,17 +84,17 @@ Funcionalidades disponibles:
                 self.style.ERROR(f"❌ Error enviando mensaje a {telefono}")
             )
     
-    def test_with_reserva(self, reserva_id, tipo):
+    def test_with_reserva(self, reserva_id, tipo, whatsapp_service):
         """Prueba con reserva específica"""
         try:
             reserva = Reserva.objects.get(id=reserva_id)
-            self.test_notification_type(reserva, tipo)
+            self.test_notification_type(reserva, tipo, whatsapp_service)
         except Reserva.DoesNotExist:
             self.stdout.write(
                 self.style.ERROR(f"❌ Reserva con ID {reserva_id} no encontrada")
             )
     
-    def test_with_sample_reserva(self, tipo):
+    def test_with_sample_reserva(self, tipo, whatsapp_service):
         """Prueba con reserva de ejemplo"""
         # Crear reserva de ejemplo para pruebas
         from cuentas.models import UsuarioPersonalizado
@@ -117,7 +122,7 @@ Funcionalidades disponibles:
             )
             
             self.stdout.write(f"📋 Usando reserva de ejemplo: {reserva}")
-            self.test_notification_type(reserva, tipo)
+            self.test_notification_type(reserva, tipo, whatsapp_service)
             
             # Limpiar reserva de ejemplo
             reserva.delete()
@@ -127,7 +132,7 @@ Funcionalidades disponibles:
                 self.style.ERROR(f"❌ Error creando reserva de ejemplo: {str(e)}")
             )
     
-    def test_notification_type(self, reserva, tipo):
+    def test_notification_type(self, reserva, tipo, whatsapp_service):
         """Prueba tipo específico de notificación"""
         if tipo == 'confirmada':
             self.stdout.write("📅 Probando notificación de reserva confirmada...")
@@ -152,7 +157,11 @@ Funcionalidades disponibles:
         else:
             self.stdout.write("📱 Probando mensaje personalizado...")
             message = f"Prueba del sistema - Reserva #{reserva.id}"
-            success = whatsapp_service.send_custom_message(reserva.cliente.telefono, message)
+            if hasattr(whatsapp_service, "send_custom_message"):
+                success = whatsapp_service.send_custom_message(reserva.cliente.telefono, message)
+            else:
+                resp = whatsapp_service.send_text_message(reserva.cliente.telefono, message)
+                success = bool(resp.get("success"))
         
         if success:
             self.stdout.write(
