@@ -273,6 +273,20 @@ class TwilioWhatsAppService:
         """
         try:
             message = self.client.messages(message_id).fetch()
+            # Si el sender/WABA está deshabilitado por Meta, lo marcamos para evitar ruido.
+            # Nota: a veces Twilio devuelve 63112 solo al consultar el status (no en el create()).
+            if str(getattr(message, "error_code", None)) == "63112":
+                logger.error(
+                    "Twilio 63112 detectado en status: Sender/WABA deshabilitado por Meta. "
+                    "No se podrán enviar mensajes hasta reactivar el WhatsApp Sender."
+                )
+                self.enabled = False
+            if str(getattr(message, "error_code", None)) == "63016":
+                logger.warning(
+                    "Twilio 63016 detectado en status: el mensaje no fue aceptado por reglas de plantilla/ventana. "
+                    "En producción esto suele indicar template no aprobado/incorrecto (Utility/Business initiated) "
+                    "o conversación fuera de ventana 24h."
+                )
             return {
                 'success': True,
                 'data': {
