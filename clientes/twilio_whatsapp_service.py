@@ -76,6 +76,27 @@ class TwilioWhatsAppService:
         if len(s) > max_len:
             s = s[: max_len - 1] + "…"
         return s.strip()
+
+    def _get_template_sid(self, template_key: str) -> str:
+        templates = (self.config.get("TEMPLATES") or {})
+        return (templates.get(template_key) or "").strip()
+
+    def _send_event_template(self, template_key: str, to_phone: str, variables: Dict[str, str]) -> Dict[str, Any]:
+        """
+        Envía un template específico por evento si está configurado.
+        Si no existe, cae a send_text_message (que a su vez intentará texto_libre si existe).
+        """
+        sid = self._get_template_sid(template_key)
+        if sid:
+            logger.info(f"Enviando WhatsApp con template '{template_key}' (Content SID configurado)")
+            return self.send_template_message(to_phone=to_phone, template_name=sid, variables=variables)
+        logger.warning(
+            f"No hay Content SID configurado para template '{template_key}'. "
+            f"Configura WHATSAPP_CONFIG['TEMPLATES']['{template_key}'] (por env) para producción."
+        )
+        # Fallback: texto libre (si texto_libre existe) o body directo (probablemente 63016 fuera de ventana).
+        joined = " | ".join([self._prepare_template_variable(v, max_len=200) for v in variables.values() if v is not None])
+        return self.send_text_message(to_phone=to_phone, message=joined)
     
     def send_text_message(self, to_phone: str, message: str) -> Dict[str, Any]:
         """
@@ -297,26 +318,22 @@ class TwilioWhatsAppService:
         # Obtener dirección del negocio
         direccion = getattr(negocio, 'direccion', None) or 'Dirección no disponible'
         
-        # Crear mensaje personalizado y ameno
-        mensaje = f"""✅ *Confirmación de Reserva*
-
-Hola {cliente_nombre},
-
-Tu reserva ha sido confirmada:
-
-📍 *Negocio:* {negocio_nombre}
-👤 *Profesional:* {profesional_nombre}
-✂️ *Servicio:* {servicio_nombre}
-📅 *Fecha:* {fecha_formateada}
-🕐 *Hora:* {hora_formateada}
-
-🏠 *Dirección:* {direccion}
-
-¡Te esperamos!
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        # Recomendado: template específico (Utility) para iniciar conversación sin depender de ventana 24h.
+        # Variables sugeridas (deben coincidir con {{1}}, {{2}}, ... en el template de Twilio):
+        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=profesional, 7=dirección
+        return self._send_event_template(
+            template_key="reserva_confirmada",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": servicio_nombre,
+                "4": fecha_formateada,
+                "5": hora_formateada,
+                "6": profesional_nombre,
+                "7": direccion,
+            },
+        )
     
     def send_recordatorio_dia_antes(self, reserva) -> Dict[str, Any]:
         """
@@ -341,26 +358,22 @@ _Equipo Melissa_"""
         base_url = getattr(settings, 'BASE_URL', 'http://127.0.0.1:8000')
         editar_url = f"{base_url}/clientes/editar-reserva/{reserva.id}/"
         
-        mensaje = f"""⏰ ¡Recordatorio! 
-
-Hola {cliente_nombre}, mañana tienes tu cita 💄
-
-📅 *Fecha:* {fecha_formateada}
-🕐 *Hora:* {hora_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-💄 *Servicio:* {servicio_nombre}
-
-📍 *Dirección:* {direccion}
-📞 *Teléfono:* {telefono_negocio}
-
-¡No olvides llegar puntual! Te esperamos con muchas ganas ✨
-
-🔗 *¿Necesitas hacer cambios?*
-{editar_url}
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        # Variables sugeridas:
+        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=dirección, 7=teléfono negocio, 8=url edición
+        return self._send_event_template(
+            template_key="recordatorio_dia_antes",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": servicio_nombre,
+                "4": fecha_formateada,
+                "5": hora_formateada,
+                "6": direccion,
+                "7": telefono_negocio,
+                "8": editar_url,
+            },
+        )
     
     def send_recordatorio_tres_horas(self, reserva) -> Dict[str, Any]:
         """
@@ -393,28 +406,28 @@ _Equipo Melissa_"""
         
         puede_cancelar = tiempo_restante.total_seconds() > 3600  # Más de 1 hora
         
-        mensaje = f"""⏰ ¡Último recordatorio! 
-
-Hola {cliente_nombre}, en 3 horas tienes tu cita 💄
-
-📅 *Fecha:* {fecha_formateada}
-🕐 *Hora:* {hora_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-💄 *Servicio:* {servicio_nombre}
-
-📍 *Dirección:* {direccion}
-📞 *Teléfono:* {telefono_negocio}
-
-¡Prepárate para verte hermosa! Te esperamos pronto ✨
-
-🔗 *¿Necesitas hacer cambios?*
-{editar_url}
-
-{f"⚠️ *Nota:* Solo puedes cancelar con más de 1 hora de anticipación" if puede_cancelar else "❌ *No se puede cancelar* - Menos de 1 hora para la cita"}
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        nota_cancelacion = (
+            "Puedes cancelar con más de 1 hora de anticipación"
+            if puede_cancelar
+            else "No se puede cancelar: falta menos de 1 hora"
+        )
+        # Variables sugeridas:
+        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=dirección, 7=teléfono negocio, 8=url edición, 9=nota
+        return self._send_event_template(
+            template_key="recordatorio_tres_horas",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": servicio_nombre,
+                "4": fecha_formateada,
+                "5": hora_formateada,
+                "6": direccion,
+                "7": telefono_negocio,
+                "8": editar_url,
+                "9": nota_cancelacion,
+            },
+        )
     
     def send_reserva_cancelada(self, reserva, motivo: str = "") -> Dict[str, Any]:
         """
@@ -429,21 +442,19 @@ _Equipo Melissa_"""
         cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
         motivo_texto = motivo if motivo else "Sin motivo especificado"
         
-        mensaje = f"""😔 Hola {cliente_nombre}
-
-Tu cita ha sido cancelada:
-
-📅 *Fecha:* {fecha_formateada}
-🕐 *Hora:* {hora_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-
-*Motivo:* {motivo_texto}
-
-Si necesitas reagendar tu cita, no dudes en contactarnos. ¡Estaremos encantados de atenderte! 💖
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        # Variables sugeridas:
+        # 1=cliente, 2=negocio, 3=fecha, 4=hora, 5=motivo
+        return self._send_event_template(
+            template_key="reserva_cancelada",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": fecha_formateada,
+                "4": hora_formateada,
+                "5": motivo_texto,
+            },
+        )
     
     def send_reserva_reagendada(self, reserva, fecha_anterior, hora_anterior) -> Dict[str, Any]:
         """
@@ -459,19 +470,20 @@ _Equipo Melissa_"""
         negocio_nombre = reserva.peluquero.nombre
         cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
         
-        mensaje = f"""📅 ¡Cita reagendada! 
-
-Hola {cliente_nombre}, tu cita ha sido reagendada:
-
-❌ *Fecha anterior:* {fecha_anterior_formateada} a las {hora_anterior_formateada}
-✅ *Nueva fecha:* {fecha_nueva_formateada} a las {hora_nueva_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-
-¡Te esperamos en tu nueva fecha! Si necesitas hacer algún otro cambio, no dudes en contactarnos ✨
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        # Variables sugeridas:
+        # 1=cliente, 2=negocio, 3=fecha anterior, 4=hora anterior, 5=fecha nueva, 6=hora nueva
+        return self._send_event_template(
+            template_key="reserva_reagendada",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": fecha_anterior_formateada,
+                "4": hora_anterior_formateada,
+                "5": fecha_nueva_formateada,
+                "6": hora_nueva_formateada,
+            },
+        )
     
     def send_inasistencia(self, reserva, motivo: str = "") -> Dict[str, Any]:
         """
@@ -486,21 +498,19 @@ _Equipo Melissa_"""
         cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
         motivo_texto = motivo if motivo else "Sin motivo especificado"
         
-        mensaje = f"""😔 Hola {cliente_nombre}
-
-Notamos que no pudiste asistir a tu cita:
-
-📅 *Fecha:* {fecha_formateada}
-🕐 *Hora:* {hora_formateada}
-💇‍♀️ *Profesional:* {negocio_nombre}
-
-*Motivo registrado:* {motivo_texto}
-
-Entendemos que pueden surgir imprevistos. Si quieres reagendar tu cita, estaremos encantados de atenderte en otro momento 💖
-
-_Equipo Melissa_"""
-        
-        return self.send_text_message(reserva.cliente.telefono, mensaje)
+        # Variables sugeridas:
+        # 1=cliente, 2=negocio, 3=fecha, 4=hora, 5=motivo
+        return self._send_event_template(
+            template_key="inasistencia",
+            to_phone=reserva.cliente.telefono,
+            variables={
+                "1": cliente_nombre,
+                "2": negocio_nombre,
+                "3": fecha_formateada,
+                "4": hora_formateada,
+                "5": motivo_texto,
+            },
+        )
 
 # Instancia global del servicio
 twilio_whatsapp_service = TwilioWhatsAppService()

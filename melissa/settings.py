@@ -435,9 +435,18 @@ CELERY_RESULT_SERIALIZER = 'json'
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
 TWILIO_WHATSAPP_NUMBER = os.getenv('TWILIO_WHATSAPP_NUMBER', '+14155238886')  # Número de WhatsApp de Twilio
-TWILIO_WHATSAPP_ENABLED = True
+TWILIO_WHATSAPP_ENABLED = os.getenv('TWILIO_WHATSAPP_ENABLED', 'true').lower() == 'true'
 TWILIO_TEMPLATE_TEXTO_LIBRE = os.getenv('TWILIO_TEMPLATE_TEXTO_LIBRE', '')  # Content SID (HX...) para primer contacto
 TWILIO_TEMPLATE_TEXTO_LIBRE_VAR_KEY = os.getenv('TWILIO_TEMPLATE_TEXTO_LIBRE_VAR_KEY', '1')  # ej: 1 o body
+
+# Templates específicos por evento (recomendado para producción)
+# Cada variable se manda via Content API (content_sid + content_variables)
+TWILIO_TEMPLATE_RESERVA_CONFIRMADA = os.getenv('TWILIO_TEMPLATE_RESERVA_CONFIRMADA', '')
+TWILIO_TEMPLATE_RESERVA_CANCELADA = os.getenv('TWILIO_TEMPLATE_RESERVA_CANCELADA', '')
+TWILIO_TEMPLATE_RESERVA_REAGENDADA = os.getenv('TWILIO_TEMPLATE_RESERVA_REAGENDADA', '')
+TWILIO_TEMPLATE_RECORDATORIO_DIA_ANTES = os.getenv('TWILIO_TEMPLATE_RECORDATORIO_DIA_ANTES', '')
+TWILIO_TEMPLATE_RECORDATORIO_TRES_HORAS = os.getenv('TWILIO_TEMPLATE_RECORDATORIO_TRES_HORAS', '')
+TWILIO_TEMPLATE_INASISTENCIA = os.getenv('TWILIO_TEMPLATE_INASISTENCIA', '')
 
 # URL base de la aplicación
 if not DEBUG:
@@ -454,12 +463,12 @@ WHATSAPP_CONFIG = {
     'WHATSAPP_NUMBER': TWILIO_WHATSAPP_NUMBER,
     'TEXTO_LIBRE_VAR_KEY': TWILIO_TEMPLATE_TEXTO_LIBRE_VAR_KEY,
     'TEMPLATES': {
-        'reserva_confirmada': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',  # Content SID de Twilio
-        'recordatorio_dia_antes': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-        'recordatorio_tres_horas': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-        'reserva_cancelada': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-        'reserva_reagendada': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-        'inasistencia': 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
+        'reserva_confirmada': TWILIO_TEMPLATE_RESERVA_CONFIRMADA,
+        'recordatorio_dia_antes': TWILIO_TEMPLATE_RECORDATORIO_DIA_ANTES,
+        'recordatorio_tres_horas': TWILIO_TEMPLATE_RECORDATORIO_TRES_HORAS,
+        'reserva_cancelada': TWILIO_TEMPLATE_RESERVA_CANCELADA,
+        'reserva_reagendada': TWILIO_TEMPLATE_RESERVA_REAGENDADA,
+        'inasistencia': TWILIO_TEMPLATE_INASISTENCIA,
         # Template genérica para “primer mensaje” / fuera de ventana (por ejemplo: body = "{{1}}")
         'texto_libre': TWILIO_TEMPLATE_TEXTO_LIBRE,
     }
