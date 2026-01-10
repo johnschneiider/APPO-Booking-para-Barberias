@@ -414,8 +414,12 @@ class TwilioWhatsAppService:
         
         # Verificar si se puede cancelar (más de 1 hora antes)
         from django.utils import timezone
+        from datetime import datetime
         ahora = timezone.now()
-        hora_cita = timezone.datetime.combine(reserva.fecha, reserva.hora_inicio)
+        hora_cita = datetime.combine(reserva.fecha, reserva.hora_inicio)
+        # Asegurar compatibilidad naive/aware
+        if timezone.is_aware(ahora) and timezone.is_naive(hora_cita):
+            hora_cita = timezone.make_aware(hora_cita, timezone.get_current_timezone())
         tiempo_restante = hora_cita - ahora
         
         puede_cancelar = tiempo_restante.total_seconds() > 3600  # Más de 1 hora

@@ -135,6 +135,7 @@ class RecordatorioReservaTest(TestCase):
     def test_recordatorio_dia_enviado(self):
         from datetime import timedelta
         from django.utils import timezone
+        from unittest.mock import patch
         manana = timezone.now().date() + timedelta(days=1)
         reserva = Reserva.objects.create(
             cliente=self.user_cliente,
@@ -149,11 +150,21 @@ class RecordatorioReservaTest(TestCase):
             recordatorio_tres_horas_enviado=False,
         )
         out = StringIO()
-        call_command('enviar_recordatorios', '--tipo', 'dia_antes', stdout=out)
+
+        class DummyWhatsAppService:
+            def is_enabled(self):
+                return True
+
+            def send_recordatorio_dia_antes(self, _reserva):
+                return {'success': True}
+
+        with patch('clientes.utils.get_whatsapp_service', return_value=DummyWhatsAppService()):
+            call_command('enviar_recordatorios', '--tipo', 'dia_antes', stdout=out)
         reserva.refresh_from_db()
         self.assertTrue(reserva.recordatorio_dia_enviado)
 
     def test_no_envia_recordatorio_cancelada(self):
+        from unittest.mock import patch
         reserva = Reserva.objects.create(
             cliente=self.user_cliente,
             peluquero=self.negocio,
@@ -162,11 +173,20 @@ class RecordatorioReservaTest(TestCase):
             hora_inicio=time(10, 0),
             hora_fin=time(10, 30),
             servicio=self.servicio_negocio,
-            estado='cancelada',
+            estado='cancelado',
             recordatorio_dia_enviado=False,
             recordatorio_tres_horas_enviado=False,
         )
         out = StringIO()
-        call_command('enviar_recordatorios', '--tipo', 'dia_antes', stdout=out)
+
+        class DummyWhatsAppService:
+            def is_enabled(self):
+                return True
+
+            def send_recordatorio_dia_antes(self, _reserva):
+                return {'success': True}
+
+        with patch('clientes.utils.get_whatsapp_service', return_value=DummyWhatsAppService()):
+            call_command('enviar_recordatorios', '--tipo', 'dia_antes', stdout=out)
         reserva.refresh_from_db()
         self.assertFalse(reserva.recordatorio_dia_enviado)
