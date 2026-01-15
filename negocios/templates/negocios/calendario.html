@@ -1037,11 +1037,12 @@
 }
 
 .appointment-block.dragging {
-    opacity: 0.7 !important;
-    z-index: 1000 !important;
+    opacity: 0.9 !important;
+    z-index: 99999 !important; /* Z-index muy alto para estar por encima de todo */
     transform: scale(1.05) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
     transition: none !important;
+    position: fixed !important; /* Cambiar a fixed durante el drag para evitar problemas de contexto de apilamiento */
 }
 
 .appointment-block:hover {
@@ -4041,6 +4042,8 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
     let isDragging = false;
     let startY = 0;
     let startTop = 0;
+    let startLeft = 0;
+    let originalTop = 0;
     let currentSlot = null;
     let originalSlot = null;
     
@@ -4054,9 +4057,18 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         appointmentBlock.classList.add('dragging');
         
         // Guardar posición inicial
+        const rect = appointmentBlock.getBoundingClientRect();
         startY = e.clientY;
-        startTop = appointmentBlock.offsetTop;
+        startTop = rect.top; // Posición absoluta en la ventana
+        startLeft = rect.left; // Posición absoluta en la ventana
         originalSlot = appointmentBlock.parentElement;
+        originalTop = appointmentBlock.offsetTop; // Posición relativa al slot original
+        
+        // Cambiar a position fixed para estar fuera del contexto de apilamiento
+        appointmentBlock.style.position = 'fixed';
+        appointmentBlock.style.left = `${rect.left}px`;
+        appointmentBlock.style.top = `${rect.top}px`;
+        appointmentBlock.style.width = `${rect.width}px`;
         
         // Prevenir selección de texto
         e.preventDefault();
@@ -4065,7 +4077,7 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         
-        // Calcular nueva posición
+        // Calcular nueva posición usando coordenadas de ventana
         const deltaY = e.clientY - startY;
         const newTop = startTop + deltaY;
         appointmentBlock.style.top = `${newTop}px`;
@@ -4107,9 +4119,17 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             slot.style.backgroundColor = '';
         });
         
+        // Restaurar position a absolute
+        appointmentBlock.style.position = 'absolute';
+        appointmentBlock.style.width = '';
+        appointmentBlock.style.left = '';
+        
         if (!currentSlot) {
             // Si no hay slot válido, restaurar posición original
-            appointmentBlock.style.top = `${startTop}px`;
+            appointmentBlock.style.top = `${originalTop}px`;
+            if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
+                originalSlot.appendChild(appointmentBlock);
+            }
             return;
         }
         
@@ -4179,7 +4199,7 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
                 alert('Error al actualizar la reserva: ' + (error.error || 'Error desconocido'));
                 
                 // Restaurar posición original
-                appointmentBlock.style.top = `${startTop}px`;
+                appointmentBlock.style.top = `${originalTop}px`;
                 if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                     originalSlot.appendChild(appointmentBlock);
                 }
@@ -4189,7 +4209,7 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             alert('Error de conexión al actualizar la reserva');
             
             // Restaurar posición original
-            appointmentBlock.style.top = `${startTop}px`;
+            appointmentBlock.style.top = `${originalTop}px`;
             if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                 originalSlot.appendChild(appointmentBlock);
             }
