@@ -5041,6 +5041,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Solo cargar profesionales, no generar calendario automáticamente
     cargarProfesionalesSinCalendario();
     
+    // Agregar listeners de slots usando delegación de eventos
+    // Esto asegura que funcione incluso cuando se modifica el DOM dinámicamente
+    setTimeout(() => {
+        agregarListenersSlots();
+    }, 500);
+    
     // Abrir selector de fecha nativo al hacer click en la fecha del header
     const fechaActualHeader = document.getElementById('fechaActualHeader');
     const fechaPickerHeader = document.getElementById('fechaPickerHeader');
