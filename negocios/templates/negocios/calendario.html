@@ -4202,6 +4202,10 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         if (!/^\d{2}:\d{2}:\d{2}$/.test(nuevaHoraInicio)) {
             console.error('❌ Formato de hora inválido generado:', nuevaHoraInicio);
             alert('Error: No se pudo calcular la nueva hora. Por favor, intente de nuevo.');
+            // Restaurar posición original
+            appointmentBlock.style.position = 'absolute';
+            appointmentBlock.style.width = '';
+            appointmentBlock.style.left = '';
             appointmentBlock.style.top = `${originalTop}px`;
             if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                 originalSlot.appendChild(appointmentBlock);
@@ -4235,14 +4239,25 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
                 const data = await response.json();
                 console.log('✅ Reserva actualizada:', data);
                 
-                // Mover el bloque al nuevo slot si cambió de profesional
-                if (nuevoProfesionalId !== reservaData.profesional_id) {
+                // Restaurar position a absolute ANTES de mover al slot
+                appointmentBlock.style.position = 'absolute';
+                appointmentBlock.style.width = '';
+                appointmentBlock.style.left = '';
+                
+                // Mover el bloque al nuevo slot si cambió de profesional o de slot
+                if (nuevoProfesionalId !== reservaData.profesional_id || currentSlot !== originalSlot) {
                     currentSlot.appendChild(appointmentBlock);
                 }
                 
-                // Recalcular posición top basada en minutos
+                // Recalcular posición top basada en minutos (relativa al slot)
                 const topOffset = (minutosFinal / 60) * slotHeight;
                 appointmentBlock.style.top = `${topOffset}px`;
+                
+                console.log('✅ Reserva reposicionada:', {
+                    slot: currentSlot.getAttribute('data-hora'),
+                    topOffset,
+                    nuevaHoraInicio
+                });
                 
                 // Recargar reservas para actualizar visualización
                 await cargarReservas();
@@ -4252,6 +4267,9 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
                 alert('Error al actualizar la reserva: ' + (error.error || 'Error desconocido'));
                 
                 // Restaurar posición original
+                appointmentBlock.style.position = 'absolute';
+                appointmentBlock.style.width = '';
+                appointmentBlock.style.left = '';
                 appointmentBlock.style.top = `${originalTop}px`;
                 if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                     originalSlot.appendChild(appointmentBlock);
