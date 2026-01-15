@@ -3720,19 +3720,26 @@ function abrirModalReservaProvisional(hora, profesionalId) {
         console.warn('⚠️ No se encontró el input de hora');
     }
     
-    // Profesional seleccionado
-    if (profesionalSelect && profesionalId) {
-        profesionalSelect.value = profesionalId;
-        console.log('👤 Profesional establecido:', profesionalId);
-    } else {
-        console.warn('⚠️ No se encontró el select de profesional o no hay profesionalId');
-    }
-    
     // Cargar servicios si no están cargados
     cargarServiciosEnModal();
     
-    // Asegurar que los profesionales estén cargados en el select
+    // Asegurar que los profesionales estén cargados en el select PRIMERO
     llenarDropdownProfesionalesProvisional();
+    
+    // Luego establecer el profesional seleccionado (después de llenar el dropdown)
+    setTimeout(() => {
+        if (profesionalSelect && profesionalId) {
+            profesionalSelect.value = profesionalId;
+            console.log('👤 Profesional establecido:', profesionalId);
+            
+            // Verificar que se estableció correctamente
+            if (profesionalSelect.value !== profesionalId) {
+                console.warn('⚠️ No se pudo establecer el profesional. Valor intentado:', profesionalId, 'Valor actual:', profesionalSelect.value);
+            }
+        } else {
+            console.warn('⚠️ No se encontró el select de profesional o no hay profesionalId');
+        }
+    }, 100);
     
     // Verificar si estamos dentro de un modal (el calendario completo)
     const modalCalendario = document.getElementById('modalCalendarioCompleto');

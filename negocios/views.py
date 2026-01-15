@@ -1068,13 +1068,43 @@ def api_crear_reserva(request, negocio_id):
             hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
             hora_fin = hora_fin_dt.strftime('%H:%M:%S')
         
+        # Convertir fecha de string a date si es necesario
+        fecha_obj = data['fecha']
+        if isinstance(fecha_obj, str):
+            try:
+                fecha_obj = datetime.strptime(fecha_obj, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}, status=400)
+        
+        # Convertir hora_inicio a time si es necesario
+        hora_inicio_obj = data['hora_inicio']
+        if isinstance(hora_inicio_obj, str):
+            try:
+                # Asegurar formato HH:MM:SS
+                hora_parts = hora_inicio_obj.split(':')
+                if len(hora_parts) == 2:
+                    hora_inicio_obj = f"{hora_parts[0]}:{hora_parts[1]}:00"
+                hora_inicio_obj = datetime.strptime(hora_inicio_obj, '%H:%M:%S').time()
+            except ValueError:
+                return JsonResponse({'error': 'Formato de hora inválido. Use HH:MM'}, status=400)
+        
+        # Convertir hora_fin a time si es necesario
+        if isinstance(hora_fin, str):
+            try:
+                hora_fin = datetime.strptime(hora_fin, '%H:%M:%S').time()
+            except ValueError:
+                # Si falla, calcular desde hora_inicio
+                hora_inicio_dt = datetime.combine(datetime.today(), hora_inicio_obj)
+                hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
+                hora_fin = hora_fin_dt.time()
+        
         # Crear la reserva
         reserva = Reserva.objects.create(
             cliente=cliente,
             cliente_provisional=cliente_provisional,
             servicio=servicio,
-            fecha=data['fecha'],
-            hora_inicio=data['hora_inicio'],
+            fecha=fecha_obj,
+            hora_inicio=hora_inicio_obj,
             hora_fin=hora_fin,
             profesional=profesional,
             estado='confirmado' if es_cliente_provisional else 'pendiente',  # Las reservas del negocio se confirman automáticamente
