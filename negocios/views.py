@@ -993,7 +993,7 @@ def api_crear_reserva(request, negocio_id):
         cliente_provisional = None
         
         if es_cliente_provisional:
-            # Crear o buscar cliente provisional
+            # Crear cliente provisional (siempre crear uno nuevo para evitar conflictos de nombres)
             from clientes.models import ClienteProvisional
             nombre = data.get('nombre_cliente', '').strip()
             telefono = data.get('telefono_cliente', '').strip()
@@ -1003,28 +1003,17 @@ def api_crear_reserva(request, negocio_id):
             if not telefono:
                 return JsonResponse({'error': 'El teléfono del cliente es requerido'}, status=400)
             
-            # Buscar si ya existe un cliente provisional con ese teléfono en este negocio
-            cliente_provisional = ClienteProvisional.objects.filter(
+            # Siempre crear un nuevo cliente provisional para esta reserva
+            # Esto evita que al actualizar el nombre de un cliente existente se afecten reservas anteriores
+            # El mismo teléfono puede pertenecer a diferentes personas (familia, empresa, etc.)
+            cliente_provisional = ClienteProvisional.objects.create(
+                nombre=nombre,
+                telefono=telefono,
                 negocio=negocio,
-                telefono=telefono
-            ).first()
-            
-            if cliente_provisional:
-                # Si existe, actualizar el nombre si es diferente
-                if cliente_provisional.nombre != nombre:
-                    cliente_provisional.nombre = nombre
-                    cliente_provisional.save(update_fields=['nombre'])
-                    print(f"Actualizado nombre de cliente provisional {cliente_provisional.id}: {nombre}")
-            else:
-                # Crear nuevo cliente provisional
-                cliente_provisional = ClienteProvisional.objects.create(
-                    nombre=nombre,
-                    telefono=telefono,
-                    negocio=negocio,
-                    creado_por=request.user,
-                    notas=data.get('notas_cliente', '')
-                )
-                print(f"Creado nuevo cliente provisional: {nombre} ({telefono})")
+                creado_por=request.user,
+                notas=data.get('notas_cliente', '')
+            )
+            logger.info(f"✅ Creado nuevo cliente provisional: ID {cliente_provisional.id}, nombre: '{nombre}', teléfono: '{telefono}', negocio: {negocio.id}")
         else:
             # Buscar el cliente con cuenta
             from django.contrib.auth import get_user_model
