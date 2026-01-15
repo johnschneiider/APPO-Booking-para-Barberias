@@ -278,19 +278,31 @@ def completar_perfil_google(request):
 @login_required
 def api_notificaciones(request):
     from django.core.cache import cache
+    from profesionales.models import Notificacion, SolicitudAusencia, Matriculacion
+    from negocios.models import Negocio
+    from clientes.models import NotificacionCliente
     
-    user = request.user
-    cache_key = f'notificaciones_{user.id}'
-    
-    # Intentar obtener del caché primero
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data)
-    
-    data = []
-    count_no_leidas = 0
+    try:
+        user = request.user
+        cache_key = f'notificaciones_{user.id}'
+        
+        # Intentar obtener del caché primero
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return JsonResponse(cached_data)
+        
+        data = []
+        count_no_leidas = 0
 
-    if user.tipo == 'profesional':
+        # Verificar que el usuario tenga tipo
+        user_tipo = getattr(user, 'tipo', None)
+        if not user_tipo:
+            # Si no tiene tipo, retornar respuesta vacía
+            response_data = {'notificaciones': [], 'no_leidas': 0}
+            cache.set(cache_key, response_data, 30)
+            return JsonResponse(response_data)
+
+        if user_tipo == 'profesional':
         profesional = getattr(user, 'perfil_profesional', None)
         if profesional:
             # Optimización: usar select_related y solo obtener campos necesarios
@@ -368,16 +380,38 @@ def api_notificaciones(request):
                 })
                 count_no_leidas += 1
                 
-    elif user.tipo == 'cliente':
-        # Si implementas notificaciones para clientes, agrégalas aquí
-        pass
-    # Preparar respuesta
-    response_data = {'notificaciones': data, 'no_leidas': count_no_leidas}
-    
-    # Guardar en caché por 30 segundos
-    cache.set(cache_key, response_data, 30)
-    
-    return JsonResponse(response_data)
+        elif user_tipo == 'cliente':
+            # Notificaciones para clientes
+            notificaciones = NotificacionCliente.objects.filter(cliente=user).order_by('-fecha_creacion')
+            count_no_leidas = notificaciones.filter(leida=False).count()
+            
+            for n in notificaciones:
+                data.append({
+                    'id': n.id,
+                    'tipo': n.tipo,
+                    'titulo': n.titulo,
+                    'mensaje': n.mensaje,
+                    'leida': n.leida,
+                    'fecha': n.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+                    'url': n.url_relacionada or '',
+                })
+        else:
+            # Tipo de usuario desconocido, retornar vacío
+            pass
+            
+        # Preparar respuesta
+        response_data = {'notificaciones': data, 'no_leidas': count_no_leidas}
+        
+        # Guardar en caché por 30 segundos
+        cache.set(cache_key, response_data, 30)
+        
+        return JsonResponse(response_data)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error en api_notificaciones: {e}", exc_info=True)
+        # Retornar respuesta vacía en caso de error
+        return JsonResponse({'notificaciones': [], 'no_leidas': 0}, status=500)
 
 # Helper para verificar si es super admin
 def es_super_admin(user):
