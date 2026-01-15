@@ -1098,8 +1098,15 @@ def api_crear_reserva(request, negocio_id):
                 hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
                 hora_fin = hora_fin_dt.time()
         
+        # Validar que tenemos un cliente (con cuenta o provisional)
+        if not cliente and not cliente_provisional:
+            return JsonResponse({'error': 'Debe especificar un cliente con cuenta o un cliente provisional'}, status=400)
+        
+        if cliente and cliente_provisional:
+            return JsonResponse({'error': 'No puede tener cliente con cuenta y cliente provisional al mismo tiempo'}, status=400)
+        
         # Crear la reserva
-        reserva = Reserva.objects.create(
+        reserva = Reserva(
             cliente=cliente,
             cliente_provisional=cliente_provisional,
             servicio=servicio,
@@ -1111,6 +1118,15 @@ def api_crear_reserva(request, negocio_id):
             notas=data.get('notas', ''),
             peluquero=negocio  # Asignar al negocio
         )
+        
+        # Validar el modelo antes de guardar
+        try:
+            reserva.full_clean()
+        except Exception as e:
+            return JsonResponse({'error': f'Error de validación: {str(e)}'}, status=400)
+        
+        # Guardar la reserva
+        reserva.save()
         
         return JsonResponse({
             'success': True,
