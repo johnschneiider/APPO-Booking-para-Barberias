@@ -157,8 +157,48 @@ WSGI_APPLICATION = 'melissa.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Configuración de base de datos
-# Prioridad: PostgreSQL del sistema > SQLite (solo desarrollo)
-if os.environ.get('POSTGRES_DB'):
+# Prioridad: DATABASE_URL > PostgreSQL individual > SQLite (solo desarrollo)
+
+# Si hay DATABASE_URL, usarlo directamente (evita problemas de codificación)
+database_url = os.environ.get('DATABASE_URL', '')
+if database_url and database_url.startswith('postgresql://'):
+    # Limpiar y normalizar DATABASE_URL
+    try:
+        # Asegurar que es UTF-8 válido
+        if isinstance(database_url, bytes):
+            database_url = database_url.decode('utf-8', errors='replace')
+        database_url = str(database_url).strip()
+        # Validar que puede codificarse a UTF-8
+        database_url.encode('utf-8')
+        
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                # Usar DATABASE_URL directamente
+            }
+        }
+        # Parsear DATABASE_URL manualmente para evitar problemas
+        from urllib.parse import urlparse
+        parsed = urlparse(database_url)
+        
+        DATABASES['default'].update({
+            'NAME': parsed.path[1:] if parsed.path else 'appo_db',  # Remover el / inicial
+            'USER': parsed.username or 'appo_user',
+            'PASSWORD': parsed.password or '',
+            'HOST': parsed.hostname or 'localhost',
+            'PORT': str(parsed.port) if parsed.port else '5432',
+            'OPTIONS': {
+                'client_encoding': 'UTF8',
+                'connect_timeout': 10,
+            },
+            'CONN_MAX_AGE': 600,
+        })
+    except Exception as e:
+        print(f"Warning: Error parseando DATABASE_URL: {e}")
+        # Continuar con configuración individual
+        database_url = None
+
+if not database_url and os.environ.get('POSTGRES_DB'):
     # Configuración para PostgreSQL del sistema (producción/VPS)
     # Leer variables de entorno con manejo seguro de codificación
     def safe_getenv(key, default=''):
