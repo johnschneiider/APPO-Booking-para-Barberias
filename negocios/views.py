@@ -956,8 +956,16 @@ def api_crear_reserva(request, negocio_id):
     try:
         negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
         
-        # Obtener datos del request
-        data = request.POST if request.POST else request.data
+        # Obtener datos del request (puede venir como JSON o form data)
+        if request.content_type and 'application/json' in request.content_type:
+            # Si viene como JSON, parsear el body
+            try:
+                data = json.loads(request.body.decode('utf-8'))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return JsonResponse({'error': 'Error al parsear JSON'}, status=400)
+        else:
+            # Si viene como form data, usar POST
+            data = request.POST.dict() if request.POST else {}
         
         # Validar campos requeridos
         # Si es cliente provisional, solo necesita nombre y teléfono
