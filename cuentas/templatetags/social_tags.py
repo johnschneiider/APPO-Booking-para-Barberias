@@ -11,17 +11,18 @@ register = template.Library()
 def safe_provider_login_url(context, provider_id):
     """
     Obtiene la URL de login del provider de forma segura.
-    Si el provider no está configurado, retorna None.
+    Si el provider no está configurado, retorna '#'.
     """
     try:
         from allauth.socialaccount.templatetags.socialaccount import provider_login_url
         request = context.get('request')
         if not request:
-            return None
-        return provider_login_url(context, provider_id)
-    except (ValueError, ImproperlyConfigured, AttributeError):
+            return '#'
+        url = provider_login_url(context, provider_id)
+        return url if url else '#'
+    except (ValueError, ImproperlyConfigured, AttributeError, TypeError):
         # Provider no configurado o no disponible
-        return None
+        return '#'
 
 
 @register.simple_tag(takes_context=True)
@@ -46,7 +47,11 @@ def is_provider_available(context, provider_id):
     Retorna True si está disponible, False en caso contrario.
     """
     try:
-        providers = get_available_providers(context)
+        from allauth.socialaccount.templatetags.socialaccount import get_providers
+        providers = get_providers(context)
+        if not providers:
+            return False
         return any(p.id == provider_id for p in providers)
-    except:
+    except (ValueError, ImproperlyConfigured, AttributeError, TypeError):
+        # Provider no configurado o no disponible
         return False
