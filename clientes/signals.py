@@ -69,20 +69,21 @@ def actualizar_metricas_profesional_cliente(sender, instance, **kwargs):
         metricap.ingresos_totales = total_ingresos
         # Calificación promedio y horas trabajadas pueden calcularse aquí si se desea
         metricap.save()
-    # Cliente
+    # Cliente (solo si tiene cuenta, no para clientes provisionales)
     cliente = instance.cliente
-    fecha = instance.fecha
-    metricac, _ = MetricaCliente.objects.get_or_create(cliente=cliente, fecha=fecha)
-    reservas_cli = Reserva.objects.filter(cliente=cliente, fecha=fecha)
-    metricac.total_turnos = reservas_cli.count()
-    metricac.turnos_completados = reservas_cli.filter(estado='completado').count()
-    metricac.turnos_cancelados = reservas_cli.filter(estado='cancelado').count()
-    # Servicios más solicitados y profesionales más reservados (solo del día)
-    servicios = [r.servicio.servicio.nombre for r in reservas_cli if r.servicio]
-    profesionales = [r.profesional.nombre_completo for r in reservas_cli if r.profesional]
-    metricac.servicios_mas_solicitados = ', '.join([s for s, _ in Counter(servicios).most_common(3)])
-    metricac.profesionales_mas_reservados = ', '.join([p for p, _ in Counter(profesionales).most_common(3)])
-    metricac.save()
+    if cliente:  # Solo actualizar métricas si hay un cliente con cuenta
+        fecha = instance.fecha
+        metricac, _ = MetricaCliente.objects.get_or_create(cliente=cliente, fecha=fecha)
+        reservas_cli = Reserva.objects.filter(cliente=cliente, fecha=fecha)
+        metricac.total_turnos = reservas_cli.count()
+        metricac.turnos_completados = reservas_cli.filter(estado='completado').count()
+        metricac.turnos_cancelados = reservas_cli.filter(estado='cancelado').count()
+        # Servicios más solicitados y profesionales más reservados (solo del día)
+        servicios = [r.servicio.servicio.nombre for r in reservas_cli if r.servicio and r.servicio.servicio]
+        profesionales = [r.profesional.nombre_completo for r in reservas_cli if r.profesional]
+        metricac.servicios_mas_solicitados = ', '.join([s for s, _ in Counter(servicios).most_common(3)])
+        metricac.profesionales_mas_reservados = ', '.join([p for p, _ in Counter(profesionales).most_common(3)])
+        metricac.save()
 
 
 # ==================== SIGNALS FINANCIEROS ====================
