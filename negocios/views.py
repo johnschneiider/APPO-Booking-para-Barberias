@@ -854,7 +854,7 @@ def api_reservas_negocio(request, negocio_id):
         # Las reservas están relacionadas directamente con el negocio a través del campo peluquero
         reservas = Reserva.objects.filter(
             peluquero=negocio
-        ).select_related('cliente', 'servicio', 'profesional')
+        ).select_related('cliente', 'cliente_provisional', 'servicio', 'profesional')
         
         # Aplicar filtros de fecha
         if fecha:
@@ -898,19 +898,24 @@ def api_reservas_negocio(request, negocio_id):
                         hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
                         hora_fin = hora_fin_dt.strftime('%H:%M:%S')
                 
-                # Verificar si el cliente tiene suscripción activa
+                # Verificar si el cliente tiene suscripción activa (solo para clientes con cuenta)
                 from suscripciones.models import Suscripcion
-                tiene_suscripcion = Suscripcion.objects.filter(
-                    cliente=r.cliente,
-                    negocio=negocio,
-                    estado='activa',
-                    fecha_inicio__lte=r.fecha,
-                    fecha_fin__gte=r.fecha
-                ).exists()
+                tiene_suscripcion = False
+                if r.cliente:
+                    tiene_suscripcion = Suscripcion.objects.filter(
+                        cliente=r.cliente,
+                        negocio=negocio,
+                        estado='activa',
+                        fecha_inicio__lte=r.fecha,
+                        fecha_fin__gte=r.fecha
+                    ).exists()
+                
+                # Obtener nombre del cliente usando el método del modelo que maneja ambos casos
+                nombre_cliente = r.get_cliente_nombre()
                 
                 reserva_data = {
                     'id': r.id,
-                    'cliente': r.cliente.get_full_name() or r.cliente.username,
+                    'cliente': nombre_cliente,
                     'servicio': r.servicio.servicio.nombre if r.servicio and r.servicio.servicio else 'Reserva',
                     'hora_inicio': str(hora_inicio),
                     'hora_fin': str(hora_fin),
@@ -919,7 +924,8 @@ def api_reservas_negocio(request, negocio_id):
                     'estado': r.estado or 'pendiente',
                     'notas': r.notas or '',
                     'precio': 0,  # El modelo Servicio en negocios no tiene precio
-                    'tiene_suscripcion': tiene_suscripcion
+                    'tiene_suscripcion': tiene_suscripcion,
+                    'es_cliente_provisional': r.es_cliente_provisional()
                 }
                 
                 reservas_data.append(reserva_data)
