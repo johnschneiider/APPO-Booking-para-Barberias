@@ -3676,7 +3676,27 @@ function manejarClickSlotDelegado(e) {
 
 // Función para abrir modal de reserva provisional
 function abrirModalReservaProvisional(hora, profesionalId) {
-    const modal = new bootstrap.Modal(document.getElementById('modalNuevaReservaProvisional'));
+    console.log('🔓 Intentando abrir modal de reserva provisional...', { hora, profesionalId });
+    
+    const modalElement = document.getElementById('modalNuevaReservaProvisional');
+    if (!modalElement) {
+        console.error('❌ No se encontró el modal modalNuevaReservaProvisional');
+        alert('Error: No se encontró el formulario de reserva. Por favor, recarga la página.');
+        return;
+    }
+    
+    // Verificar que Bootstrap esté disponible
+    if (typeof bootstrap === 'undefined') {
+        console.error('❌ Bootstrap no está disponible');
+        alert('Error: Bootstrap no está cargado. Por favor, recarga la página.');
+        return;
+    }
+    
+    // Obtener o crear instancia del modal
+    let modal = bootstrap.Modal.getInstance(modalElement);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalElement);
+    }
     
     // Establecer valores por defecto
     const fechaInput = document.getElementById('fechaProvisional');
@@ -3686,23 +3706,42 @@ function abrirModalReservaProvisional(hora, profesionalId) {
     // Fecha actual
     if (fechaInput) {
         fechaInput.value = fechaSeleccionada;
+        console.log('📅 Fecha establecida:', fechaSeleccionada);
+    } else {
+        console.warn('⚠️ No se encontró el input de fecha');
     }
     
     // Hora seleccionada
     if (horaInput) {
-        horaInput.value = `${hora.toString().padStart(2, '0')}:00`;
+        const horaFormateada = `${hora.toString().padStart(2, '0')}:00`;
+        horaInput.value = horaFormateada;
+        console.log('⏰ Hora establecida:', horaFormateada);
+    } else {
+        console.warn('⚠️ No se encontró el input de hora');
     }
     
     // Profesional seleccionado
     if (profesionalSelect && profesionalId) {
         profesionalSelect.value = profesionalId;
+        console.log('👤 Profesional establecido:', profesionalId);
+    } else {
+        console.warn('⚠️ No se encontró el select de profesional o no hay profesionalId');
     }
     
     // Cargar servicios si no están cargados
     cargarServiciosEnModal();
     
+    // Asegurar que los profesionales estén cargados en el select
+    llenarDropdownProfesionalesProvisional();
+    
     // Abrir modal
-    modal.show();
+    try {
+        modal.show();
+        console.log('✅ Modal abierto exitosamente');
+    } catch (error) {
+        console.error('❌ Error al abrir el modal:', error);
+        alert('Error al abrir el formulario de reserva. Por favor, intenta nuevamente.');
+    }
 }
 
 // Mostrar reservas en el calendario
