@@ -3155,7 +3155,68 @@
     </div>
 </div>
 
-<!-- Modal para nueva reserva -->
+<!-- Modal para nueva reserva con cliente provisional (desde click en slot) -->
+<div class="modal fade" id="modalNuevaReservaProvisional" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Reserva - Cliente Provisional</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevaReservaProvisional">
+                    <input type="hidden" name="es_cliente_provisional" value="true">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Cliente <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="nombre_cliente" required placeholder="Ej: Juan Pérez">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="telefono_cliente" required placeholder="Ej: +57 300 123 4567">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Servicio <span class="text-danger">*</span></label>
+                                <select class="form-select" name="servicio" id="servicioProvisional" required>
+                                    <option value="">Seleccionar servicio</option>
+                                    <!-- Se llenará dinámicamente -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Profesional <span class="text-danger">*</span></label>
+                                <select class="form-select" name="profesional" id="profesionalProvisional" required>
+                                    <option value="">Seleccionar profesional</option>
+                                    <!-- Se llenará dinámicamente -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="fecha" id="fechaProvisional" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hora <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" name="hora_inicio" id="horaProvisional" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notas (opcional)</label>
+                        <textarea class="form-control" name="notas" rows="3" placeholder="Notas adicionales sobre la reserva..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNuevaReservaProvisional" class="btn btn-primary">Crear Reserva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nueva reserva (cliente con cuenta) -->
 <div class="modal fade" id="modalNuevaReserva" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -3286,6 +3347,7 @@ async function cargarProfesionales() {
         
         // Llenar dropdown de profesionales en el modal
         llenarDropdownProfesionales();
+        llenarDropdownProfesionalesProvisional(); // También para el modal provisional
         
         generarCalendario();
         
@@ -3299,6 +3361,7 @@ async function cargarProfesionales() {
             { id: 4, nombre: 'Luis Pérez', foto_perfil: null }
         ];
         llenarDropdownProfesionales();
+        llenarDropdownProfesionalesProvisional();
         generarCalendario();
     }
 }
@@ -3353,6 +3416,23 @@ function llenarDropdownProfesionales() {
     
     // Actualizar contador de profesionales en la vista principal
     actualizarContadorProfesionales();
+}
+
+// Función para llenar el dropdown de profesionales en el modal provisional
+function llenarDropdownProfesionalesProvisional() {
+    const selectProfesional = document.getElementById('profesionalProvisional');
+    if (selectProfesional && profesionales.length > 0) {
+        // Limpiar opciones existentes
+        selectProfesional.innerHTML = '<option value="">Seleccionar profesional</option>';
+        
+        // Agregar opciones de profesionales
+        profesionales.forEach(profesional => {
+            const option = document.createElement('option');
+            option.value = profesional.id;
+            option.textContent = profesional.nombre || profesional.nombre_completo || 'Profesional';
+            selectProfesional.appendChild(option);
+        });
+    }
 }
 
 // Función para actualizar el contador de profesionales en la vista principal
@@ -3544,10 +3624,77 @@ function generarCalendario() {
     
     calendarGrid.innerHTML = html;
     
+    // Agregar listeners para clicks en slots vacíos
+    agregarListenersSlots();
+    
     // Cargar reservas después de generar el calendario
     setTimeout(() => {
         cargarReservas();
     }, 100);
+}
+
+// Función para agregar listeners a los slots del calendario
+function agregarListenersSlots() {
+    const slots = document.querySelectorAll('.professional-slot');
+    slots.forEach(slot => {
+        // Remover listener anterior si existe
+        slot.removeEventListener('click', manejarClickSlot);
+        // Agregar nuevo listener
+        slot.addEventListener('click', manejarClickSlot);
+    });
+}
+
+// Función para manejar clicks en slots vacíos
+function manejarClickSlot(e) {
+    // No hacer nada si se hizo click en una reserva
+    if (e.target.closest('.appointment-block')) {
+        return;
+    }
+    
+    const slot = e.currentTarget;
+    const hora = slot.getAttribute('data-hora');
+    const profesionalId = slot.getAttribute('data-profesional');
+    
+    // Verificar si el slot está vacío (no tiene reservas)
+    const reservasEnSlot = slot.querySelectorAll('.appointment-block');
+    if (reservasEnSlot.length > 0) {
+        // Si hay reservas, no hacer nada (se maneja el click en la reserva)
+        return;
+    }
+    
+    // Abrir modal para crear reserva con cliente provisional
+    abrirModalReservaProvisional(hora, profesionalId);
+}
+
+// Función para abrir modal de reserva provisional
+function abrirModalReservaProvisional(hora, profesionalId) {
+    const modal = new bootstrap.Modal(document.getElementById('modalNuevaReservaProvisional'));
+    
+    // Establecer valores por defecto
+    const fechaInput = document.getElementById('fechaProvisional');
+    const horaInput = document.getElementById('horaProvisional');
+    const profesionalSelect = document.getElementById('profesionalProvisional');
+    
+    // Fecha actual
+    if (fechaInput) {
+        fechaInput.value = fechaSeleccionada;
+    }
+    
+    // Hora seleccionada
+    if (horaInput) {
+        horaInput.value = `${hora.toString().padStart(2, '0')}:00`;
+    }
+    
+    // Profesional seleccionado
+    if (profesionalSelect && profesionalId) {
+        profesionalSelect.value = profesionalId;
+    }
+    
+    // Cargar servicios si no están cargados
+    cargarServiciosEnModal();
+    
+    // Abrir modal
+    modal.show();
 }
 
 // Mostrar reservas en el calendario
@@ -4251,6 +4398,92 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Función para crear reserva con cliente provisional
+async function crearReservaProvisional(formData) {
+    try {
+        // Preparar datos para cliente provisional
+        const reservaData = {
+            es_cliente_provisional: true,
+            nombre_cliente: formData.get('nombre_cliente'),
+            telefono_cliente: formData.get('telefono_cliente'),
+            servicio: formData.get('servicio'),
+            fecha: formData.get('fecha'),
+            hora_inicio: formData.get('hora_inicio') + ':00', // Agregar segundos
+            profesional_id: formData.get('profesional'),
+            notas: formData.get('notas') || ''
+        };
+        
+        const response = await fetch(`/negocios/{{ negocio.id }}/api/reservas/crear/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(reservaData),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Reserva provisional creada exitosamente:', data);
+            
+            // Recargar reservas y actualizar calendario
+            await cargarReservas();
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevaReservaProvisional'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Limpiar formulario
+            document.getElementById('formNuevaReservaProvisional').reset();
+            
+            // Mostrar mensaje de éxito
+            mostrarMensajeExito('Reserva creada exitosamente');
+        } else {
+            const errorData = await response.json();
+            console.error('Error creando reserva provisional:', errorData);
+            alert(`Error: ${errorData.error || 'No se pudo crear la reserva'}`);
+        }
+    } catch (error) {
+        console.error('Error en la petición:', error);
+        alert('Error de conexión al crear la reserva');
+    }
+}
+
+// Función para cargar servicios en el modal
+async function cargarServiciosEnModal() {
+    const selectServicio = document.getElementById('servicioProvisional');
+    if (!selectServicio || selectServicio.options.length > 1) {
+        // Ya está cargado
+        return;
+    }
+    
+    try {
+        // Aquí deberías tener una API para obtener servicios del negocio
+        // Por ahora, usaremos servicios básicos
+        const servicios = [
+            { nombre: 'Corte de cabello', id: 'corte' },
+            { nombre: 'Coloración', id: 'color' },
+            { nombre: 'Peinado', id: 'peinado' },
+            { nombre: 'Tratamiento', id: 'tratamiento' },
+            { nombre: 'Masaje', id: 'masaje' },
+            { nombre: 'Manicure', id: 'manicure' },
+            { nombre: 'Pedicure', id: 'pedicure' }
+        ];
+        
+        servicios.forEach(servicio => {
+            const option = document.createElement('option');
+            option.value = servicio.id || servicio.nombre;
+            option.textContent = servicio.nombre;
+            selectServicio.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error cargando servicios:', error);
+    }
+}
+
 // Función para mostrar mensaje de éxito
 function mostrarMensajeExito(mensaje) {
     mostrarMensaje(mensaje, 'success');
@@ -4868,8 +5101,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Configurar formulario de nueva reserva
-    const formNuevaReserva = document.getElementById('modalNuevaReserva');
+    // Configurar formulario de nueva reserva (cliente con cuenta)
+    const formNuevaReserva = document.getElementById('formNuevaReserva');
     if (formNuevaReserva) {
         formNuevaReserva.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -4893,6 +5126,27 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Crear la reserva
             crearNuevaReserva(reservaData);
+        });
+    }
+    
+    // Configurar formulario de nueva reserva provisional
+    const formNuevaReservaProvisional = document.getElementById('formNuevaReservaProvisional');
+    if (formNuevaReservaProvisional) {
+        formNuevaReservaProvisional.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Obtener datos del formulario
+            const formData = new FormData(formNuevaReservaProvisional);
+            
+            // Validar datos requeridos
+            if (!formData.get('nombre_cliente') || !formData.get('telefono_cliente') || 
+                !formData.get('servicio') || !formData.get('fecha') || !formData.get('hora_inicio')) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+            
+            // Crear la reserva provisional
+            crearReservaProvisional(formData);
         });
     }
     

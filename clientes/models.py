@@ -72,8 +72,60 @@ class ActividadUsuario(models.Model):
         actividad.save()
         return actividad
 
+class ClienteProvisional(models.Model):
+    """Modelo para almacenar clientes que no tienen cuenta en el sistema"""
+    nombre = models.CharField(max_length=200, help_text='Nombre completo del cliente')
+    telefono = models.CharField(max_length=15, help_text='Teléfono de contacto')
+    creado_en = models.DateTimeField(auto_now_add=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='clientes_provisionales_creados',
+        help_text='Usuario del negocio que creó este cliente provisional'
+    )
+    negocio = models.ForeignKey(
+        Negocio,
+        on_delete=models.CASCADE,
+        related_name='clientes_provisionales',
+        help_text='Negocio al que pertenece este cliente provisional'
+    )
+    notas = models.TextField(blank=True, help_text='Notas adicionales sobre el cliente')
+    
+    class Meta:
+        verbose_name = 'Cliente Provisional'
+        verbose_name_plural = 'Clientes Provisionales'
+        ordering = ['-creado_en']
+        indexes = [
+            models.Index(fields=['negocio', '-creado_en']),
+            models.Index(fields=['telefono']),
+        ]
+    
+    def __str__(self):
+        return f"{self.nombre} ({self.telefono})"
+    
+    def get_full_name(self):
+        """Retorna el nombre completo del cliente"""
+        return self.nombre
+
 class Reserva(models.Model):
-    cliente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reservas_cliente')
+    cliente = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='reservas_cliente',
+        null=True,
+        blank=True,
+        help_text='Cliente con cuenta en el sistema (opcional si es cliente provisional)'
+    )
+    cliente_provisional = models.ForeignKey(
+        ClienteProvisional,
+        on_delete=models.CASCADE,
+        related_name='reservas',
+        null=True,
+        blank=True,
+        help_text='Cliente provisional sin cuenta (opcional si es cliente con cuenta)'
+    )
     peluquero = models.ForeignKey(Negocio, on_delete=models.CASCADE, related_name='reservas_peluquero')
     profesional = models.ForeignKey('profesionales.Profesional', on_delete=models.CASCADE, null=True, blank=True, related_name='reservas_profesional')
     fecha = models.DateField()
@@ -137,9 +189,46 @@ class Reserva(models.Model):
         ordering = ['fecha', 'hora_inicio']
         verbose_name = 'Reserva'
         verbose_name_plural = 'Reservas'
+    
+    def clean(self):
+        """Validar que haya un cliente (con cuenta o provisional)"""
+        from django.core.exceptions import ValidationError
+        if not self.cliente and not self.cliente_provisional:
+            raise ValidationError('Debe especificar un cliente con cuenta o un cliente provisional')
+        if self.cliente and self.cliente_provisional:
+            raise ValidationError('No puede tener cliente con cuenta y cliente provisional al mismo tiempo')
+    
+    def get_cliente_nombre(self):
+        """Retorna el nombre del cliente (con cuenta o provisional)"""
+        if self.cliente:
+            return self.cliente.get_full_name() or self.cliente.username
+        elif self.cliente_provisional:
+            return self.cliente_provisional.nombre
+        return "Cliente desconocido"
+    
+    def get_cliente_telefono(self):
+        """Retorna el teléfono del cliente (con cuenta o provisional)"""
+        if self.cliente:
+            return self.cliente.telefono or ""
+        elif self.cliente_provisional:
+            return self.cliente_provisional.telefono
+        return ""
+    
+    def get_cliente_username(self):
+        """Retorna el username o nombre del cliente"""
+        if self.cliente:
+            return self.cliente.username
+        elif self.cliente_provisional:
+            return self.cliente_provisional.nombre
+        return "Cliente desconocido"
+    
+    def es_cliente_provisional(self):
+        """Retorna True si es un cliente provisional"""
+        return self.cliente_provisional is not None
 
     def __str__(self):
-        return f"Reserva de {self.cliente} con {self.profesional or self.peluquero} el {self.fecha} a las {self.hora_inicio}"
+        cliente_str = self.get_cliente_nombre()
+        return f"Reserva de {cliente_str} con {self.profesional or self.peluquero} el {self.fecha} a las {self.hora_inicio}"
     
     def save(self, *args, **kwargs):
         """
@@ -148,6 +237,9 @@ class Reserva(models.Model):
         cambia el precio o duración después, las reservas pasadas conservan
         los valores que tenían cuando fueron creadas.
         """
+        # Validar que haya un cliente
+        self.clean()
+        
         # Solo capturar valores si es una nueva reserva o si no tienen valores asignados
         if self.servicio:
             # Capturar precio si no está asignado
@@ -177,19 +269,20 @@ class Reserva(models.Model):
             self.notas = f"{self.notas}\n[Confirmado] {notas_adicionales}" if self.notas else f"[Confirmado] {notas_adicionales}"
         self.save()
         
-        # Crear notificación para el cliente
-        self._crear_notificacion_cliente(
-            'reserva',
-            'Reserva Confirmada',
-            f'Tu reserva del {self.fecha} a las {self.hora_inicio} ha sido confirmada.',
-            '/clientes/mis_reservas/'
-        )
+        # Crear notificación para el cliente (solo si tiene cuenta)
+        if self.cliente:
+            self._crear_notificacion_cliente(
+                'reserva',
+                'Reserva Confirmada',
+                f'Tu reserva del {self.fecha} a las {self.hora_inicio} ha sido confirmada.',
+                '/clientes/mis_reservas/'
+            )
         
         # Crear notificación para el profesional
         self._crear_notificacion_profesional(
             'reserva',
             'Reserva Confirmada',
-            f'Nueva reserva confirmada para el {self.fecha} a las {self.hora_inicio} con {self.cliente.username}.',
+            f'Nueva reserva confirmada para el {self.fecha} a las {self.hora_inicio} con {self.get_cliente_username()}.',
             '/profesionales/panel/'
         )
         
@@ -224,16 +317,18 @@ class Reserva(models.Model):
             if motivo:
                 mensaje += f' Motivo: {motivo}'
             
-            logger.info(f"Creando notificación para cliente {self.cliente.username}")
-            self._crear_notificacion_cliente(
-                'reserva',
-                'Reserva Cancelada',
-                mensaje,
-                '/clientes/mis_reservas/'
-            )
+            # Crear notificación para el cliente (solo si tiene cuenta)
+            if self.cliente:
+                logger.info(f"Creando notificación para cliente {self.get_cliente_username()}")
+                self._crear_notificacion_cliente(
+                    'reserva',
+                    'Reserva Cancelada',
+                    mensaje,
+                    '/clientes/mis_reservas/'
+                )
             
             # Crear notificación para el profesional
-            mensaje_profesional = f'Reserva cancelada para el {self.fecha} a las {self.hora_inicio} con {self.cliente.username}.'
+            mensaje_profesional = f'Reserva cancelada para el {self.fecha} a las {self.hora_inicio} con {self.get_cliente_username()}.'
             
             if motivo:
                 mensaje_profesional += f' Motivo: {motivo}'
@@ -249,7 +344,7 @@ class Reserva(models.Model):
             # Log de actividad
             from cuentas.utils import log_reservation_activity
             log_reservation_activity(
-                user=self.cliente,
+                user=self.cliente if self.cliente else None,
                 reservation=self,
                 action="reserva_cancelada",
                 details=f"Cancelada por {cancelado_por}. Motivo: {motivo}"
@@ -298,16 +393,18 @@ class Reserva(models.Model):
             if motivo:
                 mensaje += f' Motivo: {motivo}'
             
-            logger.info(f"Creando notificación para cliente {self.cliente.username}")
-            self._crear_notificacion_cliente(
-                'reserva',
-                'Inasistencia Registrada',
-                mensaje,
-                '/clientes/mis_reservas/'
-            )
+            # Crear notificación para el cliente (solo si tiene cuenta)
+            if self.cliente:
+                logger.info(f"Creando notificación para cliente {self.get_cliente_username()}")
+                self._crear_notificacion_cliente(
+                    'reserva',
+                    'Inasistencia Registrada',
+                    mensaje,
+                    '/clientes/mis_reservas/'
+                )
             
             # Crear notificación para el profesional
-            mensaje_profesional = f'Inasistencia registrada para el {self.fecha} a las {self.hora_inicio} con {self.cliente.username}.'
+            mensaje_profesional = f'Inasistencia registrada para el {self.fecha} a las {self.hora_inicio} con {self.get_cliente_username()}.'
             
             if motivo:
                 mensaje_profesional += f' Motivo: {motivo}'
@@ -326,7 +423,7 @@ class Reserva(models.Model):
             # Log de actividad
             from cuentas.utils import log_reservation_activity
             log_reservation_activity(
-                user=self.cliente,
+                user=self.cliente if self.cliente else None,
                 reservation=self,
                 action="reserva_inasistencia",
                 details=f"Inasistencia marcada. Motivo: {motivo}"
@@ -380,13 +477,17 @@ class Reserva(models.Model):
             max_inasistencias = config.get('max_inasistencias', 3)
             
             # Contar inasistencias del cliente en este negocio
+            # Solo para clientes con cuenta (los provisionales no se bloquean automáticamente)
+            if not self.cliente:
+                return
+            
             total_inasistencias = Reserva.objects.filter(
                 cliente=self.cliente,
                 peluquero=self.peluquero,
                 estado='inasistencia'
             ).count()
             
-            logger.info(f"Cliente {self.cliente.username} tiene {total_inasistencias} inasistencias en {self.peluquero.nombre} (máximo permitido: {max_inasistencias})")
+            logger.info(f"Cliente {self.get_cliente_username()} tiene {total_inasistencias} inasistencias en {self.peluquero.nombre} (máximo permitido: {max_inasistencias})")
             
             # Si alcanza o supera el máximo, bloquear
             if total_inasistencias >= max_inasistencias:
@@ -394,29 +495,31 @@ class Reserva(models.Model):
                 from clientes.models import BloqueoCliente
                 motivo = f"Cliente bloqueado por {total_inasistencias} inasistencias (máximo permitido: {max_inasistencias})"
                 BloqueoCliente.crear_bloqueo(
-                    cliente=self.cliente,
+                    cliente=self.cliente if self.cliente else None,
+                    cliente_provisional=self.cliente_provisional if self.cliente_provisional else None,
                     negocio=self.peluquero,
                     motivo=motivo,
                     inasistencias_count=total_inasistencias
                 )
-                logger.info(f"Cliente {self.cliente.username} bloqueado automáticamente en {self.peluquero.nombre}")
+                logger.info(f"Cliente {self.get_cliente_username()} bloqueado automáticamente en {self.peluquero.nombre}")
         except Exception as e:
-            logger.error(f"Error al verificar bloqueo para cliente {self.cliente.username}: {str(e)}")
+            logger.error(f"Error al verificar bloqueo para cliente {self.get_cliente_username()}: {str(e)}")
             # No lanzar excepción para no interrumpir el flujo de marcar inasistencia
         
-        # Crear notificación para el cliente
-        self._crear_notificacion_cliente(
-            'reserva',
-            'Reserva Completada',
-            f'Tu reserva del {self.fecha} a las {self.hora_inicio} ha sido marcada como completada.',
-            '/clientes/mis_reservas/'
-        )
+        # Crear notificación para el cliente (solo si tiene cuenta)
+        if self.cliente:
+            self._crear_notificacion_cliente(
+                'reserva',
+                'Reserva Completada',
+                f'Tu reserva del {self.fecha} a las {self.hora_inicio} ha sido marcada como completada.',
+                '/clientes/mis_reservas/'
+            )
         
         # Crear notificación para el profesional
         self._crear_notificacion_profesional(
             'reserva',
             'Reserva Completada',
-            f'Reserva completada para el {self.fecha} a las {self.hora_inicio} con {self.cliente.username}.',
+            f'Reserva completada para el {self.fecha} a las {self.hora_inicio} con {self.get_cliente_username()}.',
             '/profesionales/panel/'
         )
         
@@ -442,19 +545,20 @@ class Reserva(models.Model):
         
         self.save()
         
-        # Crear notificación para el cliente
-        self._crear_notificacion_cliente(
-            'reserva',
-            'Reserva Reagendada',
-            f'Tu reserva ha sido reagendada del {fecha_anterior} a las {hora_anterior} al {nueva_fecha} a las {nueva_hora_inicio}.',
-            '/clientes/mis_reservas/'
-        )
+        # Crear notificación para el cliente (solo si tiene cuenta)
+        if self.cliente:
+            self._crear_notificacion_cliente(
+                'reserva',
+                'Reserva Reagendada',
+                f'Tu reserva ha sido reagendada del {fecha_anterior} a las {hora_anterior} al {nueva_fecha} a las {nueva_hora_inicio}.',
+                '/clientes/mis_reservas/'
+            )
         
         # Crear notificación para el profesional
         self._crear_notificacion_profesional(
             'reserva',
             'Reserva Reagendada',
-            f'Reserva reagendada de {fecha_anterior} a las {hora_anterior} al {nueva_fecha} a las {nueva_hora_inicio} con {self.cliente.username}.',
+            f'Reserva reagendada de {fecha_anterior} a las {hora_anterior} al {nueva_fecha} a las {nueva_hora_inicio} con {self.get_cliente_username()}.',
             '/profesionales/panel/'
         )
         

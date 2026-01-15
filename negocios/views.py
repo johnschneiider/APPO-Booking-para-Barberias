@@ -960,23 +960,53 @@ def api_crear_reserva(request, negocio_id):
         data = request.POST if request.POST else request.data
         
         # Validar campos requeridos
-        campos_requeridos = ['cliente', 'servicio', 'fecha', 'hora_inicio']
-        for campo in campos_requeridos:
-            if not data.get(campo):
-                return JsonResponse({'error': f'Campo requerido: {campo}'}, status=400)
+        # Si es cliente provisional, solo necesita nombre y teléfono
+        es_cliente_provisional = data.get('es_cliente_provisional', False)
         
-        # Buscar el cliente
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        try:
-            cliente = User.objects.get(username=data['cliente'])
-        except User.DoesNotExist:
-            # Si no existe, crear un usuario temporal
-            cliente = User.objects.create_user(
-                username=data['cliente'],
-                email=f"{data['cliente']}@temporal.com",
-                password='temporal123'
-            )
+        if es_cliente_provisional:
+            campos_requeridos = ['nombre_cliente', 'telefono_cliente', 'servicio', 'fecha', 'hora_inicio']
+            for campo in campos_requeridos:
+                if not data.get(campo):
+                    return JsonResponse({'error': f'Campo requerido: {campo}'}, status=400)
+        else:
+            campos_requeridos = ['cliente', 'servicio', 'fecha', 'hora_inicio']
+            for campo in campos_requeridos:
+                if not data.get(campo):
+                    return JsonResponse({'error': f'Campo requerido: {campo}'}, status=400)
+        
+        # Manejar cliente (con cuenta o provisional)
+        cliente = None
+        cliente_provisional = None
+        
+        if es_cliente_provisional:
+            # Crear o buscar cliente provisional
+            from clientes.models import ClienteProvisional
+            nombre = data.get('nombre_cliente', '').strip()
+            telefono = data.get('telefono_cliente', '').strip()
+            
+            # Buscar si ya existe un cliente provisional con ese teléfono en este negocio
+            cliente_provisional = ClienteProvisional.objects.filter(
+                negocio=negocio,
+                telefono=telefono
+            ).first()
+            
+            if not cliente_provisional:
+                # Crear nuevo cliente provisional
+                cliente_provisional = ClienteProvisional.objects.create(
+                    nombre=nombre,
+                    telefono=telefono,
+                    negocio=negocio,
+                    creado_por=request.user,
+                    notas=data.get('notas_cliente', '')
+                )
+        else:
+            # Buscar el cliente con cuenta
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                cliente = User.objects.get(username=data['cliente'])
+            except User.DoesNotExist:
+                return JsonResponse({'error': 'Cliente no encontrado'}, status=400)
         
         # Buscar el servicio del negocio
         try:
@@ -1009,26 +1039,37 @@ def api_crear_reserva(request, negocio_id):
         # Calcular hora_fin basada en la duración del servicio
         from datetime import datetime, timedelta
         try:
-            hora_inicio_dt = datetime.strptime(data['hora_inicio'], '%H:%M:%S')
+            # Manejar formato de hora con o sin segundos
+            hora_inicio_str = data['hora_inicio']
+            if len(hora_inicio_str.split(':')) == 2:
+                hora_inicio_str += ':00'
+            hora_inicio_dt = datetime.strptime(hora_inicio_str, '%H:%M:%S')
             # Usar la duración del servicio si está disponible
             duracion_minutos = servicio.duracion if servicio.duracion else 60
             hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion_minutos)
             hora_fin = hora_fin_dt.strftime('%H:%M:%S')
-        except:
+        except Exception as e:
             # Si falla el cálculo, usar 1 hora por defecto
-            hora_inicio_dt = datetime.strptime(data['hora_inicio'], '%H:%M:%S')
+            try:
+                hora_inicio_str = data['hora_inicio']
+                if len(hora_inicio_str.split(':')) == 2:
+                    hora_inicio_str += ':00'
+                hora_inicio_dt = datetime.strptime(hora_inicio_str, '%H:%M:%S')
+            except:
+                hora_inicio_dt = datetime.strptime('09:00:00', '%H:%M:%S')
             hora_fin_dt = hora_inicio_dt + timedelta(hours=1)
             hora_fin = hora_fin_dt.strftime('%H:%M:%S')
         
         # Crear la reserva
         reserva = Reserva.objects.create(
             cliente=cliente,
+            cliente_provisional=cliente_provisional,
             servicio=servicio,
             fecha=data['fecha'],
             hora_inicio=data['hora_inicio'],
             hora_fin=hora_fin,
             profesional=profesional,
-            estado='pendiente',
+            estado='confirmado' if es_cliente_provisional else 'pendiente',  # Las reservas del negocio se confirman automáticamente
             notas=data.get('notas', ''),
             peluquero=negocio  # Asignar al negocio
         )
