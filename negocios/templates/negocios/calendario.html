@@ -4517,6 +4517,11 @@ async function crearReservaProvisional(formData) {
             // Recargar reservas y actualizar calendario
             await cargarReservas();
             
+            // Regenerar calendario para mostrar la nueva reserva
+            if (profesionales && profesionales.length > 0) {
+                generarCalendario();
+            }
+            
             // Cerrar modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevaReservaProvisional'));
             if (modal) {
