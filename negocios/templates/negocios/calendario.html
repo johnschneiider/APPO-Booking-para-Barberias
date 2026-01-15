@@ -4036,6 +4036,167 @@ function mostrarReservasEnCalendario() {
     actualizarContadorReservas();
 }
 
+// Función para agregar funcionalidad de drag and drop a una reserva
+function agregarDragAndDrop(appointmentBlock, reservaData) {
+    let isDragging = false;
+    let startY = 0;
+    let startTop = 0;
+    let currentSlot = null;
+    let originalSlot = null;
+    
+    appointmentBlock.addEventListener('mousedown', (e) => {
+        // Solo iniciar drag si no es un click en un elemento interactivo
+        if (e.target.closest('button, a, input, select')) {
+            return;
+        }
+        
+        isDragging = true;
+        appointmentBlock.classList.add('dragging');
+        
+        // Guardar posición inicial
+        startY = e.clientY;
+        startTop = appointmentBlock.offsetTop;
+        originalSlot = appointmentBlock.parentElement;
+        
+        // Prevenir selección de texto
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        // Calcular nueva posición
+        const deltaY = e.clientY - startY;
+        const newTop = startTop + deltaY;
+        appointmentBlock.style.top = `${newTop}px`;
+        
+        // Encontrar el slot sobre el que estamos
+        const calendarGrid = document.getElementById('calendarGrid');
+        if (!calendarGrid) return;
+        
+        const slots = calendarGrid.querySelectorAll('.professional-slot');
+        let hoveredSlot = null;
+        
+        slots.forEach(slot => {
+            const rect = slot.getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY <= rect.bottom &&
+                e.clientX >= rect.left && e.clientX <= rect.right) {
+                hoveredSlot = slot;
+            }
+        });
+        
+        // Resaltar el slot sobre el que estamos
+        slots.forEach(slot => {
+            slot.style.backgroundColor = '';
+        });
+        if (hoveredSlot) {
+            hoveredSlot.style.backgroundColor = 'rgba(72, 187, 120, 0.1)';
+            currentSlot = hoveredSlot;
+        }
+    });
+    
+    document.addEventListener('mouseup', async (e) => {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        appointmentBlock.classList.remove('dragging');
+        
+        // Limpiar resaltado
+        const slots = document.querySelectorAll('.professional-slot');
+        slots.forEach(slot => {
+            slot.style.backgroundColor = '';
+        });
+        
+        if (!currentSlot) {
+            // Si no hay slot válido, restaurar posición original
+            appointmentBlock.style.top = `${startTop}px`;
+            return;
+        }
+        
+        // Calcular nueva hora basada en la posición
+        const slotRect = currentSlot.getBoundingClientRect();
+        const appointmentRect = appointmentBlock.getBoundingClientRect();
+        const relativeY = appointmentRect.top - slotRect.top;
+        const slotHeight = slotRect.height; // 80px normalmente
+        
+        // Calcular minutos desde el inicio del slot
+        const minutosDesdeInicio = (relativeY / slotHeight) * 60;
+        const minutosRedondeados = Math.round(minutosDesdeInicio / 15) * 15; // Redondear a cuartos de hora
+        
+        // Obtener hora base del slot
+        const horaBase = parseInt(currentSlot.getAttribute('data-hora'));
+        const nuevoProfesionalId = currentSlot.getAttribute('data-profesional');
+        
+        // Calcular hora y minutos finales
+        let horaFinal = horaBase;
+        let minutosFinal = minutosRedondeados;
+        
+        if (minutosFinal < 0) {
+            horaFinal -= 1;
+            minutosFinal += 60;
+        } else if (minutosFinal >= 60) {
+            horaFinal += 1;
+            minutosFinal -= 60;
+        }
+        
+        // Formatear nueva hora
+        const nuevaHoraInicio = `${horaFinal.toString().padStart(2, '0')}:${minutosFinal.toString().padStart(2, '0')}:00`;
+        
+        // Actualizar en el servidor
+        try {
+            const reservaId = appointmentBlock.getAttribute('data-reserva-id');
+            const response = await fetch(`/negocios/{{ negocio.id }}/api/reserva/${reservaId}/actualizar-hora/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    hora_inicio: nuevaHoraInicio,
+                    profesional_id: nuevoProfesionalId !== reservaData.profesional_id ? nuevoProfesionalId : null
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Reserva actualizada:', data);
+                
+                // Mover el bloque al nuevo slot si cambió de profesional
+                if (nuevoProfesionalId !== reservaData.profesional_id) {
+                    currentSlot.appendChild(appointmentBlock);
+                }
+                
+                // Recalcular posición top basada en minutos
+                const topOffset = (minutosFinal / 60) * slotHeight;
+                appointmentBlock.style.top = `${topOffset}px`;
+                
+                // Recargar reservas para actualizar visualización
+                await cargarReservas();
+            } else {
+                const error = await response.json();
+                console.error('❌ Error actualizando reserva:', error);
+                alert('Error al actualizar la reserva: ' + (error.error || 'Error desconocido'));
+                
+                // Restaurar posición original
+                appointmentBlock.style.top = `${startTop}px`;
+                if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
+                    originalSlot.appendChild(appointmentBlock);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error de red al actualizar reserva:', error);
+            alert('Error de conexión al actualizar la reserva');
+            
+            // Restaurar posición original
+            appointmentBlock.style.top = `${startTop}px`;
+            if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
+                originalSlot.appendChild(appointmentBlock);
+            }
+        }
+    });
+}
+
 // Navegación del calendario
 function irHoy() {
     const hoy = new Date();
