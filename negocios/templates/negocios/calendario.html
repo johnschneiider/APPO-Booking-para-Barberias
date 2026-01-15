@@ -3734,13 +3734,40 @@ function abrirModalReservaProvisional(hora, profesionalId) {
     // Asegurar que los profesionales estén cargados en el select
     llenarDropdownProfesionalesProvisional();
     
-    // Abrir modal
-    try {
-        modal.show();
-        console.log('✅ Modal abierto exitosamente');
-    } catch (error) {
-        console.error('❌ Error al abrir el modal:', error);
-        alert('Error al abrir el formulario de reserva. Por favor, intenta nuevamente.');
+    // Verificar si estamos dentro de un modal (el calendario completo)
+    const modalCalendario = document.getElementById('modalCalendarioCompleto');
+    const modalCalendarioInstance = modalCalendario ? bootstrap.Modal.getInstance(modalCalendario) : null;
+    
+    // Si el calendario está en un modal, cerrarlo primero
+    if (modalCalendarioInstance && modalCalendario.classList.contains('show')) {
+        console.log('🔄 Cerrando modal del calendario antes de abrir modal de reserva...');
+        
+        // Cerrar el modal del calendario
+        modalCalendarioInstance.hide();
+        
+        // Esperar a que se cierre completamente antes de abrir el nuevo modal
+        modalCalendario.addEventListener('hidden.bs.modal', function abrirModalReserva() {
+            // Remover el listener para evitar que se ejecute múltiples veces
+            modalCalendario.removeEventListener('hidden.bs.modal', abrirModalReserva);
+            
+            // Abrir el modal de reserva
+            try {
+                modal.show();
+                console.log('✅ Modal de reserva abierto exitosamente');
+            } catch (error) {
+                console.error('❌ Error al abrir el modal:', error);
+                alert('Error al abrir el formulario de reserva. Por favor, intenta nuevamente.');
+            }
+        }, { once: true });
+    } else {
+        // Si no hay modal del calendario abierto, abrir directamente
+        try {
+            modal.show();
+            console.log('✅ Modal abierto exitosamente');
+        } catch (error) {
+            console.error('❌ Error al abrir el modal:', error);
+            alert('Error al abrir el formulario de reserva. Por favor, intenta nuevamente.');
+        }
     }
 }
 
