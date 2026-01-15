@@ -4100,10 +4100,19 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         
+        // Prevenir que el movimiento del mouse active otros eventos
+        e.preventDefault();
+        e.stopPropagation();
+        
         // Calcular nueva posición usando coordenadas de ventana
         const deltaY = e.clientY - startY;
         const newTop = startTop + deltaY;
         appointmentBlock.style.top = `${newTop}px`;
+        
+        // Asegurar que siempre esté visible durante el drag
+        appointmentBlock.style.opacity = '0.95';
+        appointmentBlock.style.visibility = 'visible';
+        appointmentBlock.style.display = 'block';
         
         // Encontrar el slot sobre el que estamos
         const calendarGrid = document.getElementById('calendarGrid');
@@ -4139,6 +4148,10 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         // Restaurar cursor del body
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
+        
+        // Prevenir que el click se propague (evita que se abra el modal)
+        e.preventDefault();
+        e.stopPropagation();
         
         // Limpiar resaltado
         const slots = document.querySelectorAll('.professional-slot');
