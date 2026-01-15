@@ -4486,16 +4486,19 @@ function getCookie(name) {
 async function crearReservaProvisional(formData) {
     try {
         // Preparar datos para cliente provisional
+        const horaInicio = formData.get('hora_inicio');
         const reservaData = {
             es_cliente_provisional: true,
             nombre_cliente: formData.get('nombre_cliente'),
             telefono_cliente: formData.get('telefono_cliente'),
             servicio: formData.get('servicio'),
             fecha: formData.get('fecha'),
-            hora_inicio: formData.get('hora_inicio') + ':00', // Agregar segundos
+            hora_inicio: horaInicio.includes(':') && horaInicio.split(':').length === 2 ? horaInicio + ':00' : horaInicio, // Agregar segundos solo si no los tiene
             profesional_id: formData.get('profesional'),
             notas: formData.get('notas') || ''
         };
+        
+        console.log('📤 Enviando datos de reserva:', reservaData);
         
         const response = await fetch(`/negocios/{{ negocio.id }}/api/reservas/crear/`, {
             method: 'POST',
