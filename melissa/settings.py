@@ -262,13 +262,53 @@ if not database_url and os.environ.get('POSTGRES_DB'):
     db_host = str(db_host).strip() if db_host else 'localhost'
     db_port = str(db_port).strip() if db_port else '5432'
     
-    # Limpiar cualquier carácter problemático de la contraseña especialmente
-    # (puede tener caracteres especiales que causan problemas)
-    if db_password:
-        # Asegurar que la contraseña solo tenga caracteres seguros para DSN
-        import re
-        # Permitir letras, números y caracteres comunes de contraseña
-        db_password = re.sub(r'[^\w\s\-_!@#$%^&*()+=\[\]{}|;:,.<>?/~`]', '', db_password)
+    # Asegurar que todos los valores están correctamente codificados como UTF-8
+    # y limpiar cualquier carácter problemático
+    def ensure_utf8_string(value):
+        """Asegura que un valor es un string UTF-8 válido"""
+        if value is None:
+            return ''
+        if isinstance(value, bytes):
+            try:
+                return value.decode('utf-8')
+            except UnicodeDecodeError:
+                # Intentar latin-1 como fallback
+                return value.decode('latin-1').encode('latin-1').decode('utf-8', errors='replace')
+        value = str(value).strip()
+        # Validar y limpiar
+        try:
+            value.encode('utf-8')
+        except UnicodeEncodeError:
+            # Limpiar caracteres problemáticos
+            value = value.encode('utf-8', errors='replace').decode('utf-8')
+        return value
+    
+    # Aplicar limpieza a todos los valores
+    db_name = ensure_utf8_string(db_name)
+    db_user = ensure_utf8_string(db_user)
+    db_password = ensure_utf8_string(db_password)
+    db_host = ensure_utf8_string(db_host)
+    db_port = ensure_utf8_string(db_port)
+    
+    # Validar que no hay caracteres de control o no imprimibles
+    def clean_string(s):
+        """Limpia string de caracteres problemáticos"""
+        if not s:
+            return s
+        # Remover caracteres de control excepto espacios
+        cleaned = ''.join(char for char in s if char.isprintable() or char.isspace())
+        # Asegurar que es UTF-8 válido
+        try:
+            cleaned.encode('utf-8')
+            return cleaned
+        except:
+            return cleaned.encode('utf-8', errors='replace').decode('utf-8')
+    
+    db_name = clean_string(db_name) or 'appo_db'
+    db_user = clean_string(db_user) or 'appo_user'
+    db_password = clean_string(db_password) or ''
+    db_host = clean_string(db_host) or 'localhost'
+    db_port = clean_string(db_port) or '5432'
     
     DATABASES = {
         'default': {
@@ -281,10 +321,8 @@ if not database_url and os.environ.get('POSTGRES_DB'):
             # Opciones adicionales para manejar codificación
             'OPTIONS': {
                 'client_encoding': 'UTF8',
-                # Forzar UTF-8 en la conexión
                 'connect_timeout': 10,
             },
-            # Usar connect_timeout para evitar problemas de conexión
             'CONN_MAX_AGE': 600,
         }
     }
