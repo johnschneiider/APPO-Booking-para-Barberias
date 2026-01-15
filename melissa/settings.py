@@ -165,30 +165,72 @@ if os.environ.get('POSTGRES_DB'):
         """Obtiene variable de entorno manejando correctamente la codificación UTF-8"""
         try:
             value = os.environ.get(key, default)
+            if value is None:
+                return default
+            
+            # Si es bytes, decodificar con diferentes codificaciones
             if isinstance(value, bytes):
-                # Si viene como bytes, decodificar con UTF-8 y manejar errores
-                value = value.decode('utf-8', errors='replace')
-            elif isinstance(value, str):
-                # Asegurar que es UTF-8 válido
-                value.encode('utf-8')
+                # Intentar UTF-8 primero
+                try:
+                    value = value.decode('utf-8')
+                except UnicodeDecodeError:
+                    # Si falla, intentar latin-1 (que puede decodificar cualquier byte)
+                    try:
+                        value = value.decode('latin-1')
+                        # Luego intentar convertir a UTF-8
+                        value = value.encode('latin-1').decode('utf-8', errors='replace')
+                    except:
+                        # Último recurso: usar errors='replace'
+                        value = value.decode('utf-8', errors='replace')
+            
+            # Si es string, asegurar que es UTF-8 válido
+            if isinstance(value, str):
+                # Intentar codificar a UTF-8 para validar
+                try:
+                    value.encode('utf-8')
+                except UnicodeEncodeError:
+                    # Si hay caracteres no-UTF-8, intentar convertir
+                    try:
+                        # Asumir que viene de latin-1 y convertir
+                        value = value.encode('latin-1').decode('utf-8', errors='replace')
+                    except:
+                        # Si todo falla, reemplazar caracteres problemáticos
+                        value = value.encode('utf-8', errors='replace').decode('utf-8')
+            
             return value
-        except (UnicodeDecodeError, UnicodeEncodeError) as e:
-            # Si hay error de codificación, usar el valor por defecto
+        except Exception as e:
+            # Si hay cualquier error, usar el valor por defecto
             print(f"Warning: Error de codificación al leer {key}: {e}")
             return default
+    
+    # Leer variables con manejo seguro
+    db_name = safe_getenv('POSTGRES_DB', 'appo_db')
+    db_user = safe_getenv('POSTGRES_USER', 'appo_user')
+    db_password = safe_getenv('POSTGRES_PASSWORD', '')
+    db_host = safe_getenv('POSTGRES_HOST', 'localhost')
+    db_port = safe_getenv('POSTGRES_PORT', '5432')
+    
+    # Asegurar que todos los valores son strings válidos
+    db_name = str(db_name) if db_name else 'appo_db'
+    db_user = str(db_user) if db_user else 'appo_user'
+    db_password = str(db_password) if db_password else ''
+    db_host = str(db_host) if db_host else 'localhost'
+    db_port = str(db_port) if db_port else '5432'
     
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': safe_getenv('POSTGRES_DB', 'appo_db'),
-            'USER': safe_getenv('POSTGRES_USER', 'appo_user'),
-            'PASSWORD': safe_getenv('POSTGRES_PASSWORD', ''),
-            'HOST': safe_getenv('POSTGRES_HOST', 'localhost'),
-            'PORT': safe_getenv('POSTGRES_PORT', '5432'),
+            'NAME': db_name,
+            'USER': db_user,
+            'PASSWORD': db_password,
+            'HOST': db_host,
+            'PORT': db_port,
             # Opciones adicionales para manejar codificación
             'OPTIONS': {
                 'client_encoding': 'UTF8',
             },
+            # Usar connect_timeout para evitar problemas de conexión
+            'CONN_MAX_AGE': 600,
         }
     }
 else:
