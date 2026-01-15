@@ -2095,11 +2095,24 @@ def api_actualizar_hora_reserva(request, negocio_id, reserva_id):
         
         # Parsear nueva hora de inicio
         try:
-            if len(nueva_hora_inicio.split(':')) == 2:
-                nueva_hora_inicio += ':00'
+            # Normalizar formato: asegurar que tenga segundos
+            if isinstance(nueva_hora_inicio, str):
+                nueva_hora_inicio = nueva_hora_inicio.strip()
+                if len(nueva_hora_inicio.split(':')) == 2:
+                    nueva_hora_inicio += ':00'
+                # Validar formato
+                if not nueva_hora_inicio or not re.match(r'^\d{2}:\d{2}:\d{2}$', nueva_hora_inicio):
+                    logger.error(f"Formato de hora inválido recibido: '{nueva_hora_inicio}'")
+                    return JsonResponse({'error': f'Formato de hora inválido: {nueva_hora_inicio}. Use HH:MM o HH:MM:SS'}, status=400)
+            else:
+                logger.error(f"Tipo de hora inválido: {type(nueva_hora_inicio)}")
+                return JsonResponse({'error': 'hora_inicio debe ser una cadena de texto'}, status=400)
+            
             hora_inicio_dt = datetime.strptime(nueva_hora_inicio, '%H:%M:%S')
-        except ValueError:
-            return JsonResponse({'error': 'Formato de hora inválido. Use HH:MM o HH:MM:SS'}, status=400)
+            logger.info(f"Parseando hora: '{nueva_hora_inicio}' -> {hora_inicio_dt}")
+        except ValueError as e:
+            logger.error(f"Error parseando hora '{nueva_hora_inicio}': {e}")
+            return JsonResponse({'error': f'Formato de hora inválido: {nueva_hora_inicio}. Use HH:MM o HH:MM:SS'}, status=400)
         
         # Calcular nueva hora de fin basada en la duración del servicio
         if reserva.servicio and reserva.servicio.duracion:

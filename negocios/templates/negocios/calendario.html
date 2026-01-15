@@ -4151,20 +4151,61 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         let horaFinal = horaBase;
         let minutosFinal = minutosRedondeados;
         
-        if (minutosFinal < 0) {
+        // Asegurar que minutosFinal esté en el rango válido [0, 59]
+        while (minutosFinal < 0) {
             horaFinal -= 1;
             minutosFinal += 60;
-        } else if (minutosFinal >= 60) {
+        }
+        while (minutosFinal >= 60) {
             horaFinal += 1;
             minutosFinal -= 60;
         }
         
-        // Formatear nueva hora
-        const nuevaHoraInicio = `${horaFinal.toString().padStart(2, '0')}:${minutosFinal.toString().padStart(2, '0')}:00`;
+        // Validar que horaFinal esté en rango válido [0, 23]
+        if (horaFinal < 0) {
+            horaFinal = 0;
+            minutosFinal = 0;
+        } else if (horaFinal >= 24) {
+            horaFinal = 23;
+            minutosFinal = 59;
+        }
+        
+        // Asegurar que minutosFinal sea un entero válido
+        minutosFinal = Math.max(0, Math.min(59, Math.round(minutosFinal)));
+        horaFinal = Math.max(0, Math.min(23, Math.round(horaFinal)));
+        
+        // Formatear nueva hora (asegurar formato correcto)
+        const nuevaHoraInicio = `${String(horaFinal).padStart(2, '0')}:${String(minutosFinal).padStart(2, '0')}:00`;
+        
+        console.log('🕐 Calculando nueva hora:', {
+            horaBase,
+            minutosDesdeInicio,
+            minutosRedondeados,
+            horaFinal,
+            minutosFinal,
+            nuevaHoraInicio
+        });
+        
+        // Validar formato antes de enviar
+        if (!/^\d{2}:\d{2}:\d{2}$/.test(nuevaHoraInicio)) {
+            console.error('❌ Formato de hora inválido generado:', nuevaHoraInicio);
+            alert('Error: No se pudo calcular la nueva hora. Por favor, intente de nuevo.');
+            appointmentBlock.style.top = `${originalTop}px`;
+            if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
+                originalSlot.appendChild(appointmentBlock);
+            }
+            return;
+        }
         
         // Actualizar en el servidor
         try {
             const reservaId = appointmentBlock.getAttribute('data-reserva-id');
+            console.log('📤 Enviando actualización de reserva:', {
+                reserva_id: reservaId,
+                hora_inicio: nuevaHoraInicio,
+                profesional_id: nuevoProfesionalId !== reservaData.profesional_id ? nuevoProfesionalId : null
+            });
+            
             const response = await fetch(`/negocios/{{ negocio.id }}/api/reserva/${reservaId}/actualizar-hora/`, {
                 method: 'POST',
                 headers: {
