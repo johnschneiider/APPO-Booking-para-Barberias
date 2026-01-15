@@ -3624,34 +3624,40 @@ function generarCalendario() {
     
     calendarGrid.innerHTML = html;
     
-    // Agregar listeners para clicks en slots vacíos
-    agregarListenersSlots();
-    
     // Cargar reservas después de generar el calendario
     setTimeout(() => {
         cargarReservas();
     }, 100);
 }
 
-// Función para agregar listeners a los slots del calendario
+// Función para agregar listeners a los slots del calendario (usando delegación de eventos)
 function agregarListenersSlots() {
-    const slots = document.querySelectorAll('.professional-slot');
-    slots.forEach(slot => {
-        // Remover listener anterior si existe
-        slot.removeEventListener('click', manejarClickSlot);
-        // Agregar nuevo listener
-        slot.addEventListener('click', manejarClickSlot);
-    });
+    const calendarGrid = document.getElementById('calendarGrid');
+    if (!calendarGrid) {
+        console.warn('No se encontró calendarGrid para agregar listeners');
+        return;
+    }
+    
+    // Usar delegación de eventos en el contenedor principal
+    // Esto asegura que funcione incluso después de modificar el DOM
+    calendarGrid.removeEventListener('click', manejarClickSlotDelegado);
+    calendarGrid.addEventListener('click', manejarClickSlotDelegado);
+    console.log('✅ Listeners de slots agregados usando delegación de eventos');
 }
 
-// Función para manejar clicks en slots vacíos
-function manejarClickSlot(e) {
+// Función para manejar clicks en slots vacíos (usando delegación de eventos)
+function manejarClickSlotDelegado(e) {
+    // Buscar el slot más cercano
+    const slot = e.target.closest('.professional-slot');
+    if (!slot) {
+        return; // No se hizo click en un slot
+    }
+    
     // No hacer nada si se hizo click en una reserva
     if (e.target.closest('.appointment-block')) {
         return;
     }
     
-    const slot = e.currentTarget;
     const hora = slot.getAttribute('data-hora');
     const profesionalId = slot.getAttribute('data-profesional');
     
@@ -3661,6 +3667,8 @@ function manejarClickSlot(e) {
         // Si hay reservas, no hacer nada (se maneja el click en la reserva)
         return;
     }
+    
+    console.log('🖱️ Click detectado en slot vacío:', { hora, profesionalId });
     
     // Abrir modal para crear reserva con cliente provisional
     abrirModalReservaProvisional(hora, profesionalId);
@@ -3706,6 +3714,9 @@ function mostrarReservasEnCalendario() {
     const reservasExistentes = document.querySelectorAll('.appointment-block');
     console.log('Reservas existentes encontradas:', reservasExistentes.length);
     reservasExistentes.forEach(el => el.remove());
+    
+    // Asegurar que los listeners estén agregados después de limpiar
+    agregarListenersSlots();
     
     if (reservas.length === 0) {
         console.log('ℹ️ No hay reservas para mostrar en el calendario');
