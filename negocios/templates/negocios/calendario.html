@@ -801,6 +801,8 @@
     /* Asegurar que no interfieran con el sticky */
     position: relative;
     z-index: 1;
+    /* Permitir clicks en áreas vacías del slot */
+    cursor: pointer;
 }
 
 /* Contenedor principal del calendario */
@@ -3653,25 +3655,72 @@ function manejarClickSlotDelegado(e) {
         return; // No se hizo click en un slot
     }
     
-    // No hacer nada si se hizo click en una reserva
+    // No hacer nada si se hizo click directamente en una reserva
     if (e.target.closest('.appointment-block')) {
         return;
     }
     
-    const hora = slot.getAttribute('data-hora');
+    const horaBase = parseInt(slot.getAttribute('data-hora'));
     const profesionalId = slot.getAttribute('data-profesional');
     
-    // Verificar si el slot está vacío (no tiene reservas)
+    // Obtener la posición del click relativa al slot
+    const slotRect = slot.getBoundingClientRect();
+    const clickY = e.clientY - slotRect.top;
+    const slotHeight = slotRect.height; // Normalmente 80px (1 hora)
+    
+    // Calcular la hora exacta basada en la posición Y del click
+    // Cada slot representa 1 hora (60 minutos) = slotHeight px
+    // Hora exacta = horaBase + (clickY / slotHeight) * 60 minutos
+    const minutosDesdeInicio = (clickY / slotHeight) * 60;
+    const minutosRedondeados = Math.round(minutosDesdeInicio / 15) * 15; // Redondear a cuartos de hora (0, 15, 30, 45)
+    
+    // Calcular hora y minutos
+    let horaFinal = horaBase;
+    let minutosFinal = minutosRedondeados;
+    
+    // Si los minutos exceden 60, ajustar la hora
+    if (minutosFinal >= 60) {
+        horaFinal += 1;
+        minutosFinal -= 60;
+    }
+    
+    // Verificar si el click está sobre una reserva existente
     const reservasEnSlot = slot.querySelectorAll('.appointment-block');
-    if (reservasEnSlot.length > 0) {
-        // Si hay reservas, no hacer nada (se maneja el click en la reserva)
+    let clickSobreReserva = false;
+    
+    reservasEnSlot.forEach(reserva => {
+        const reservaRect = reserva.getBoundingClientRect();
+        const reservaTop = reservaRect.top - slotRect.top;
+        const reservaBottom = reservaTop + reservaRect.height;
+        
+        // Verificar si el click está dentro del área de la reserva
+        if (clickY >= reservaTop && clickY <= reservaBottom) {
+            clickSobreReserva = true;
+        }
+    });
+    
+    // Si el click está sobre una reserva, no hacer nada
+    if (clickSobreReserva) {
         return;
     }
     
-    console.log('🖱️ Click detectado en slot vacío:', { hora, profesionalId });
+    // Formatear la hora para el modal (HH:MM)
+    const horaFormateada = `${horaFinal.toString().padStart(2, '0')}:${minutosFinal.toString().padStart(2, '0')}`;
+    
+    console.log('🖱️ Click detectado en slot:', { 
+        horaBase, 
+        clickY, 
+        slotHeight, 
+        minutosDesdeInicio, 
+        minutosRedondeados,
+        horaFinal,
+        minutosFinal,
+        horaFormateada,
+        profesionalId 
+    });
     
     // Abrir modal para crear reserva con cliente provisional
-    abrirModalReservaProvisional(hora, profesionalId);
+    abrirModalReservaProvisional(horaFormateada, profesionalId);
 }
 
 // Función para abrir modal de reserva provisional
@@ -3713,7 +3762,19 @@ function abrirModalReservaProvisional(hora, profesionalId) {
     
     // Hora seleccionada
     if (horaInput) {
-        const horaFormateada = `${hora.toString().padStart(2, '0')}:00`;
+        // La hora ya viene en formato "HH:MM" desde manejarClickSlotDelegado
+        // Si viene como número (compatibilidad con código anterior), formatear
+        let horaFormateada;
+        if (typeof hora === 'number') {
+            horaFormateada = `${hora.toString().padStart(2, '0')}:00`;
+        } else if (typeof hora === 'string' && hora.includes(':')) {
+            // Ya está en formato HH:MM
+            horaFormateada = hora;
+        } else {
+            // Intentar parsear como número
+            const horaNum = parseInt(hora);
+            horaFormateada = `${horaNum.toString().padStart(2, '0')}:00`;
+        }
         horaInput.value = horaFormateada;
         console.log('⏰ Hora establecida:', horaFormateada);
     } else {
