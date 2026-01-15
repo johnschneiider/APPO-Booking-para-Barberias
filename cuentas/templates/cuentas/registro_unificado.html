@@ -176,12 +176,17 @@
                     </div>
 
                     <!-- Botón de Google -->
-                    <div class="mb-4">
-                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark btn-google rounded-pill py-3 w-100 d-flex align-items-center justify-content-center gap-3">
-                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
-                            <span class="fw-medium">Continuar con Google</span>
-                        </a>
-                    </div>
+                    {% get_providers as socialaccount_providers %}
+                    {% for provider in socialaccount_providers %}
+                        {% if provider.id == 'google' %}
+                        <div class="mb-4">
+                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark btn-google rounded-pill py-3 w-100 d-flex align-items-center justify-content-center gap-3">
+                                <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
+                                <span class="fw-medium">Continuar con Google</span>
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
 
                     <!-- Enlace a login -->
                     <div class="text-center">
