@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n account socialaccount static widget_tweaks %}
+{% load i18n account socialaccount static widget_tweaks social_tags %}
 
 {% block content %}
 <div class="container py-5">
@@ -86,17 +86,15 @@
                     </div>
 
                     <!-- Autenticación social -->
-                    {% get_providers as socialaccount_providers %}
-                    {% for provider in socialaccount_providers %}
-                        {% if provider.id == 'google' %}
-                        <div class="mb-4">
-                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark rounded-3 py-3 w-100 d-flex align-items-center justify-content-center gap-3">
-                                <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
-                                <span class="fw-medium">Continuar con Google</span>
-                            </a>
-                        </div>
-                        {% endif %}
-                    {% endfor %}
+                    {% is_provider_available 'google' as google_available %}
+                    {% if google_available %}
+                    <div class="mb-4">
+                        <a href="{% safe_provider_login_url 'google' %}" class="btn btn-outline-dark rounded-3 py-3 w-100 d-flex align-items-center justify-content-center gap-3">
+                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
+                            <span class="fw-medium">Continuar con Google</span>
+                        </a>
+                    </div>
+                    {% endif %}
 
                     <!-- Enlace a login -->
                     <div class="text-center pt-3 border-top">
