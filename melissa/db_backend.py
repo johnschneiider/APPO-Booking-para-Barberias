@@ -1,14 +1,21 @@
 """
 Backend personalizado de PostgreSQL que maneja correctamente la codificación UTF-8
+
+Django requiere que los backends personalizados estén estructurados como:
+- melissa/db_backend/base.py con DatabaseWrapper
+- melissa/db_backend/__init__.py
+- melissa/db_backend/operations.py (opcional)
+- etc.
+
+Para simplificar, este módulo exporta directamente lo necesario.
 """
-from django.db.backends.postgresql.base import DatabaseWrapper as PostgreSQLDatabaseWrapper
-from django.db.backends.postgresql.operations import DatabaseOperations
+from django.db.backends.postgresql import base, operations, features, introspection, creation
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class DatabaseWrapper(PostgreSQLDatabaseWrapper):
+class DatabaseWrapper(base.DatabaseWrapper):
     """
     Wrapper personalizado que asegura codificación UTF-8 correcta
     """
@@ -41,7 +48,7 @@ class DatabaseWrapper(PostgreSQLDatabaseWrapper):
         
         try:
             return super().get_new_connection(conn_params)
-        except UnicodeDecodeError as e:
+        except (UnicodeDecodeError, UnicodeEncodeError) as e:
             logger.error(f"Error de codificación al conectar: {e}")
             # Intentar limpiar parámetros y reconectar
             for key, value in list(conn_params.items()):
@@ -51,3 +58,10 @@ class DatabaseWrapper(PostgreSQLDatabaseWrapper):
                     except UnicodeEncodeError:
                         conn_params[key] = value.encode('utf-8', errors='replace').decode('utf-8')
             return super().get_new_connection(conn_params)
+
+
+# Exportar las clases necesarias para que Django pueda usar el backend
+DatabaseOperations = operations.DatabaseOperations
+DatabaseFeatures = features.DatabaseFeatures
+DatabaseIntrospection = introspection.DatabaseIntrospection
+DatabaseCreation = creation.DatabaseCreation

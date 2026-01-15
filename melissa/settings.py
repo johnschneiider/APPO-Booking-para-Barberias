@@ -173,7 +173,7 @@ if database_url and database_url.startswith('postgresql://'):
         
         DATABASES = {
             'default': {
-                'ENGINE': 'melissa.db_backend',  # Usar backend personalizado
+                'ENGINE': 'django.db.backends.postgresql',  # Volver a backend estándar temporalmente
                 # Usar DATABASE_URL directamente
             }
         }
