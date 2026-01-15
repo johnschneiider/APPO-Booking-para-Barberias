@@ -303,83 +303,83 @@ def api_notificaciones(request):
             return JsonResponse(response_data)
 
         if user_tipo == 'profesional':
-        profesional = getattr(user, 'perfil_profesional', None)
-        if profesional:
-            # Optimización: usar select_related y solo obtener campos necesarios
-            notis = Notificacion.objects.filter(profesional=profesional).select_related().order_by('-fecha_creacion')
-            
-            # Contar no leídas en una sola consulta
-            count_no_leidas = notis.filter(leida=False).count()
-            
-            # Solo procesar si hay notificaciones
-            if notis.exists():
-                for n in notis:
+            profesional = getattr(user, 'perfil_profesional', None)
+            if profesional:
+                # Optimización: usar select_related y solo obtener campos necesarios
+                notis = Notificacion.objects.filter(profesional=profesional).select_related().order_by('-fecha_creacion')
+                
+                # Contar no leídas en una sola consulta
+                count_no_leidas = notis.filter(leida=False).count()
+                
+                # Solo procesar si hay notificaciones
+                if notis.exists():
+                    for n in notis:
+                        data.append({
+                            'id': n.id,
+                            'tipo': n.tipo,
+                            'titulo': n.titulo,
+                            'mensaje': n.mensaje,
+                            'leida': n.leida,
+                            'fecha': n.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+                            'url': n.url_relacionada,
+                        })
+                
+                # Solicitudes de ausencia con respuestas (aprobadas/rechazadas)
+                solicitudes_respuesta = SolicitudAusencia.objects.filter(
+                    profesional=profesional,
+                    estado__in=['aprobada', 'rechazada']
+                ).order_by('-fecha_respuesta')
+                
+                for solicitud in solicitudes_respuesta:
+                    estado_texto = 'aprobada' if solicitud.estado == 'aprobada' else 'rechazada'
                     data.append({
-                        'id': n.id,
-                        'tipo': n.tipo,
-                        'titulo': n.titulo,
-                        'mensaje': n.mensaje,
-                        'leida': n.leida,
-                        'fecha': n.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
-                        'url': n.url_relacionada,
+                        'id': f'ausencia_{solicitud.id}',
+                        'tipo': 'solicitud_ausencia',
+                        'titulo': f'Solicitud de ausencia {estado_texto}',
+                        'mensaje': f'Tu solicitud del {solicitud.fecha_inicio} al {solicitud.fecha_fin} ha sido {estado_texto} por {solicitud.negocio.nombre}',
+                        'leida': False,
+                        'fecha': solicitud.fecha_respuesta.strftime('%d/%m/%Y %H:%M'),
+                        'url': '/profesionales/gestionar-ausencias/',
                     })
-            
-            # Solicitudes de ausencia con respuestas (aprobadas/rechazadas)
-            solicitudes_respuesta = SolicitudAusencia.objects.filter(
-                profesional=profesional,
-                estado__in=['aprobada', 'rechazada']
-            ).order_by('-fecha_respuesta')
-            
-            for solicitud in solicitudes_respuesta:
-                estado_texto = 'aprobada' if solicitud.estado == 'aprobada' else 'rechazada'
-                data.append({
-                    'id': f'ausencia_{solicitud.id}',
-                    'tipo': 'solicitud_ausencia',
-                    'titulo': f'Solicitud de ausencia {estado_texto}',
-                    'mensaje': f'Tu solicitud del {solicitud.fecha_inicio} al {solicitud.fecha_fin} ha sido {estado_texto} por {solicitud.negocio.nombre}',
-                    'leida': False,
-                    'fecha': solicitud.fecha_respuesta.strftime('%d/%m/%Y %H:%M'),
-                    'url': '/profesionales/gestionar-ausencias/',
-                })
-                count_no_leidas += 1
+                    count_no_leidas += 1
+                    
+        elif user_tipo == 'negocio':
+            # Solicitudes de matriculación pendientes
+            negocios = Negocio.objects.filter(propietario=user)
+            for negocio in negocios:
+                solicitudes = Matriculacion.objects.filter(negocio=negocio, estado='pendiente')
+                for s in solicitudes:
+                    data.append({
+                        'id': s.id,
+                        'tipo': 'matriculacion',
+                        'titulo': f'Solicitud de matriculación de {s.profesional.nombre_completo}',
+                        'mensaje': s.mensaje_solicitud,
+                        'leida': False,
+                        'fecha': s.fecha_solicitud.strftime('%d/%m/%Y %H:%M'),
+                        'url': '',
+                        'profesional_id': s.profesional.id,
+                        'profesional_nombre': s.profesional.nombre_completo,
+                    })
+                count_no_leidas += solicitudes.count()
                 
-    elif user.tipo == 'negocio':
-        # Solicitudes de matriculación pendientes
-        negocios = Negocio.objects.filter(propietario=user)
-        for negocio in negocios:
-            solicitudes = Matriculacion.objects.filter(negocio=negocio, estado='pendiente')
-            for s in solicitudes:
-                data.append({
-                    'id': s.id,
-                    'tipo': 'matriculacion',
-                    'titulo': f'Solicitud de matriculación de {s.profesional.nombre_completo}',
-                    'mensaje': s.mensaje_solicitud,
-                    'leida': False,
-                    'fecha': s.fecha_solicitud.strftime('%d/%m/%Y %H:%M'),
-                    'url': '',
-                    'profesional_id': s.profesional.id,
-                    'profesional_nombre': s.profesional.nombre_completo,
-                })
-            count_no_leidas += solicitudes.count()
-            
-            # Solicitudes de ausencia pendientes
-            solicitudes_ausencia = SolicitudAusencia.objects.filter(
-                negocio=negocio,
-                estado='pendiente'
-            ).order_by('-fecha_solicitud')
-            
-            for solicitud in solicitudes_ausencia:
-                data.append({
-                    'id': f'ausencia_{solicitud.id}',
-                    'tipo': 'solicitud_ausencia',
-                    'titulo': f'Nueva solicitud de ausencia de {solicitud.profesional.nombre_completo}',
-                    'mensaje': f'Solicita ausencia del {solicitud.fecha_inicio} al {solicitud.fecha_fin}',
-                    'leida': False,
-                    'fecha': solicitud.fecha_solicitud.strftime('%d/%m/%Y %H:%M'),
-                    'url': f'/negocios/revisar-solicitud-ausencia/{solicitud.id}/',
-                })
-                count_no_leidas += 1
+                # Solicitudes de ausencia pendientes
+                solicitudes_ausencia = SolicitudAusencia.objects.filter(
+                    negocio=negocio,
+                    estado='pendiente'
+                ).order_by('-fecha_solicitud')
                 
+                for solicitud in solicitudes_ausencia:
+                    data.append({
+                        'id': f'ausencia_{solicitud.id}',
+                        'tipo': 'solicitud_ausencia',
+                        'titulo': f'Nueva solicitud de ausencia de {solicitud.profesional.nombre_completo}',
+                        'mensaje': f'Solicita ausencia del {solicitud.fecha_inicio} al {solicitud.fecha_fin}',
+                        'leida': False,
+                        'fecha': solicitud.fecha_solicitud.strftime('%d/%m/%Y %H:%M'),
+                        'url': f'/negocios/revisar-solicitud-ausencia/{solicitud.id}/',
+                    })
+                    count_no_leidas += 1
+                    
         elif user_tipo == 'cliente':
             # Notificaciones para clientes
             notificaciones = NotificacionCliente.objects.filter(cliente=user).order_by('-fecha_creacion')
