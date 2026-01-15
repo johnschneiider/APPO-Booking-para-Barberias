@@ -1037,12 +1037,17 @@
 }
 
 .appointment-block.dragging {
-    opacity: 0.9 !important;
+    opacity: 0.95 !important; /* Mantener bien visible */
     z-index: 99999 !important; /* Z-index muy alto para estar por encima de todo */
-    transform: scale(1.05) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    transform: scale(1.08) !important; /* Escalar un poco más para feedback visual */
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important; /* Sombra más pronunciada */
     transition: none !important;
     position: fixed !important; /* Cambiar a fixed durante el drag para evitar problemas de contexto de apilamiento */
+    visibility: visible !important;
+    display: block !important;
+    pointer-events: auto !important;
+    /* Efecto de elevación */
+    filter: brightness(1.1) !important;
 }
 
 .appointment-block:hover {
@@ -3668,8 +3673,8 @@ function manejarClickSlotDelegado(e) {
         return; // No se hizo click en un slot
     }
     
-    // No hacer nada si se hizo click directamente en una reserva
-    if (e.target.closest('.appointment-block')) {
+    // No hacer nada si se hizo click directamente en una reserva o si hay una reserva siendo arrastrada
+    if (e.target.closest('.appointment-block') || document.querySelector('.appointment-block.dragging')) {
         return;
     }
     
@@ -4053,6 +4058,10 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             return;
         }
         
+        // Prevenir que el click se propague al slot (evita que se abra el modal)
+        e.preventDefault();
+        e.stopPropagation();
+        
         // Agregar clase dragging inmediatamente para feedback visual
         appointmentBlock.classList.add('dragging');
         
@@ -4066,10 +4075,14 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         originalWidth = rect.width;
         
         // Cambiar a position fixed para estar fuera del contexto de apilamiento
+        // IMPORTANTE: Mantener la visibilidad y posición exacta
         appointmentBlock.style.position = 'fixed';
         appointmentBlock.style.left = `${rect.left}px`;
         appointmentBlock.style.top = `${rect.top}px`;
         appointmentBlock.style.width = `${rect.width}px`;
+        appointmentBlock.style.opacity = '0.95'; // Mantener visible
+        appointmentBlock.style.visibility = 'visible';
+        appointmentBlock.style.display = 'block';
         
         // Marcar que estamos arrastrando
         isDragging = true;
@@ -4078,9 +4091,10 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         document.body.style.cursor = 'grabbing';
         document.body.style.userSelect = 'none';
         
-        // Prevenir selección de texto
-        e.preventDefault();
-        e.stopPropagation();
+        console.log('🖱️ Iniciando drag de reserva:', {
+            reservaId: appointmentBlock.getAttribute('data-reserva-id'),
+            posicionInicial: { top: rect.top, left: rect.left }
+        });
     });
     
     document.addEventListener('mousemove', (e) => {
