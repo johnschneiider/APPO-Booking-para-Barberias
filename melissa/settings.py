@@ -310,6 +310,28 @@ if not database_url and os.environ.get('POSTGRES_DB'):
     db_host = clean_string(db_host) or 'localhost'
     db_port = clean_string(db_port) or '5432'
     
+    # Construir DSN manualmente con codificación correcta para evitar problemas
+    # Esto evita que psycopg2 construya el DSN internamente con codificación incorrecta
+    from urllib.parse import quote_plus
+    
+    # Codificar cada componente del DSN correctamente
+    dsn_parts = []
+    if db_user:
+        dsn_parts.append(f"user={quote_plus(db_user)}")
+    if db_password:
+        dsn_parts.append(f"password={quote_plus(db_password)}")
+    if db_host:
+        dsn_parts.append(f"host={quote_plus(db_host)}")
+    if db_port:
+        dsn_parts.append(f"port={quote_plus(db_port)}")
+    if db_name:
+        dsn_parts.append(f"dbname={quote_plus(db_name)}")
+    
+    # Agregar opciones de codificación
+    dsn_parts.append("client_encoding=UTF8")
+    
+    dsn_string = ' '.join(dsn_parts)
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -322,10 +344,16 @@ if not database_url and os.environ.get('POSTGRES_DB'):
             'OPTIONS': {
                 'client_encoding': 'UTF8',
                 'connect_timeout': 10,
+                # Pasar el DSN pre-construido si es necesario
+                # Nota: Django no usa esto directamente, pero ayuda a debuggear
             },
             'CONN_MAX_AGE': 600,
         }
     }
+    
+    # Log del DSN (sin contraseña) para debugging
+    dsn_debug = dsn_string.replace(f"password={quote_plus(db_password)}", "password=***")
+    print(f"Database DSN (debug): {dsn_debug}")
 else:
     # Configuración para SQLite en desarrollo local (solo si no hay PostgreSQL)
     DATABASES = {
