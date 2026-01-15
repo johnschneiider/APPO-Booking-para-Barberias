@@ -2073,6 +2073,78 @@ def api_cambiar_estado_reserva(request, negocio_id, reserva_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@login_required
+@require_POST
+def api_actualizar_hora_reserva(request, negocio_id, reserva_id):
+    """
+    API para actualizar la hora de inicio y fin de una reserva (drag and drop).
+    """
+    from clientes.models import Reserva
+    from datetime import datetime, timedelta
+    
+    try:
+        negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
+        reserva = get_object_or_404(Reserva, id=reserva_id, peluquero=negocio)
+        
+        data = json.loads(request.body)
+        nueva_hora_inicio = data.get('hora_inicio')
+        nuevo_profesional_id = data.get('profesional_id')  # Opcional: cambiar de profesional
+        
+        if not nueva_hora_inicio:
+            return JsonResponse({'error': 'hora_inicio es requerida'}, status=400)
+        
+        # Parsear nueva hora de inicio
+        try:
+            if len(nueva_hora_inicio.split(':')) == 2:
+                nueva_hora_inicio += ':00'
+            hora_inicio_dt = datetime.strptime(nueva_hora_inicio, '%H:%M:%S')
+        except ValueError:
+            return JsonResponse({'error': 'Formato de hora inválido. Use HH:MM o HH:MM:SS'}, status=400)
+        
+        # Calcular nueva hora de fin basada en la duración del servicio
+        if reserva.servicio and reserva.servicio.duracion:
+            duracion_minutos = reserva.servicio.duracion
+        else:
+            # Si no hay duración, calcular basado en la diferencia actual
+            hora_actual_inicio = datetime.strptime(str(reserva.hora_inicio), '%H:%M:%S')
+            hora_actual_fin = datetime.strptime(str(reserva.hora_fin), '%H:%M:%S')
+            duracion_minutos = int((hora_actual_fin - hora_actual_inicio).total_seconds() / 60)
+            if duracion_minutos <= 0:
+                duracion_minutos = 60  # Default a 1 hora
+        
+        nueva_hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion_minutos)
+        nueva_hora_fin = nueva_hora_fin_dt.strftime('%H:%M:%S')
+        
+        # Actualizar reserva
+        reserva.hora_inicio = hora_inicio_dt.time()
+        reserva.hora_fin = nueva_hora_fin_dt.time()
+        
+        # Si se especificó un nuevo profesional, actualizarlo
+        if nuevo_profesional_id:
+            from profesionales.models import Profesional
+            try:
+                nuevo_profesional = Profesional.objects.get(id=nuevo_profesional_id)
+                reserva.profesional = nuevo_profesional
+            except Profesional.DoesNotExist:
+                return JsonResponse({'error': 'Profesional no encontrado'}, status=400)
+        
+        reserva.save()
+        
+        logger.info(f"Reserva {reserva_id} actualizada: nueva hora {nueva_hora_inicio} - {nueva_hora_fin}")
+        
+        return JsonResponse({
+            'success': True,
+            'reserva_id': reserva_id,
+            'hora_inicio': nueva_hora_inicio,
+            'hora_fin': nueva_hora_fin,
+            'mensaje': 'Reserva actualizada exitosamente'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error actualizando hora de reserva: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 def negocio_publico(request, negocio_id):
     """
     Vista pública del negocio para que cualquier cliente pueda ver información

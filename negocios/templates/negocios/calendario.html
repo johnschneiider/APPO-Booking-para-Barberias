@@ -909,6 +909,8 @@
 .calendar-time-row {
     display: flex;
     border-bottom: 1px solid var(--border-color);
+    position: relative;
+    overflow: visible !important; /* Permitir que reservas se extiendan a la siguiente fila */
 }
 
 .calendar-time-row:last-child {
@@ -1014,8 +1016,8 @@
     color: white !important;
     font-size: 0.75rem !important;
     font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    cursor: move !important; /* Cambiar cursor para indicar que es arrastrable */
+    transition: box-shadow 0.2s ease !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
     z-index: 50 !important;
     /* Color por defecto (se sobrescribe por data-status y data-suscripcion) */
@@ -1030,6 +1032,16 @@
     text-align: left !important;
     /* Permitir desbordamiento para reservas largas */
     overflow: visible !important;
+    /* Permitir que se extienda más allá del slot */
+    margin-bottom: 0 !important;
+}
+
+.appointment-block.dragging {
+    opacity: 0.7 !important;
+    z-index: 1000 !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    transition: none !important;
 }
 
 .appointment-block:hover {
@@ -3976,6 +3988,10 @@ function mostrarReservasEnCalendario() {
                 
                 // Agregar al slot
                 slot.appendChild(appointmentBlock);
+                
+                // Agregar funcionalidad de drag and drop
+                agregarDragAndDrop(appointmentBlock, reserva);
+                
                 reservasExitosas++;
                 
                 console.log(`✅ Reserva ${reserva.id} posicionada exitosamente:`);
