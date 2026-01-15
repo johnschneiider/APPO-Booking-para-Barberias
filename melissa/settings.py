@@ -144,14 +144,35 @@ WSGI_APPLICATION = 'melissa.wsgi.application'
 # Prioridad: PostgreSQL del sistema > SQLite (solo desarrollo)
 if os.environ.get('POSTGRES_DB'):
     # Configuración para PostgreSQL del sistema (producción/VPS)
+    # Leer variables de entorno con manejo seguro de codificación
+    def safe_getenv(key, default=''):
+        """Obtiene variable de entorno manejando correctamente la codificación UTF-8"""
+        try:
+            value = os.environ.get(key, default)
+            if isinstance(value, bytes):
+                # Si viene como bytes, decodificar con UTF-8 y manejar errores
+                value = value.decode('utf-8', errors='replace')
+            elif isinstance(value, str):
+                # Asegurar que es UTF-8 válido
+                value.encode('utf-8')
+            return value
+        except (UnicodeDecodeError, UnicodeEncodeError) as e:
+            # Si hay error de codificación, usar el valor por defecto
+            print(f"Warning: Error de codificación al leer {key}: {e}")
+            return default
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'appo_db'),
-            'USER': os.environ.get('POSTGRES_USER', 'appo_user'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+            'NAME': safe_getenv('POSTGRES_DB', 'appo_db'),
+            'USER': safe_getenv('POSTGRES_USER', 'appo_user'),
+            'PASSWORD': safe_getenv('POSTGRES_PASSWORD', ''),
+            'HOST': safe_getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': safe_getenv('POSTGRES_PORT', '5432'),
+            # Opciones adicionales para manejar codificación
+            'OPTIONS': {
+                'client_encoding': 'UTF8',
+            },
         }
     }
 else:
@@ -477,10 +498,19 @@ WHATSAPP_CONFIG = {
 # Configuración de Meta WhatsApp Business API
 META_WHATSAPP_ENABLED = os.getenv('META_WHATSAPP_ENABLED', 'False').lower() == 'true'
 META_WHATSAPP_PHONE_NUMBER_ID = os.getenv('META_WHATSAPP_PHONE_NUMBER_ID', '')
-META_WHATSAPP_ACCESS_TOKEN = os.getenv('META_WHATSAPP_ACCESS_TOKEN', '')
+# El token puede venir como META_WHATSAPP_ACCESS_TOKEN o TOKEN_WHATSAPP (para compatibilidad)
+META_WHATSAPP_ACCESS_TOKEN = os.getenv('META_WHATSAPP_ACCESS_TOKEN') or os.getenv('TOKEN_WHATSAPP', '')
 META_WHATSAPP_VERIFY_TOKEN = os.getenv('META_WHATSAPP_VERIFY_TOKEN', 'appo_whatsapp_verify_2024')
 META_WHATSAPP_WEBHOOK_SECRET = os.getenv('META_WHATSAPP_WEBHOOK_SECRET', 'appo_webhook_secret_2024')
-META_WHATSAPP_API_VERSION = os.getenv('META_WHATSAPP_API_VERSION', 'v21.0')
+META_WHATSAPP_API_VERSION = os.getenv('META_WHATSAPP_API_VERSION', 'v22.0')
+
+# Nombres de templates de Meta (los nombres exactos que creaste en Meta WhatsApp Manager)
+META_TEMPLATE_RESERVA_CONFIRMADA = os.getenv('META_TEMPLATE_RESERVA_CONFIRMADA', 'reserva_confirmada_appo')
+META_TEMPLATE_RECORDATORIO_DIA_ANTES = os.getenv('META_TEMPLATE_RECORDATORIO_DIA_ANTES', 'recordatorio_dia_antes_appo')
+META_TEMPLATE_RECORDATORIO_TRES_HORAS = os.getenv('META_TEMPLATE_RECORDATORIO_TRES_HORAS', 'recordatorio_tres_horas_appo')
+META_TEMPLATE_RESERVA_CANCELADA = os.getenv('META_TEMPLATE_RESERVA_CANCELADA', 'reserva_cancelada_appo')
+META_TEMPLATE_RESERVA_REAGENDADA = os.getenv('META_TEMPLATE_RESERVA_REAGENDADA', 'reserva_reagendada_appo')
+META_TEMPLATE_INASISTENCIA = os.getenv('META_TEMPLATE_INASISTENCIA', 'inasistencia_appo')
 
 # Google Maps API Key (Places, Maps JavaScript, Geocoding)
 # API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg'
