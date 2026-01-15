@@ -334,7 +334,7 @@ if not database_url and os.environ.get('POSTGRES_DB'):
     
     DATABASES = {
         'default': {
-            'ENGINE': 'melissa.db_backend',  # Usar backend personalizado que maneja UTF-8
+            'ENGINE': 'django.db.backends.postgresql',  # Backend estándar con limpieza de parámetros
             'NAME': db_name,
             'USER': db_user,
             'PASSWORD': db_password,
