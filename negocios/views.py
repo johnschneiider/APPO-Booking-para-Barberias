@@ -998,13 +998,24 @@ def api_crear_reserva(request, negocio_id):
             nombre = data.get('nombre_cliente', '').strip()
             telefono = data.get('telefono_cliente', '').strip()
             
+            if not nombre:
+                return JsonResponse({'error': 'El nombre del cliente es requerido'}, status=400)
+            if not telefono:
+                return JsonResponse({'error': 'El teléfono del cliente es requerido'}, status=400)
+            
             # Buscar si ya existe un cliente provisional con ese teléfono en este negocio
             cliente_provisional = ClienteProvisional.objects.filter(
                 negocio=negocio,
                 telefono=telefono
             ).first()
             
-            if not cliente_provisional:
+            if cliente_provisional:
+                # Si existe, actualizar el nombre si es diferente
+                if cliente_provisional.nombre != nombre:
+                    cliente_provisional.nombre = nombre
+                    cliente_provisional.save(update_fields=['nombre'])
+                    print(f"Actualizado nombre de cliente provisional {cliente_provisional.id}: {nombre}")
+            else:
                 # Crear nuevo cliente provisional
                 cliente_provisional = ClienteProvisional.objects.create(
                     nombre=nombre,
@@ -1013,6 +1024,7 @@ def api_crear_reserva(request, negocio_id):
                     creado_por=request.user,
                     notas=data.get('notas_cliente', '')
                 )
+                print(f"Creado nuevo cliente provisional: {nombre} ({telefono})")
         else:
             # Buscar el cliente con cuenta
             from django.contrib.auth import get_user_model
