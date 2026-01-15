@@ -4053,7 +4053,7 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             return;
         }
         
-        isDragging = true;
+        // Agregar clase dragging inmediatamente para feedback visual
         appointmentBlock.classList.add('dragging');
         
         // Guardar posición inicial
@@ -4063,6 +4063,7 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         startLeft = rect.left; // Posición absoluta en la ventana
         originalSlot = appointmentBlock.parentElement;
         originalTop = appointmentBlock.offsetTop; // Posición relativa al slot original
+        originalWidth = rect.width;
         
         // Cambiar a position fixed para estar fuera del contexto de apilamiento
         appointmentBlock.style.position = 'fixed';
@@ -4070,8 +4071,16 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         appointmentBlock.style.top = `${rect.top}px`;
         appointmentBlock.style.width = `${rect.width}px`;
         
+        // Marcar que estamos arrastrando
+        isDragging = true;
+        
+        // Cambiar cursor del body para indicar que estamos arrastrando
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+        
         // Prevenir selección de texto
         e.preventDefault();
+        e.stopPropagation();
     });
     
     document.addEventListener('mousemove', (e) => {
@@ -4113,19 +4122,21 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
         isDragging = false;
         appointmentBlock.classList.remove('dragging');
         
+        // Restaurar cursor del body
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        
         // Limpiar resaltado
         const slots = document.querySelectorAll('.professional-slot');
         slots.forEach(slot => {
             slot.style.backgroundColor = '';
         });
         
-        // Restaurar position a absolute
-        appointmentBlock.style.position = 'absolute';
-        appointmentBlock.style.width = '';
-        appointmentBlock.style.left = '';
-        
         if (!currentSlot) {
             // Si no hay slot válido, restaurar posición original
+            appointmentBlock.style.position = 'absolute';
+            appointmentBlock.style.width = '';
+            appointmentBlock.style.left = '';
             appointmentBlock.style.top = `${originalTop}px`;
             if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                 originalSlot.appendChild(appointmentBlock);
@@ -4133,10 +4144,11 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             return;
         }
         
-        // Calcular nueva hora basada en la posición
+        // Calcular nueva hora basada en la posición del MOUSE (más preciso)
         const slotRect = currentSlot.getBoundingClientRect();
-        const appointmentRect = appointmentBlock.getBoundingClientRect();
-        const relativeY = appointmentRect.top - slotRect.top;
+        // Usar la posición del mouse directamente en lugar de getBoundingClientRect
+        // porque el appointment está en position: fixed
+        const relativeY = e.clientY - slotRect.top;
         const slotHeight = slotRect.height; // 80px normalmente
         
         // Calcular minutos desde el inicio del slot
@@ -4250,6 +4262,9 @@ function agregarDragAndDrop(appointmentBlock, reservaData) {
             alert('Error de conexión al actualizar la reserva');
             
             // Restaurar posición original
+            appointmentBlock.style.position = 'absolute';
+            appointmentBlock.style.width = '';
+            appointmentBlock.style.left = '';
             appointmentBlock.style.top = `${originalTop}px`;
             if (originalSlot && originalSlot !== appointmentBlock.parentElement) {
                 originalSlot.appendChild(appointmentBlock);
