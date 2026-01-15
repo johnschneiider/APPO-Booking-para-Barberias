@@ -183,19 +183,24 @@ if os.environ.get('POSTGRES_DB'):
                         # Último recurso: usar errors='replace'
                         value = value.decode('utf-8', errors='replace')
             
-            # Si es string, asegurar que es UTF-8 válido
+            # Si es string, asegurar que es UTF-8 válido y limpiar
             if isinstance(value, str):
                 # Intentar codificar a UTF-8 para validar
                 try:
+                    # Normalizar y limpiar el string
+                    value = value.strip()
+                    # Validar que puede codificarse a UTF-8
                     value.encode('utf-8')
                 except UnicodeEncodeError:
-                    # Si hay caracteres no-UTF-8, intentar convertir
+                    # Si hay caracteres no-UTF-8, limpiarlos
                     try:
                         # Asumir que viene de latin-1 y convertir
                         value = value.encode('latin-1').decode('utf-8', errors='replace')
                     except:
                         # Si todo falla, reemplazar caracteres problemáticos
                         value = value.encode('utf-8', errors='replace').decode('utf-8')
+                        # Limpiar caracteres de control y no imprimibles
+                        value = ''.join(char for char in value if char.isprintable() or char.isspace())
             
             return value
         except Exception as e:
@@ -210,12 +215,20 @@ if os.environ.get('POSTGRES_DB'):
     db_host = safe_getenv('POSTGRES_HOST', 'localhost')
     db_port = safe_getenv('POSTGRES_PORT', '5432')
     
-    # Asegurar que todos los valores son strings válidos
-    db_name = str(db_name) if db_name else 'appo_db'
-    db_user = str(db_user) if db_user else 'appo_user'
-    db_password = str(db_password) if db_password else ''
-    db_host = str(db_host) if db_host else 'localhost'
-    db_port = str(db_port) if db_port else '5432'
+    # Asegurar que todos los valores son strings válidos y limpios
+    db_name = str(db_name).strip() if db_name else 'appo_db'
+    db_user = str(db_user).strip() if db_user else 'appo_user'
+    db_password = str(db_password).strip() if db_password else ''
+    db_host = str(db_host).strip() if db_host else 'localhost'
+    db_port = str(db_port).strip() if db_port else '5432'
+    
+    # Limpiar cualquier carácter problemático de la contraseña especialmente
+    # (puede tener caracteres especiales que causan problemas)
+    if db_password:
+        # Asegurar que la contraseña solo tenga caracteres seguros para DSN
+        import re
+        # Permitir letras, números y caracteres comunes de contraseña
+        db_password = re.sub(r'[^\w\s\-_!@#$%^&*()+=\[\]{}|;:,.<>?/~`]', '', db_password)
     
     DATABASES = {
         'default': {
@@ -228,6 +241,8 @@ if os.environ.get('POSTGRES_DB'):
             # Opciones adicionales para manejar codificación
             'OPTIONS': {
                 'client_encoding': 'UTF8',
+                # Forzar UTF-8 en la conexión
+                'connect_timeout': 10,
             },
             # Usar connect_timeout para evitar problemas de conexión
             'CONN_MAX_AGE': 600,
