@@ -4,25 +4,6 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 import socket
 
-# Cargar variables de entorno desde .env con codificación UTF-8
-# Usar encoding='utf-8' para evitar problemas con caracteres especiales
-try:
-    # python-dotenv soporta encoding desde versiones recientes
-    import dotenv
-    if hasattr(dotenv, 'load_dotenv'):
-        # Intentar cargar con encoding UTF-8
-        try:
-            load_dotenv(encoding='utf-8')
-        except TypeError:
-            # Si la versión no soporta encoding, cargar sin él
-            load_dotenv()
-    else:
-        load_dotenv()
-except Exception as e:
-    # Si falla, intentar sin especificar encoding
-    print(f"Warning: Error cargando .env: {e}")
-    load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
