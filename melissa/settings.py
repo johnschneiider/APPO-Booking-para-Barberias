@@ -79,9 +79,9 @@ def _load_env_fallback_parser():
 
 
 _load_dotenv_explicit()
-# Si aún faltan variables de DB, intentar parser fallback
-if not os.environ.get('DATABASE_URL') and not os.environ.get('POSTGRES_DB'):
-    _load_env_fallback_parser()
+# Parser fallback SIEMPRE (no sobreescribe vars existentes).
+# Esto evita que una sola línea malformada en .env haga que no se cargue nada.
+_load_env_fallback_parser()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
