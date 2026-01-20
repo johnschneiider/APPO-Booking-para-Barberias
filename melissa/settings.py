@@ -26,6 +26,63 @@ except Exception as e:
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- Carga robusta de .env en producción ---
+# En VPS/systemd no siempre se garantiza el cwd, y python-dotenv puede ignorar líneas inválidas.
+# Por eso: 1) intentamos cargar explícitamente BASE_DIR/.env 2) si aún faltan vars críticas,
+# aplicamos un parser mínimo de respaldo (KEY=VALUE).
+def _load_dotenv_explicit():
+    env_path = BASE_DIR / '.env'
+    if not env_path.exists():
+        return
+    try:
+        # No sobreescribir variables ya definidas por el entorno/systemd
+        try:
+            load_dotenv(dotenv_path=env_path, encoding='utf-8', override=False)
+        except TypeError:
+            load_dotenv(dotenv_path=env_path, override=False)
+    except Exception as e:
+        print(f"Warning: Error cargando .env explícito ({env_path}): {e}")
+
+
+def _load_env_fallback_parser():
+    """
+    Parser de respaldo (muy simple) para .env cuando python-dotenv no logra parsear algunas líneas.
+    - Ignora líneas vacías y comentarios (# al inicio)
+    - Toma KEY=VALUE (primer '=')
+    - Remueve comillas simples/dobles envolventes
+    - No sobreescribe variables ya definidas
+    """
+    env_path = BASE_DIR / '.env'
+    if not env_path.exists():
+        return
+    try:
+        for raw_line in env_path.read_text(encoding='utf-8', errors='replace').splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+            if not key:
+                continue
+            # Remover comillas envolventes
+            if (len(value) >= 2) and ((value[0] == value[-1]) and value[0] in ("'", '"')):
+                value = value[1:-1]
+            # No sobreescribir si ya existe y no está vacío
+            if os.environ.get(key):
+                continue
+            os.environ[key] = value
+    except Exception as e:
+        print(f"Warning: Error en parser fallback de .env: {e}")
+
+
+_load_dotenv_explicit()
+# Si aún faltan variables de DB, intentar parser fallback
+if not os.environ.get('DATABASE_URL') and not os.environ.get('POSTGRES_DB'):
+    _load_env_fallback_parser()
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
