@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}Ajustes de Usuario{% endblock %}
 {% block content %}
 <div class="container py-5">
@@ -7,6 +8,35 @@
     </a>
     <div class="row justify-content-center">
         <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i> Seguridad de la cuenta</h4>
+                    <p class="text-muted mb-4">Gestiona la seguridad de tu cuenta y cambia tu contraseña.</p>
+                    
+                    <!-- Opción 1: Cambiar contraseña con contraseña actual -->
+                    <div class="border rounded-3 p-4 mb-3 bg-light">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-key me-2"></i> Cambiar contraseña</h5>
+                        <p class="text-muted small mb-3">Si recuerdas tu contraseña actual, puedes cambiarla directamente.</p>
+                        <a href="{% url 'account_change_password' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Cambiar contraseña
+                        </a>
+                    </div>
+                    
+                    <!-- Opción 2: Olvidé mi contraseña -->
+                    <div class="border rounded-3 p-4 mb-3 bg-light">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-envelope-check me-2"></i> Olvidé mi contraseña</h5>
+                        <p class="text-muted small mb-3">Si no recuerdas tu contraseña actual, te enviaremos un enlace seguro por email para restablecerla.</p>
+                        <form method="post" action="{% url 'account_reset_password' %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="email" value="{{ user.email }}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-send me-1"></i> Enviar enlace de recuperación
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
             <div class="card mb-4">
                 <div class="card-body">
                     <h4 class="fw-bold mb-3">Mis notificaciones</h4>
