@@ -493,15 +493,15 @@ def redireccion_dashboard(request):
         return redirect('dashboard_super_admin')
     # Si es cliente
     elif getattr(user, 'tipo', None) == 'cliente':
-        return redirect('dashboard_cliente')
+        return redirect('clientes:dashboard')
     # Si es profesional
     elif getattr(user, 'tipo', None) == 'profesional':
-        return redirect('dashboard_profesional')
+        return redirect('profesionales:panel')
     # Si es negocio
     elif getattr(user, 'tipo', None) == 'negocio':
-        return redirect('dashboard_negocio')
+        return redirect('negocios:panel')
     # Por defecto, home
-    return redirect('home')
+    return redirect('inicio')
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or getattr(u, 'tipo', None) == 'super_admin')
@@ -925,6 +925,7 @@ def detalle_mi_ticket(request, ticket_id):
     }
     return render(request, 'cuentas/detalle_mi_ticket.html', context)
 
+@login_required
 def ajustes_usuario(request):
     if request.method == 'POST':
         if request.user.is_authenticated:

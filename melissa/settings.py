@@ -355,11 +355,17 @@ if not database_url and os.environ.get('POSTGRES_DB'):
     dsn_debug = dsn_string.replace(f"password={quote_plus(db_password)}", "password=***")
     print(f"Database DSN (debug): {dsn_debug}")
 else:
-    # Configuración para SQLite en desarrollo local (solo si no hay PostgreSQL)
+    # Configuración para SQLite SOLO en desarrollo local (si no hay PostgreSQL).
+    # En producción, fallar rápido para evitar pérdida de datos por usar un SQLite local accidentalmente.
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Base de datos no configurada para producción. Define DATABASE_URL o POSTGRES_DB/USER/PASSWORD/HOST/PORT. "
+            "Se evitó fallback a SQLite para proteger datos."
+        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / "db.sqlite3",
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
