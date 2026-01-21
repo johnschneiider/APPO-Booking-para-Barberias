@@ -197,44 +197,49 @@ WSGI_APPLICATION = 'melissa.wsgi.application'
 # Configuración de base de datos
 # Prioridad: DATABASE_URL > PostgreSQL individual > SQLite (solo desarrollo)
 
-# Si hay DATABASE_URL, usarlo directamente (evita problemas de codificación)
+# Si hay DATABASE_URL, usarlo (evita problemas de codificación) pero sin bloquear producción
+# si viene en un formato inesperado.
 database_url = os.environ.get('DATABASE_URL', '')
-if database_url and database_url.startswith('postgresql://'):
+if database_url:
     # Limpiar y normalizar DATABASE_URL
     try:
-        # Asegurar que es UTF-8 válido
         if isinstance(database_url, bytes):
             database_url = database_url.decode('utf-8', errors='replace')
         database_url = str(database_url).strip()
-        # Validar que puede codificarse a UTF-8
         database_url.encode('utf-8')
-        
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',  # Volver a backend estándar temporalmente
-                # Usar DATABASE_URL directamente
-            }
-        }
-        # Parsear DATABASE_URL manualmente para evitar problemas
+
+        # Aceptar ambos esquemas comunes: postgres:// y postgresql://
+        # (algunos proveedores/plantillas usan postgres://)
+        if database_url.startswith('postgres://'):
+            database_url = 'postgresql://' + database_url[len('postgres://'):]
+
         from urllib.parse import urlparse
         parsed = urlparse(database_url)
-        
-        DATABASES['default'].update({
-            'NAME': parsed.path[1:] if parsed.path else 'appo_db',  # Remover el / inicial
-            'USER': parsed.username or 'appo_user',
-            'PASSWORD': parsed.password or '',
-            'HOST': parsed.hostname or 'localhost',
-            'PORT': str(parsed.port) if parsed.port else '5432',
-            'OPTIONS': {
-                'client_encoding': 'UTF8',
-                'connect_timeout': 10,
-            },
-            'CONN_MAX_AGE': 600,
-        })
+        if parsed.scheme in ('postgresql', 'postgres'):
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                }
+            }
+            DATABASES['default'].update({
+                'NAME': parsed.path[1:] if parsed.path else 'appo_db',
+                'USER': parsed.username or 'appo_user',
+                'PASSWORD': parsed.password or '',
+                'HOST': parsed.hostname or 'localhost',
+                'PORT': str(parsed.port) if parsed.port else '5432',
+                'OPTIONS': {
+                    'client_encoding': 'UTF8',
+                    'connect_timeout': 10,
+                },
+                'CONN_MAX_AGE': 600,
+            })
+        else:
+            # Si el esquema no corresponde a Postgres, ignorar DATABASE_URL y permitir fallback a POSTGRES_*
+            database_url = ''
     except Exception as e:
         print(f"Warning: Error parseando DATABASE_URL: {e}")
         # Continuar con configuración individual
-        database_url = None
+        database_url = ''
 
 if not database_url and os.environ.get('POSTGRES_DB'):
     # Configuración para PostgreSQL del sistema (producción/VPS)
