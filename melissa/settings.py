@@ -199,6 +199,7 @@ WSGI_APPLICATION = 'melissa.wsgi.application'
 
 # Si hay DATABASE_URL, usarlo (evita problemas de codificación) pero sin bloquear producción
 # si viene en un formato inesperado.
+db_configured = False
 database_url = os.environ.get('DATABASE_URL', '')
 if database_url:
     # Limpiar y normalizar DATABASE_URL
@@ -233,6 +234,7 @@ if database_url:
                 },
                 'CONN_MAX_AGE': 600,
             })
+            db_configured = True
         else:
             # Si el esquema no corresponde a Postgres, ignorar DATABASE_URL y permitir fallback a POSTGRES_*
             database_url = ''
@@ -241,7 +243,7 @@ if database_url:
         # Continuar con configuración individual
         database_url = ''
 
-if not database_url and os.environ.get('POSTGRES_DB'):
+if not db_configured and os.environ.get('POSTGRES_DB'):
     # Configuración para PostgreSQL del sistema (producción/VPS)
     # Leer variables de entorno con manejo seguro de codificación
     def safe_getenv(key, default=''):
@@ -393,6 +395,7 @@ if not database_url and os.environ.get('POSTGRES_DB'):
             'CONN_MAX_AGE': 600,
         }
     }
+    db_configured = True
     
     # Log del DSN (sin contraseña) para debugging
     dsn_debug = dsn_string.replace(f"password={quote_plus(db_password)}", "password=***")
@@ -400,7 +403,7 @@ if not database_url and os.environ.get('POSTGRES_DB'):
 else:
     # Configuración para SQLite SOLO en desarrollo local (si no hay PostgreSQL).
     # En producción, fallar rápido para evitar pérdida de datos por usar un SQLite local accidentalmente.
-    if not DEBUG:
+    if not DEBUG and not db_configured:
         raise ImproperlyConfigured(
             "Base de datos no configurada para producción. Define DATABASE_URL o POSTGRES_DB/USER/PASSWORD/HOST/PORT. "
             "Se evitó fallback a SQLite para proteger datos."
