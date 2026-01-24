@@ -43,3 +43,35 @@ def tipo_usuario(request):
         'is_negocio': is_negocio,
         'is_profesional': is_profesional,
     } 
+
+
+def app_metrics(request):
+    """
+    Métricas globales de la plataforma (para marketing/UI):
+    - total_reservas_app: total real de reservas en la DB
+    - total_reservas_app_mkt: total mostrado (total real + offset de marketing)
+    """
+    from django.conf import settings
+    from django.core.cache import cache
+
+    offset = getattr(settings, 'RESERVAS_MARKETING_OFFSET', 879)
+    cache_key = 'appo:total_reservas_app'
+
+    total = cache.get(cache_key)
+    if total is None:
+        try:
+            from clientes.models import Reserva
+            total = Reserva.objects.count()
+        except Exception:
+            total = 0
+        cache.set(cache_key, total, 60)  # 1 minuto
+
+    try:
+        total_mkt = int(total) + int(offset)
+    except Exception:
+        total_mkt = 879
+
+    return {
+        'total_reservas_app': total,
+        'total_reservas_app_mkt': total_mkt,
+    }

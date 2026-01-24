@@ -183,6 +183,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cuentas.context_processors.tipo_usuario',
+                'cuentas.context_processors.app_metrics',
             ],
         },
     },
@@ -487,6 +488,10 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Marketing
+# Offset para el contador público de "citas reservadas"
+RESERVAS_MARKETING_OFFSET = int(os.environ.get('RESERVAS_MARKETING_OFFSET', '879') or '879')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
