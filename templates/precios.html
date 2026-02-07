@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Planes | Appo{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 text-center mb-4">
+      <h1 class="fw-bold">Plan único para barberías y peluquerías</h1>
+      <p class="lead mb-1">30 días gratis · Sin cobro inicial · Cancelable antes del primer cargo</p>
+      <p class="text-muted">Pago mensual automático al finalizar el trial.</p>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-baseline mb-3">
+            <div>
+              <h3 class="fw-bold mb-0">${{ precio_mensual|floatformat:0 }} {{ moneda }}</h3>
+              <small class="text-muted">por barbero / mes</small>
+            </div>
+            <span class="badge bg-primary">30 días gratis</span>
+          </div>
+
+          <h5 class="mb-3">Incluye</h5>
+          <ul class="list-unstyled">
+            {% for item in incluye %}
+            <li class="d-flex align-items-start mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              <span>{{ item }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <h6 class="mt-4">No incluye (por ahora)</h6>
+          <ul class="list-unstyled text-muted">
+            {% for item in excluye %}
+            <li class="d-flex align-items-start mb-2">
+              <i class="bi bi-dash-circle me-2"></i>
+              <span>{{ item }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <hr class="my-4">
+
+          <form method="post" action="{% url 'cuentas:crear_trial_payu' %}" class="text-start">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Nombre del negocio</label>
+              <input type="text" name="nombre_negocio" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Correo de contacto</label>
+              <input type="email" name="email_contacto" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">WhatsApp / Teléfono</label>
+              <input type="text" name="telefono_contacto" class="form-control" placeholder="+57...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Número de barberos</label>
+              <input type="number" name="numero_barberos" class="form-control" min="1" value="1">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Referencia del método de pago (placeholder)</label>
+              <input type="text" name="payu_card_mask" class="form-control" placeholder="Ej: ****1234 (se tokenizará con PayU)">
+              <small class="text-muted">No se realiza cobro ahora. Se tokeniza al integrar PayU y se cobra al terminar el trial.</small>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold">Empezar prueba gratis</button>
+          </form>
+
+          <p class="small text-muted mt-3 mb-0">
+            Al continuar, aceptas el cobro automático de ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes al finalizar los {{ dias_trial }} días de prueba, salvo cancelación previa.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

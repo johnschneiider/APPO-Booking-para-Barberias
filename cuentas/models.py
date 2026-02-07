@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 
 class UsuarioPersonalizado(AbstractUser):
     TIPO_USUARIO = (
@@ -118,6 +119,71 @@ class RespuestaTicket(models.Model):
     mensaje = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
     es_sistema = models.BooleanField(default=False, help_text='Si es una respuesta automática del sistema')
+
+
+class BusinessCheckoutIntent(models.Model):
+    """
+    Registro de intención de cobro para negocios (plan plataforma).
+    Se usa para almacenar el método de pago (token placeholder) y el periodo de trial.
+    """
+    ESTADO_CHOICES = [
+        ('trial_activo', 'Trial activo'),
+        ('metodo_guardado', 'Método de pago guardado'),
+        ('pendiente', 'Pendiente'),
+        ('cancelado', 'Cancelado'),
+    ]
+
+    usuario = models.ForeignKey(
+        UsuarioPersonalizado,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='checkout_intents'
+    )
+    negocio = models.ForeignKey(
+        'negocios.Negocio',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='checkout_intents'
+    )
+
+    nombre_negocio = models.CharField(max_length=150)
+    email_contacto = models.EmailField()
+    telefono_contacto = models.CharField(max_length=30, blank=True)
+    numero_barberos = models.PositiveIntegerField(default=1)
+
+    # Datos del plan
+    precio_mensual = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('49000.00'))
+    moneda = models.CharField(max_length=5, default='COP')
+    trial_inicio = models.DateTimeField(default=timezone.now)
+    trial_fin = models.DateTimeField(null=True, blank=True)
+    auto_cobro = models.BooleanField(default=True)
+
+    # Campos PayU (placeholders para tokenización)
+    payu_customer_id = models.CharField(max_length=100, blank=True)
+    payu_token = models.CharField(max_length=150, blank=True)
+    payu_card_mask = models.CharField(max_length=30, blank=True, help_text="Últimos dígitos o referencia segura")
+    payu_state = models.CharField(max_length=30, choices=ESTADO_CHOICES, default='pendiente')
+
+    notas = models.TextField(blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-creado_en']
+        verbose_name = "Intento de checkout de negocio"
+        verbose_name_plural = "Intentos de checkout de negocio"
+
+    def __str__(self):
+        return f"{self.nombre_negocio} - {self.email_contacto}"
+
+    @property
+    def dias_trial_restantes(self):
+        if not self.trial_fin:
+            return None
+        delta = self.trial_fin - timezone.now()
+        return max(0, delta.days)
     archivos_adjuntos = models.JSONField(default=list, blank=True)
     
     class Meta:

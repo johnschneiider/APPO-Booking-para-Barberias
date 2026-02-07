@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.urls import reverse
 from .forms import RegistroUnificadoForm, FeedbackForm, RespuestaTicketForm, CambiarEstadoTicketForm, EditarPerfilClienteForm
-from .models import UsuarioPersonalizado, Feedback, NotificacionAdmin, RespuestaTicket
+from .models import UsuarioPersonalizado, Feedback, NotificacionAdmin, RespuestaTicket, BusinessCheckoutIntent
 import logging
 from django.http import JsonResponse
 from profesionales.models import Notificacion, Profesional, Matriculacion, MetricaProfesional, SolicitudAusencia
@@ -32,6 +32,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.text import slugify
 import random
+from decimal import Decimal
+from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)
 
@@ -1175,6 +1177,98 @@ def api_username_disponible(request):
     if existe:
         sugerencias = sugerencias_username(username)
     return JsonResponse({'disponible': not existe, 'sugerencias': sugerencias})
+
+
+@require_http_methods(["GET"])
+def landing_barberias(request):
+    contexto = {
+        "precio_mensual": 49000,
+        "moneda": "COP",
+        "dias_trial": 30,
+        "beneficios": [
+            "Reservas en segundos, sin llamadas",
+            "Agenda para varios barberos",
+            "Servicios y precios configurables",
+            "Panel con citas y métricas básicas",
+            "Soporte digital",
+        ],
+        "caso_exito": {
+            "nombre": "Barbería Centro",
+            "resultado": "+30% citas cumplidas en 6 semanas",
+            "detalle": "Usaron el link público y organizaron horarios de 3 barberos.",
+        },
+    }
+    return render(request, "landing_barberias.html", contexto)
+
+
+
+@require_http_methods(["GET"])
+def pricing_page(request):
+    """
+    Página de precios para negocios: plan único $49.000/mes por barbero con 30 días gratis.
+    """
+    contexto = {
+        "precio_mensual": 49000,
+        "moneda": "COP",
+        "dias_trial": 30,
+        "incluye": [
+            "Agenda online para varios barberos",
+            "Reservas en segundos desde link público",
+            "Servicios y precios configurables",
+            "Panel con citas y métricas básicas",
+            "Soporte por canal digital",
+        ],
+        "excluye": [
+            "Recordatorios por WhatsApp/Email/SMS (aún no disponibles)",
+        ],
+    }
+    return render(request, "precios.html", contexto)
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+def crear_trial_payu(request):
+    """
+    Captura datos básicos y “método de pago” placeholder.
+    No realiza cobro: guarda la intención y la fecha de fin de trial.
+    """
+    nombre_negocio = request.POST.get("nombre_negocio", "").strip()
+    email_contacto = request.POST.get("email_contacto", "").strip()
+    telefono_contacto = request.POST.get("telefono_contacto", "").strip()
+    numero_barberos = request.POST.get("numero_barberos") or 1
+    payu_card_mask = request.POST.get("payu_card_mask", "").strip()  # placeholder (últimos dígitos o referencia)
+
+    try:
+        numero_barberos = int(numero_barberos)
+    except ValueError:
+        numero_barberos = 1
+
+    trial_inicio = timezone.now()
+    trial_fin = trial_inicio + timedelta(days=30)
+
+    intent = BusinessCheckoutIntent.objects.create(
+        usuario=request.user if request.user.is_authenticated else None,
+        nombre_negocio=nombre_negocio or "Negocio sin nombre",
+        email_contacto=email_contacto,
+        telefono_contacto=telefono_contacto,
+        numero_barberos=numero_barberos,
+        precio_mensual=Decimal("49000.00"),
+        moneda="COP",
+        trial_inicio=trial_inicio,
+        trial_fin=trial_fin,
+        payu_card_mask=payu_card_mask,
+        payu_state="metodo_guardado",
+        auto_cobro=True,
+        notas="Método guardado en modo placeholder. Integrar PayU cuando se carguen credenciales.",
+    )
+
+    contexto = {
+        "intent": intent,
+        "trial_fin": trial_fin,
+        "precio_mensual": intent.precio_mensual,
+        "moneda": intent.moneda,
+    }
+    return render(request, "trial_confirmacion.html", contexto)
 
 
 

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import api_notificaciones, redireccion_dashboard, dashboard_super_admin, analiticas_negocios, analiticas_profesionales, analiticas_clientes, analiticas_general, ejecutar_tests, poblar_demo, borrar_demo, reiniciar_servidor, ver_logs_servidor, test_rate_limit, gestionar_rate_limiting, api_username_disponible
+from .views import api_notificaciones, redireccion_dashboard, dashboard_super_admin, analiticas_negocios, analiticas_profesionales, analiticas_clientes, analiticas_general, ejecutar_tests, poblar_demo, borrar_demo, reiniciar_servidor, ver_logs_servidor, test_rate_limit, gestionar_rate_limiting, api_username_disponible, pricing_page, crear_trial_payu, landing_barberias
 
 app_name = 'cuentas'
 
@@ -36,4 +36,7 @@ urlpatterns = [
     path('gestionar-rate-limiting/', gestionar_rate_limiting, name='gestionar_rate_limiting'),
     path('api/username-disponible/', api_username_disponible, name='api_username_disponible'),
     path('control-reservas/', views.control_reservas, name='control_reservas'),
+    path('planes/', pricing_page, name='pricing_page'),
+    path('planes/crear-trial/', crear_trial_payu, name='crear_trial_payu'),
+    path('landing/barberias/', landing_barberias, name='landing_barberias'),
 ]

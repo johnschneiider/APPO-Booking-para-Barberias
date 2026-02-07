@@ -314,11 +314,23 @@ def dashboard_negocio(request, negocio_id):
     # Obtener el negocio específico del usuario
     negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
     
+    # Intento de checkout / trial más reciente del usuario (para banner de trial)
+    trial_intent = BusinessCheckoutIntent.objects.filter(
+        usuario=request.user
+    ).order_by('-creado_en').first()
+    trial_dias_restantes = None
+    trial_fin = None
+    if trial_intent and trial_intent.trial_fin:
+        delta = trial_intent.trial_fin - timezone.now()
+        trial_dias_restantes = max(0, delta.days)
+        trial_fin = trial_intent.trial_fin
+    
     from datetime import datetime, timedelta, date
     from django.db.models import Count, Avg, Q
-    from django.utils import timezone
+from django.utils import timezone
     from clientes.models import Reserva
     from clientes.models import Calificacion
+from cuentas.models import BusinessCheckoutIntent
     
     # Fechas para los últimos 30 días
     hoy = timezone.now().date()
@@ -441,6 +453,9 @@ def dashboard_negocio(request, negocio_id):
         'peluquero_top_score': round(mejor_puntuacion, 1) if mejor_puntuacion > 0 else 0,
         'dias_ocupados': dia_mas_ocupado_nombre,
         'hora_pico': hora_pico,
+        'trial_intent': trial_intent,
+        'trial_dias_restantes': trial_dias_restantes,
+        'trial_fin': trial_fin,
     }
     return render(request, 'negocios/dashboard_negocio.html', context)
 

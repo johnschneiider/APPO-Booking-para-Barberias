@@ -927,3 +927,11 @@ RECORDATORIOS_SMS_ENABLED = False
 # Fidelización (sistema alterno de mensajes programados). Para evitar duplicados
 # con el sistema de recordatorios, la confirmación inmediata se puede activar explícitamente.
 FIDELIZACION_CONFIRMACION_INMEDIATA = os.getenv('FIDELIZACION_CONFIRMACION_INMEDIATA', 'False').lower() == 'true'
+
+# Configuración PayU (placeholders, modo sandbox por defecto)
+PAYU_API_KEY = os.getenv('PAYU_API_KEY', '')
+PAYU_API_LOGIN = os.getenv('PAYU_API_LOGIN', '')
+PAYU_MERCHANT_ID = os.getenv('PAYU_MERCHANT_ID', '')
+PAYU_ACCOUNT_ID = os.getenv('PAYU_ACCOUNT_ID', '')
+PAYU_TEST_MODE = os.getenv('PAYU_TEST_MODE', 'true').lower() == 'true'
+PAYU_BASE_URL = os.getenv('PAYU_BASE_URL', 'https://sandbox.api.payulatam.com/payments-api/4.0/')

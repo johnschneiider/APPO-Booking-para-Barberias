@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Prueba activada | Appo{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 text-center">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h2 class="fw-bold mb-3">¡Listo! Trial activado</h2>
+          <p class="lead mb-1">Tienes 30 días gratis.</p>
+          <p class="text-muted mb-3">Primer cobro programado: {{ trial_fin|date:"d/m/Y" }} por ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero.</p>
+
+          <div class="alert alert-info text-start">
+            <h6 class="fw-bold mb-1">Método de pago</h6>
+            {% if intent.payu_card_mask %}
+              <p class="mb-0">Referencia guardada: {{ intent.payu_card_mask }}</p>
+            {% else %}
+              <p class="mb-0">Se guardará al integrar PayU. Completa tu perfil para no perder el trial.</p>
+            {% endif %}
+          </div>
+
+          <div class="mt-3">
+            <a href="{% url 'cuentas:login_personalizado' %}" class="btn btn-primary">Ir a iniciar sesión</a>
+            <a href="{% url 'inicio' %}" class="btn btn-outline-secondary ms-2">Volver al inicio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

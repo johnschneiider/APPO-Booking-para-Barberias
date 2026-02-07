@@ -4,6 +4,20 @@
 
 {% block content %}
 <div class="container-fluid px-3 px-md-4 py-3 py-md-5">
+    {% if trial_intent %}
+    <div class="alert alert-info d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3" role="alert">
+        <div>
+            <h5 class="fw-bold mb-1">Prueba gratis activa</h5>
+            {% if trial_fin %}
+            <p class="mb-1">Primer cobro programado: {{ trial_fin|date:"d/m/Y" }} por ${{ trial_intent.precio_mensual|floatformat:0 }} {{ trial_intent.moneda }} por barbero.</p>
+            {% endif %}
+            {% if trial_dias_restantes != None %}
+            <small class="text-muted">Te quedan {{ trial_dias_restantes }} día{{ trial_dias_restantes|pluralize }} de prueba. Se harán hasta 2 reintentos diarios si el cobro falla.</small>
+            {% endif %}
+        </div>
+        <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary mt-2 mt-md-0">Ver plan</a>
+    </div>
+    {% endif %}
     <div class="row mb-3 mb-md-4">
         <div class="col-12">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
@@ -15,7 +29,7 @@
                 </div>
                 <div class="d-flex flex-column flex-sm-row gap-2">
                     {% if negocio.id %}
-                    <a href="{% url 'negocios:panel_negocio' negocio.id %}" class="btn btn-outline-primary mb-2 mb-sm-0">
+                    <a href="{% url 'negocios:panel_negocio' negocio.id %}" class="btn btn-secondary mb-2 mb-sm-0">
                         <i class="bi bi-arrow-left me-2"></i>Volver al Panel
                     </a>
                     {% endif %}
@@ -1210,3 +1224,66 @@ small, .small {
   <a class="nav-link text-primary fw-bold" href="{% if user.is_authenticated %}{% url 'cuentas:enviar_feedback' %}{% else %}{% url 'account_login' %}?next={% url 'cuentas:enviar_feedback' %}{% endif %}"><i class="bi bi-lightbulb"></i> ¿Cómo podemos mejorar?</a>
 </li>
 {% endblock %} 
+
+{% block extra_js %}
+<style>
+.tour-overlay {position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1050;}
+.tour-modal {position:fixed; z-index:1060; max-width:360px; background:#fff; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,0.2); padding:16px;}
+.tour-modal .tour-content h5 {font-weight:700;}
+</style>
+<div id="tour-overlay" class="d-none tour-overlay"></div>
+<div id="tour-modal" class="d-none tour-modal">
+  <div class="tour-content">
+    <h5 id="tour-title"></h5>
+    <p id="tour-text" class="mb-3"></p>
+    <div class="d-flex justify-content-between">
+      <button type="button" class="btn btn-link p-0" id="tour-skip">Saltar</button>
+      <div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="tour-prev">Anterior</button>
+        <button type="button" class="btn btn-primary btn-sm" id="tour-next">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const steps = [
+    { title: '1/5: Carga tus servicios', text: 'Ve a “Servicios” y añade tus cortes con precio y duración.', anchor: '.card.border-dark' },
+    { title: '2/5: Configura horarios', text: 'Ajusta el horario en tu panel de negocio.', anchor: '.display-6' },
+    { title: '3/5: Añade barberos', text: 'Invita o asigna profesionales para ver su agenda.', anchor: '.card.border-dark' },
+    { title: '4/5: Haz una reserva de prueba', text: 'Crea una cita interna para validar la agenda.', anchor: '.card.border-dark' },
+    { title: '5/5: Copia tu link público', text: 'Comparte tu enlace de reservas con tus clientes.', anchor: '.card.border-dark' }
+  ];
+  const overlay = document.getElementById('tour-overlay');
+  const modal = document.getElementById('tour-modal');
+  const title = document.getElementById('tour-title');
+  const text = document.getElementById('tour-text');
+  const btnPrev = document.getElementById('tour-prev');
+  const btnNext = document.getElementById('tour-next');
+  const btnSkip = document.getElementById('tour-skip');
+  let idx = 0;
+  function endTour() { overlay.classList.add('d-none'); modal.classList.add('d-none'); localStorage.setItem('tour_dashboard_done','1'); }
+  function showStep(i) {
+    if (i<0 || i>=steps.length) return endTour();
+    idx = i;
+    const step = steps[i];
+    title.textContent = step.title;
+    text.textContent = step.text;
+    overlay.classList.remove('d-none');
+    modal.classList.remove('d-none');
+    const anchor = document.querySelector(step.anchor);
+    const rect = anchor ? anchor.getBoundingClientRect() : {top: window.innerHeight/2, left: window.innerWidth/2, height:0, width:0};
+    const top = rect.top + window.scrollY + rect.height + 12;
+    const left = rect.left + window.scrollX;
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    btnPrev.disabled = i === 0;
+    btnNext.textContent = i === steps.length - 1 ? 'Listo' : 'Siguiente';
+  }
+  btnPrev.onclick = () => showStep(idx-1);
+  btnNext.onclick = () => { if (idx === steps.length - 1) endTour(); else showStep(idx+1); };
+  btnSkip.onclick = endTour;
+  if (!localStorage.getItem('tour_dashboard_done')) setTimeout(() => showStep(0), 800);
+});
+</script>
+{% endblock %}

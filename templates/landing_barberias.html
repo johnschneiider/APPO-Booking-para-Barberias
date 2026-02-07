@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Appo para barberías{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <div class="row align-items-center">
+    <div class="col-lg-6">
+      <h1 class="fw-bold mb-3">Llena tu agenda sin llamadas.</h1>
+      <p class="lead">Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. 30 días gratis, sin cobro inicial.</p>
+      <div class="d-flex flex-column gap-2 mb-3">
+        {% for b in beneficios %}
+        <div class="d-flex align-items-start">
+          <i class="bi bi-check-circle text-success me-2"></i>
+          <span>{{ b }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg">Empezar prueba gratis</a>
+      <small class="d-block text-muted mt-2">Cobro automático al terminar los {{ dias_trial }} días, cancelable antes.</small>
+    </div>
+    <div class="col-lg-5 offset-lg-1">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold mb-2">Caso de éxito</h5>
+          <p class="mb-1">{{ caso_exito.nombre }}</p>
+          <p class="text-success fw-bold mb-2">{{ caso_exito.resultado }}</p>
+          <p class="text-muted mb-0">{{ caso_exito.detalle }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
