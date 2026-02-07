@@ -31,6 +31,7 @@ from .models import NotificacionNegocio
 from negocios.models import DiaDescanso
 from datetime import date
 from suscripciones.models import PlanSuscripcion
+from cuentas.models import BusinessCheckoutIntent
 
 logger = logging.getLogger(__name__)
 
@@ -327,10 +328,9 @@ def dashboard_negocio(request, negocio_id):
     
     from datetime import datetime, timedelta, date
     from django.db.models import Count, Avg, Q
-from django.utils import timezone
+    from django.utils import timezone
     from clientes.models import Reserva
     from clientes.models import Calificacion
-from cuentas.models import BusinessCheckoutIntent
     
     # Fechas para los últimos 30 días
     hoy = timezone.now().date()
