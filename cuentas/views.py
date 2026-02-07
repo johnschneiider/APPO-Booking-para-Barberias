@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
@@ -1247,10 +1247,13 @@ def crear_trial_payu(request):
     except ValueError:
         numero_barberos = 1
 
-    # Validaciones básicas de password si el usuario no está autenticado
+    # Validaciones básicas si el usuario no está autenticado
     if not request.user.is_authenticated:
-        if len(password1) < 6 or password1 != password2:
-            messages.error(request, "La contraseña debe tener al menos 6 caracteres y coincidir en ambos campos.")
+        if len(password1) < 6:
+            messages.error(request, "La contraseña debe tener al menos 6 caracteres.")
+            return redirect("cuentas:pricing_page")
+        if password1 != password2:
+            messages.error(request, "Las contraseñas no coinciden.")
             return redirect("cuentas:pricing_page")
         if not email_contacto:
             messages.error(request, "Debes ingresar tu correo para crear la cuenta.")
@@ -1261,29 +1264,36 @@ def crear_trial_payu(request):
     negocio_creado = None
     if not user:
         User = get_user_model()
-        if User.objects.filter(email=email_contacto).exists():
-            messages.error(request, "Ya existe una cuenta con este correo. Inicia sesión para continuar.")
-            return redirect("account_login")
-        # Generar username a partir del email
-        base_username = email_contacto.split("@")[0][:12] if "@" in email_contacto else f"user{random.randint(1000,9999)}"
-        username = base_username
-        suffix = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}{suffix}"
-            suffix += 1
-        user = User.objects.create_user(
-            username=username,
-            email=email_contacto,
-            password=password1,
-            tipo='negocio',
-            telefono=telefono_contacto
-        )
-        # Crear negocio básico
-        negocio_creado = Negocio.objects.create(
-            propietario=user,
-            nombre=nombre_negocio or "Mi barbería",
-            direccion="Sin dirección"
-        )
+        existing = User.objects.filter(email=email_contacto).first()
+        if existing:
+            # Intentar autenticar con la contraseña entregada
+            auth_user = authenticate(request, username=existing.username, password=password1)
+            if not auth_user:
+                messages.error(request, "Ya existe una cuenta con este correo y la contraseña no coincide. Inicia sesión.")
+                return redirect("account_login")
+            user = auth_user
+        else:
+            # Generar username a partir del email
+            base_username = email_contacto.split("@")[0][:12] if "@" in email_contacto else f"user{random.randint(1000,9999)}"
+            username = base_username
+            suffix = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{suffix}"
+                suffix += 1
+            user = User.objects.create_user(
+                username=username,
+                email=email_contacto,
+                password=password1,
+                tipo='negocio',
+                telefono=telefono_contacto
+            )
+            # Crear negocio básico
+            negocio_creado = Negocio.objects.create(
+                propietario=user,
+                nombre=nombre_negocio or "Mi barbería",
+                direccion="Sin dirección"
+            )
+        # Autenticar sesión
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
     trial_inicio = timezone.now()
