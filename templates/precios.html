@@ -66,6 +66,14 @@
               <input type="number" name="numero_barberos" class="form-control" min="1" value="1">
             </div>
             <div class="mb-3">
+              <label class="form-label">Contraseña para tu cuenta</label>
+              <input type="password" name="password1" class="form-control" minlength="6" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Repite la contraseña</label>
+              <input type="password" name="password2" class="form-control" minlength="6" required>
+            </div>
+            <div class="mb-3">
               <label class="form-label">Referencia del método de pago (placeholder)</label>
               <input type="text" name="payu_card_mask" class="form-control" placeholder="Ej: ****1234 (se tokenizará con PayU)">
               <small class="text-muted">No se realiza cobro ahora. Se tokeniza al integrar PayU y se cobra al terminar el trial.</small>
