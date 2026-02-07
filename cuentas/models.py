@@ -184,15 +184,6 @@ class BusinessCheckoutIntent(models.Model):
             return None
         delta = self.trial_fin - timezone.now()
         return max(0, delta.days)
-    archivos_adjuntos = models.JSONField(default=list, blank=True)
-    
-    class Meta:
-        ordering = ['fecha']
-        verbose_name = 'Respuesta de Ticket'
-        verbose_name_plural = 'Respuestas de Tickets'
-
-    def __str__(self):
-        return f"Respuesta en {self.ticket.numero_ticket} - {self.autor.username}"
 
 class NotificacionAdmin(models.Model):
     TIPO_CHOICES = (
