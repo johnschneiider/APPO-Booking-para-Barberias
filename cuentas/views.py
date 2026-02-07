@@ -1203,13 +1203,12 @@ def landing_barberias(request):
     return render(request, "landing_barberias.html", contexto)
 
 
-
-@require_http_methods(["GET"])
-def pricing_page(request):
+def _pricing_context(form_data=None):
     """
-    Página de precios para negocios: plan único $49.000/mes por barbero con 30 días gratis.
+    Construye el contexto de la página de precios con valores por defecto
+    y permite precargar datos del formulario en caso de error.
     """
-    contexto = {
+    ctx = {
         "precio_mensual": 49000,
         "moneda": "COP",
         "dias_trial": 30,
@@ -1224,7 +1223,17 @@ def pricing_page(request):
             "Recordatorios por WhatsApp/Email/SMS (aún no disponibles)",
         ],
     }
-    return render(request, "precios.html", contexto)
+    if form_data:
+        ctx.update(form_data)
+    return ctx
+
+
+@require_http_methods(["GET"])
+def pricing_page(request):
+    """
+    Página de precios para negocios: plan único $49.000/mes por barbero con 30 días gratis.
+    """
+    return render(request, "precios.html", _pricing_context())
 
 
 @require_http_methods(["POST"])
@@ -1241,6 +1250,12 @@ def crear_trial_payu(request):
     payu_card_mask = request.POST.get("payu_card_mask", "").strip()  # placeholder (últimos dígitos o referencia)
     password1 = request.POST.get("password1", "")
     password2 = request.POST.get("password2", "")
+    form_prefill = {
+        "nombre_negocio": nombre_negocio,
+        "email_contacto": email_contacto,
+        "telefono_contacto": telefono_contacto,
+        "numero_barberos": numero_barberos,
+    }
 
     try:
         numero_barberos = int(numero_barberos)
@@ -1251,13 +1266,13 @@ def crear_trial_payu(request):
     if not request.user.is_authenticated:
         if len(password1) < 6:
             messages.error(request, "La contraseña debe tener al menos 6 caracteres.")
-            return redirect("cuentas:pricing_page")
+            return render(request, "precios.html", _pricing_context(form_prefill))
         if password1 != password2:
             messages.error(request, "Las contraseñas no coinciden.")
-            return redirect("cuentas:pricing_page")
+            return render(request, "precios.html", _pricing_context(form_prefill))
         if not email_contacto:
             messages.error(request, "Debes ingresar tu correo para crear la cuenta.")
-            return redirect("cuentas:pricing_page")
+            return render(request, "precios.html", _pricing_context(form_prefill))
 
     # Crear o asociar usuario y negocio
     user = request.user if request.user.is_authenticated else None
@@ -1269,8 +1284,8 @@ def crear_trial_payu(request):
             # Intentar autenticar con la contraseña entregada
             auth_user = authenticate(request, username=existing.username, password=password1)
             if not auth_user:
-                messages.error(request, "Ya existe una cuenta con este correo y la contraseña no coincide. Inicia sesión.")
-                return redirect("account_login")
+                messages.error(request, "Ya existe una cuenta con este correo y la contraseña no coincide. Inicia sesión o usa otra cuenta.")
+                return render(request, "precios.html", _pricing_context(form_prefill))
             user = auth_user
         else:
             # Generar username a partir del email

@@ -47,31 +47,41 @@
 
           <hr class="my-4">
 
+          {% if messages %}
+          <div class="mb-3">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
           <form method="post" action="{% url 'cuentas:crear_trial_payu' %}" class="text-start">
             {% csrf_token %}
             <div class="mb-3">
               <label class="form-label">Nombre del negocio</label>
-              <input type="text" name="nombre_negocio" class="form-control" required>
+              <input type="text" name="nombre_negocio" class="form-control" value="{{ nombre_negocio|default:'' }}" required>
             </div>
             <div class="mb-3">
               <label class="form-label">Correo de contacto</label>
-              <input type="email" name="email_contacto" class="form-control" required>
+              <input type="email" name="email_contacto" class="form-control" value="{{ email_contacto|default:'' }}" required>
             </div>
             <div class="mb-3">
               <label class="form-label">WhatsApp / Teléfono</label>
-              <input type="text" name="telefono_contacto" class="form-control" placeholder="+57...">
+              <input type="text" name="telefono_contacto" class="form-control" placeholder="+57..." value="{{ telefono_contacto|default:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label">Número de barberos</label>
-              <input type="number" name="numero_barberos" class="form-control" min="1" value="1">
+              <input type="number" name="numero_barberos" class="form-control" min="1" value="{{ numero_barberos|default:'1' }}">
             </div>
             <div class="mb-3">
               <label class="form-label">Contraseña para tu cuenta</label>
-              <input type="password" name="password1" class="form-control" minlength="6" placeholder="Mínimo 6 caracteres" required>
+              <input type="password" id="pass1" name="password1" class="form-control" minlength="6" placeholder="Mínimo 6 caracteres" required>
+              <small id="pass1Help" class="text-muted d-block mt-1">Mínimo 6 caracteres.</small>
             </div>
             <div class="mb-3">
               <label class="form-label">Repite la contraseña</label>
-              <input type="password" name="password2" class="form-control" minlength="6" required>
+              <input type="password" id="pass2" name="password2" class="form-control" minlength="6" required>
+              <small id="pass2Help" class="text-muted d-block mt-1">Debe coincidir con la anterior.</small>
             </div>
             <div class="mb-3">
               <label class="form-label">Referencia del método de pago (placeholder)</label>
@@ -89,4 +99,28 @@
     </div>
   </div>
 </section>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pass1 = document.getElementById('pass1');
+  const pass2 = document.getElementById('pass2');
+  const help1 = document.getElementById('pass1Help');
+  const help2 = document.getElementById('pass2Help');
+  function validatePass() {
+    const v1 = pass1.value;
+    const v2 = pass2.value;
+    const okLength = v1.length >= 6;
+    const matches = v1 === v2 && v1.length > 0;
+    help1.textContent = okLength ? 'Contraseña válida.' : 'Mínimo 6 caracteres.';
+    help1.classList.toggle('text-success', okLength);
+    help1.classList.toggle('text-danger', !okLength && v1.length > 0);
+    help2.textContent = matches ? 'Coinciden.' : 'Debe coincidir con la anterior.';
+    help2.classList.toggle('text-success', matches);
+    help2.classList.toggle('text-danger', !matches && v2.length > 0);
+  }
+  if (pass1 && pass2) {
+    pass1.addEventListener('input', validatePass);
+    pass2.addEventListener('input', validatePass);
+  }
+});
+</script>
 {% endblock %}
