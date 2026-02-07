@@ -4,29 +4,111 @@
 {% block title %}Appo para barberías{% endblock %}
 
 {% block content %}
+<style>
+  .hero-landing {
+    background: radial-gradient(120% 120% at 20% 20%, #e8f1ff 0%, #f7f9ff 50%, #ffffff 100%);
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero-blob {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle at 30% 30%, rgba(19,58,127,0.2), transparent 60%);
+    top: -60px;
+    right: -60px;
+    filter: blur(6px);
+  }
+  .stat-badge {
+    background: #0d6efd0f;
+    border: 1px solid #0d6efd33;
+    color: #0d6efd;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feature-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #f5f7fb;
+    font-weight: 600;
+    color: #0d1b2a;
+    margin: 4px;
+    font-size: 0.95rem;
+  }
+  .card-lift {
+    transition: all 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  }
+  @media (max-width: 992px) {
+    .hero-landing { border-radius: 16px; }
+    .hero-blob { width: 200px; height: 200px; }
+  }
+</style>
+
 <section class="container py-5">
-  <div class="row align-items-center">
-    <div class="col-lg-6">
-      <h1 class="fw-bold mb-3">Llena tu agenda sin llamadas.</h1>
-      <p class="lead">Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. 30 días gratis, sin cobro inicial.</p>
-      <div class="d-flex flex-column gap-2 mb-3">
-        {% for b in beneficios %}
-        <div class="d-flex align-items-start">
-          <i class="bi bi-check-circle text-success me-2"></i>
-          <span>{{ b }}</span>
+  <div class="hero-landing p-4 p-md-5">
+    <div class="hero-blob"></div>
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-7">
+        <div class="stat-badge mb-3">
+          <i class="bi bi-lightning-charge-fill"></i> 30 días gratis · Sin cobro inicial
         </div>
-        {% endfor %}
+        <h1 class="fw-bold mb-3" style="line-height:1.1;">Llena tu agenda sin contestar el teléfono.</h1>
+        <p class="lead text-muted mb-3">
+          Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. Cobro automático después del trial de {{ dias_trial }} días, cancelable antes.
+        </p>
+        <div class="d-flex flex-wrap align-items-center mb-4">
+          {% for b in beneficios %}
+            <span class="feature-chip"><i class="bi bi-check2-circle text-success"></i>{{ b }}</span>
+          {% endfor %}
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Empezar prueba gratis</a>
+          <small class="text-muted">Sin riesgo · Cancelas antes del primer cobro</small>
+        </div>
+        <div class="d-flex align-items-center gap-3 mt-4">
+          <div>
+            <div class="fw-bold h4 mb-0">+30%</div>
+            <small class="text-muted">citas cumplidas en 6 semanas</small>
+          </div>
+          <div>
+            <div class="fw-bold h4 mb-0">24/7</div>
+            <small class="text-muted">reservas en línea</small>
+          </div>
+          <div>
+            <div class="fw-bold h4 mb-0">+{{ dias_trial }} días</div>
+            <small class="text-muted">de prueba gratis</small>
+          </div>
+        </div>
       </div>
-      <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg">Empezar prueba gratis</a>
-      <small class="d-block text-muted mt-2">Cobro automático al terminar los {{ dias_trial }} días, cancelable antes.</small>
-    </div>
-    <div class="col-lg-5 offset-lg-1">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h5 class="fw-bold mb-2">Caso de éxito</h5>
-          <p class="mb-1">{{ caso_exito.nombre }}</p>
-          <p class="text-success fw-bold mb-2">{{ caso_exito.resultado }}</p>
-          <p class="text-muted mb-0">{{ caso_exito.detalle }}</p>
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm card-lift">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-2">
+              <div class="badge bg-success-subtle text-success fw-semibold me-2">Caso de éxito</div>
+              <span class="fw-bold">{{ caso_exito.nombre }}</span>
+            </div>
+            <p class="h5 text-success fw-bold mb-2">{{ caso_exito.resultado }}</p>
+            <p class="text-muted mb-3">{{ caso_exito.detalle }}</p>
+            <hr>
+            <p class="mb-2 fw-semibold">Cómo lo lograron:</p>
+            <ul class="text-muted ps-3 mb-0">
+              <li>Compartieron su link de reservas</li>
+              <li>Ordenaron horarios de 3 barberos</li>
+              <li>Reducieron llamadas y no-shows</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
