@@ -1316,13 +1316,11 @@ def crear_trial_payu(request):
         notas="Método guardado en modo placeholder. Integrar PayU cuando se carguen credenciales.",
     )
 
-    contexto = {
-        "intent": intent,
-        "trial_fin": trial_fin,
-        "precio_mensual": intent.precio_mensual,
-        "moneda": intent.moneda,
-    }
-    return render(request, "trial_confirmacion.html", contexto)
+    # Si ya está autenticado, lo mandamos directo a sus negocios; si no, a login con next
+    if user and user.is_authenticated:
+        return redirect('/negocios/mis/')
+    else:
+        return redirect('/accounts/login/?next=/negocios/mis/')
 
 
 
