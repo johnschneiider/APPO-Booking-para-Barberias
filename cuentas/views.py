@@ -1331,13 +1331,13 @@ def crear_trial_payu(request):
 
     # Autenticar la sesión siempre que tengamos usuario
     if user:
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        auth_user = authenticate(request, username=user.username, password=password1) or user
+        login(request, auth_user, backend='django.contrib.auth.backends.ModelBackend')
         request.session.save()
-        from django.urls import reverse
-        return redirect(reverse('negocios:mis_negocios'))
+        return redirect('negocios:mis_negocios')
 
-    messages.error(request, "No se pudo autenticar la sesión. Intenta iniciar sesión manualmente.")
-    return redirect('/accounts/login/?next=/negocios/mis/')
+    messages.error(request, "No se pudo crear o autenticar la cuenta. Intenta nuevamente.")
+    return render(request, "precios.html", _pricing_context(form_prefill))
 
 
 
