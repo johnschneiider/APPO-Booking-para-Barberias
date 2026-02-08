@@ -138,7 +138,6 @@
     }
   </style>
   {% if nombres_negocios %}
-  {% with nombres_negocios|default_if_none:list as names %}
   <div class="marquee-container py-2">
     <div class="marquee-row marquee-anim-1">
       {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
@@ -157,7 +156,6 @@
       {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
     </div>
   </div>
-  {% endwith %}
   {% endif %}
 </section>
 {% endblock %}
