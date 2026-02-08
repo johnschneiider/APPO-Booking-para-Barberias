@@ -1308,8 +1308,6 @@ def crear_trial_payu(request):
                 nombre=nombre_negocio or "Mi barbería",
                 direccion="Sin dirección"
             )
-        # Autenticar sesión
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
     trial_inicio = timezone.now()
     trial_fin = trial_inicio + timedelta(days=30)
@@ -1331,11 +1329,13 @@ def crear_trial_payu(request):
         notas="Método guardado en modo placeholder. Integrar PayU cuando se carguen credenciales.",
     )
 
-    # Si ya está autenticado, lo mandamos directo a sus negocios; si no, a login con next
-    if user and user.is_authenticated:
+    # Autenticar la sesión siempre que tengamos usuario
+    if user:
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect('/negocios/mis/')
-    else:
-        return redirect('/accounts/login/?next=/negocios/mis/')
+
+    messages.error(request, "No se pudo autenticar la sesión. Intenta iniciar sesión manualmente.")
+    return redirect('/accounts/login/?next=/negocios/mis/')
 
 
 
