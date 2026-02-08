@@ -114,4 +114,50 @@
     </div>
   </div>
 </section>
+
+<!-- Sección confianza -->
+<section class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Ellos confían en nosotros</h2>
+    <p class="text-muted mb-0">Negocios que ya usan Appo para sus agendas</p>
+  </div>
+  <style>
+    .marquee-container { overflow: hidden; position: relative; }
+    .marquee-row { display: flex; gap: 24px; white-space: nowrap; }
+    .marquee-row span { font-weight: 700; font-size: 1.05rem; color: #0d1b2a; }
+    .marquee-anim-1 { animation: marquee-left 18s linear infinite; }
+    .marquee-anim-2 { animation: marquee-right 20s linear infinite; }
+    .marquee-anim-3 { animation: marquee-left 22s linear infinite; }
+    @keyframes marquee-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes marquee-right {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+  {% if nombres_negocios %}
+  {% with nombres_negocios|default_if_none:list as names %}
+  <div class="marquee-container py-2">
+    <div class="marquee-row marquee-anim-1">
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    </div>
+  </div>
+  <div class="marquee-container py-2">
+    <div class="marquee-row marquee-anim-2">
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    </div>
+  </div>
+  <div class="marquee-container py-2">
+    <div class="marquee-row marquee-anim-3">
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+</section>
 {% endblock %}

@@ -1183,6 +1183,7 @@ def api_username_disponible(request):
 
 @require_http_methods(["GET"])
 def landing_barberias(request):
+    nombres_negocios = list(Negocio.objects.filter(activo=True).values_list('nombre', flat=True)[:30])
     contexto = {
         "precio_mensual": 49000,
         "moneda": "COP",
@@ -1199,6 +1200,7 @@ def landing_barberias(request):
             "resultado": "+30% citas cumplidas en 6 semanas",
             "detalle": "Usaron el link público y organizaron horarios de 3 barberos.",
         },
+        "nombres_negocios": nombres_negocios,
     }
     return render(request, "landing_barberias.html", contexto)
 
