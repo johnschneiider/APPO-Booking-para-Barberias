@@ -122,12 +122,30 @@
     <p class="text-muted mb-0">Negocios que ya usan Appo para sus agendas</p>
   </div>
   <style>
+    .trust-card {
+      background: radial-gradient(120% 120% at 20% 20%, #f5f8ff 0%, #ffffff 60%, #f7f9ff 100%);
+      border-radius: 20px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+      border: 1px solid #eef1f6;
+    }
     .marquee-container { overflow: hidden; position: relative; }
-    .marquee-row { display: flex; gap: 24px; white-space: nowrap; }
-    .marquee-row span { font-weight: 700; font-size: 1.05rem; color: #0d1b2a; }
-    .marquee-anim-1 { animation: marquee-left 18s linear infinite; }
-    .marquee-anim-2 { animation: marquee-right 20s linear infinite; }
-    .marquee-anim-3 { animation: marquee-left 22s linear infinite; }
+    .marquee-row { display: inline-flex; gap: 28px; white-space: nowrap; width: 200%; }
+    .marquee-row span {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #0d1b2a;
+      letter-spacing: 0.02em;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 6px 14px rgba(13,17,38,0.08);
+    }
+    .marquee-anim-1 { animation: marquee-left 22s linear infinite; }
+    .marquee-anim-2 { animation: marquee-right 24s linear infinite; }
+    .marquee-anim-3 { animation: marquee-left 26s linear infinite; }
     @keyframes marquee-left {
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
@@ -136,24 +154,37 @@
       0% { transform: translateX(-50%); }
       100% { transform: translateX(0); }
     }
+    .marquee-fade-left,
+    .marquee-fade-right {
+      position: absolute;
+      top: 0; bottom: 0; width: 60px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .marquee-fade-left { left: 0; background: linear-gradient(90deg, #f5f8ff, transparent); }
+    .marquee-fade-right { right: 0; background: linear-gradient(270deg, #f5f8ff, transparent); }
   </style>
   {% if nombres_negocios %}
-  <div class="marquee-container py-2">
-    <div class="marquee-row marquee-anim-1">
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+  <div class="trust-card">
+    <div class="marquee-fade-left"></div>
+    <div class="marquee-fade-right"></div>
+    <div class="marquee-container py-2">
+      <div class="marquee-row marquee-anim-1">
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      </div>
     </div>
-  </div>
-  <div class="marquee-container py-2">
-    <div class="marquee-row marquee-anim-2">
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    <div class="marquee-container py-2">
+      <div class="marquee-row marquee-anim-2">
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      </div>
     </div>
-  </div>
-  <div class="marquee-container py-2">
-    <div class="marquee-row marquee-anim-3">
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    <div class="marquee-container py-2">
+      <div class="marquee-row marquee-anim-3">
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      </div>
     </div>
   </div>
   {% endif %}
