@@ -259,6 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnNext = document.getElementById('tour-next');
   const btnSkip = document.getElementById('tour-skip');
   let idx = 0;
+
+  function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
   function endTour() { overlay.classList.add('d-none'); modal.classList.add('d-none'); localStorage.setItem('tour_mis_negocios_done','1'); }
   function showStep(i) {
     if (i<0 || i>=steps.length) return endTour();
@@ -270,8 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.remove('d-none');
     const anchor = document.querySelector(step.anchor);
     const rect = anchor ? anchor.getBoundingClientRect() : {top: window.innerHeight/2, left: window.innerWidth/2, height:0, width:0};
-    const top = rect.top + window.scrollY + rect.height + 12;
-    const left = rect.left + window.scrollX;
+    const modalWidth = modal.offsetWidth || 320;
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const top = clamp(rect.top + window.scrollY + rect.height + margin, window.scrollY + margin, window.scrollY + vh - 200);
+    const left = clamp(rect.left + window.scrollX, window.scrollX + margin, window.scrollX + vw - modalWidth - margin);
     modal.style.top = `${top}px`;
     modal.style.left = `${left}px`;
     btnPrev.disabled = i === 0;
