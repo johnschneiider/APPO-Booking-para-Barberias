@@ -50,9 +50,20 @@
     transform: translateY(-4px);
     box-shadow: 0 16px 40px rgba(0,0,0,0.08);
   }
+  .floating-img {
+    max-width: 520px;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .floating-img img {
+    width: 100%;
+    display: block;
+  }
   @media (max-width: 992px) {
     .hero-landing { border-radius: 16px; }
     .hero-blob { width: 200px; height: 200px; }
+    .floating-img { max-width: 100%; }
   }
 </style>
 
@@ -97,6 +108,12 @@
               <div class="fw-bold mb-1">Sin llamadas eternas</div>
               <small class="text-muted">Ahorra tiempo del mostrador y evita chats sueltos.</small>
             </div>
+          </div>
+        </div>
+        <!-- Imagen flotante del calendario -->
+        <div class="position-relative mb-4">
+          <div class="floating-img shadow-lg">
+            <img src="{% static 'img/calendario.JPG' %}" alt="Calendario Appo" class="img-fluid rounded-4">
           </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
