@@ -77,7 +77,7 @@
         </div>
         <h1 class="fw-bold mb-3" style="line-height:1.1;">Llena tu agenda sin contestar el teléfono.</h1>
         <p class="lead text-muted mb-3">
-          Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. Cobro automático después del trial de {{ dias_trial }} días, cancelable antes. Diseñado para barberías que quieren agenda llena y menos no-shows.
+          Reduce inasistencias, organiza a todo tu equipo en una sola agenda y recibe reservas 24/7 sin depender del teléfono ni de chats sueltos.
         </p>
         <div class="d-flex flex-wrap align-items-center mb-3">
           {% for b in beneficios %}
@@ -121,6 +121,11 @@
           <a href="#caso-exito" class="btn btn-outline-secondary btn-lg px-4">Ver caso de éxito</a>
         </div>
         <small class="text-muted d-block mb-3">Sin riesgo · Cancelas antes del primer cobro.</small>
+        <div class="p-3 rounded-3 bg-white shadow-sm mb-2 d-inline-block">
+          <div class="fw-bold">Precio transparente</div>
+          <div class="text-muted mb-1">Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes</div>
+          <small class="text-muted">Cobro automático después del trial de {{ dias_trial }} días, cancelable antes.</small>
+        </div>
         <div class="d-flex align-items-center gap-3 mt-2">
           <div>
             <div class="fw-bold h4 mb-0">+30%</div>
