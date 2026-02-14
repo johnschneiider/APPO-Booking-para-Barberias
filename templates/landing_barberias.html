@@ -66,18 +66,45 @@
         </div>
         <h1 class="fw-bold mb-3" style="line-height:1.1;">Llena tu agenda sin contestar el teléfono.</h1>
         <p class="lead text-muted mb-3">
-          Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. Cobro automático después del trial de {{ dias_trial }} días, cancelable antes.
+          Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes. Cobro automático después del trial de {{ dias_trial }} días, cancelable antes. Diseñado para barberías que quieren agenda llena y menos no-shows.
         </p>
-        <div class="d-flex flex-wrap align-items-center mb-4">
+        <div class="d-flex flex-wrap align-items-center mb-3">
           {% for b in beneficios %}
             <span class="feature-chip"><i class="bi bi-check2-circle text-success"></i>{{ b }}</span>
           {% endfor %}
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-3">
-          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Empezar prueba gratis</a>
-          <small class="text-muted">Sin riesgo · Cancelas antes del primer cobro</small>
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
+              <div class="fw-bold mb-1">Menos inasistencias</div>
+              <small class="text-muted">Recordatorios y confirmaciones para evitar que te dejen esperando.</small>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
+              <div class="fw-bold mb-1">Agenda 24/7</div>
+              <small class="text-muted">Tus clientes reservan cuando quieran; tú solo ves citas confirmadas.</small>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
+              <div class="fw-bold mb-1">Todo tu equipo</div>
+              <small class="text-muted">Organiza horarios de todos los barberos en una sola vista.</small>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
+              <div class="fw-bold mb-1">Sin llamadas eternas</div>
+              <small class="text-muted">Ahorra tiempo del mostrador y evita chats sueltos.</small>
+            </div>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-3 mt-4">
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Empezar prueba gratis</a>
+          <a href="#caso-exito" class="btn btn-outline-secondary btn-lg px-4">Ver caso de éxito</a>
+        </div>
+        <small class="text-muted d-block mb-3">Sin riesgo · Cancelas antes del primer cobro.</small>
+        <div class="d-flex align-items-center gap-3 mt-2">
           <div>
             <div class="fw-bold h4 mb-0">+30%</div>
             <small class="text-muted">citas cumplidas en 6 semanas</small>
@@ -93,7 +120,7 @@
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="card border-0 shadow-sm card-lift">
+        <div class="card border-0 shadow-sm card-lift" id="caso-exito">
           <div class="ratio ratio-16x9 rounded-top overflow-hidden">
             <img src="{% static 'img/caso_exito_barberia.jpeg' %}" alt="Barbería Centro" class="w-100 h-100 object-fit-cover">
           </div>
