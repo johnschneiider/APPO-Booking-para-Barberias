@@ -87,9 +87,9 @@
                     {% is_provider_available 'google' as google_available %}
                     {% if google_available %}
                     <div class="mb-4">
-                        <a href="{% safe_provider_login_url 'google' %}" class="btn btn-outline-dark btn-google rounded-3 py-3 w-100 d-flex align-items-center justify-content-center gap-3">
+                        <a href="{% safe_provider_login_url 'google' %}" class="btn btn-secondary py-3 w-100 d-flex align-items-center justify-content-center gap-3">
                             <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
-                            <span class="fw-medium">Continuar con Google</span>
+                            <span class="fw-bold">Continuar con Google</span>
                         </a>
                     </div>
                     {% endif %}
@@ -283,58 +283,11 @@
     .form-control:focus {
         animation: none !important;
     }
-         .btn-primary {
-         background: #133A7F !important;
-         color: #FFFFFF !important;
-         border: none;
-         transition: all 0.3s ease;
-     }
-    
-         .btn-primary:hover {
-         background: #0f2d5a !important;
-         color: #FFFFFF !important;
-         transform: translateY(-2px);
-         box-shadow: 0 8px 20px rgba(19, 58, 127, 0.3);
-     }
-     
-     /* Asegurar que el texto y iconos del botón sean completamente blancos */
-     .btn-primary i,
-     .btn-primary span,
-     .btn-primary {
-         color: #FFFFFF !important;
-     }
-     
-     /* Asegurar que el header tenga texto completamente blanco */
-     .card-header h3,
-     .card-header i {
-         color: #FFFFFF !important;
-     }
-    
-    .btn-outline-dark {
-        transition: all 0.3s ease;
-    }
-    
-    .btn-outline-dark:hover {
-        background-color: #1e3a8a !important;
-        color: #ffffff !important;
-        border-color: #1e3a8a !important;
-        transform: translateY(-2px);
-    }
-    
-    .btn-outline-dark:hover img,
-    .btn-outline-dark:hover span {
-        filter: brightness(0) invert(1) !important;
-    }
     
     .alert {
         border-radius: 0.75rem !important;
         border: none;
     }
-    
-         .bg-mint-green {
-       background: #133A7F !important;
-       color: #FFFFFF !important;
-     }
     
     .round-checkbox {
       width: 20px !important;

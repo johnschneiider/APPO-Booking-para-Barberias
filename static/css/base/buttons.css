@@ -1,0 +1,89 @@
+/* ============================================
+   ESTANDARIZACIÓN DE BOTONES PREMIUM - APPO
+   Foco: Institucionalidad, Sombras y Geometría
+   ============================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.6rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: var(--appo-radius) !important;
+    transition: var(--appo-transition) !important;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    box-shadow: var(--appo-shadow-sm);
+    letter-spacing: -0.01em;
+    user-select: none;
+}
+
+/* --- PRIMARIO (AZUL LOGO - INSTITUCIONAL) --- */
+.btn-primary, .btn-accent, .btn-success {
+    background-color: var(--appo-primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--appo-primary) !important;
+    box-shadow: 0 4px 8px -1px rgba(19, 58, 127, 0.15);
+}
+
+.btn-primary:hover, .btn-accent:hover, .btn-success:hover {
+    background-color: var(--appo-primary-hover) !important;
+    border-color: var(--appo-primary-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--appo-shadow-hover);
+}
+
+/* --- SECUNDARIO (GRISÁCEO BLANCUZCO - FRESCO) --- */
+.btn-secondary, .btn-outline-secondary, .btn-outline-dark {
+    background-color: var(--appo-neutral-bg) !important;
+    color: var(--appo-neutral-text) !important;
+    border: 1px solid var(--appo-neutral-border) !important;
+    box-shadow: var(--appo-shadow-sm);
+}
+
+.btn-secondary:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover {
+    background-color: #FFFFFF !important;
+    border-color: var(--appo-primary) !important;
+    color: var(--appo-primary) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+}
+
+/* --- OUTLINE (ELEGANTE) --- */
+.btn-outline-primary {
+    background-color: transparent !important;
+    border-color: var(--appo-primary) !important;
+    color: var(--appo-primary) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--appo-primary-soft) !important;
+    transform: translateY(-2px);
+}
+
+/* TAMAÑOS REFINADOS */
+.btn-lg {
+    padding: 0.9rem 2.2rem;
+    font-size: 1.05rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 1.1rem;
+    font-size: 0.8rem;
+}
+
+/* ICONOS */
+.btn i, .btn .bi {
+    font-size: 1.15em;
+    line-height: 1;
+}
+
+/* EVITAR EL OVALADO EN MÓVIL */
+@media (max-width: 768px) {
+    .btn {
+        width: auto;
+        border-radius: var(--appo-radius) !important;
+    }
+}

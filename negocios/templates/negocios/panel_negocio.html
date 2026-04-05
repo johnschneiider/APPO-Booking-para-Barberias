@@ -5,44 +5,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<style>
-body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong, em, b, i, th, td, .card-title, .form-label, .form-text, .form-subtitle, .form-link, .form-check-label, * {
-    color: #181818 !important;
-}
-.text-muted,
-.text-primary,
-.text-success,
-.text-info,
-.text-warning,
-.text-danger,
-.text-secondary,
-.text-dark,
-.text-white,
-.text-black-50,
-.text-body,
-.text-reset {
-    color: #181818 !important;
-}
-.display-1, .display-2, .display-3, .display-4, .display-5, .display-6,
-.lead, .fw-bold, .fw-normal, .fw-light, .fw-semibold, .fw-medium,
-.text-muted, .text-secondary, .text-light, .text-white, .text-dark {
-    color: #181818 !important;
-}
-</style>
-
-<style>
-.btn-outline-primary {
-    color: #181818 !important;
-    border-color: #181818 !important;
-}
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-    background: #181818 !important;
-    color: #fff !important;
-    border-color: #181818 !important;
-}
-</style>
-
 <div class="container-fluid px-3 px-md-4 py-3 py-md-5 panel-content">
     <div class="row mb-4 mb-md-5">
         <div class="col-12 col-lg-8 mx-auto">
@@ -63,7 +25,7 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                     </div>
                 </div>
                 {% else %}
-                <button class="btn btn-primary rounded-pill px-3 px-md-4 py-2" data-bs-toggle="modal" data-bs-target="#editarLogoModal">
+                <button class="btn btn-primary px-3 px-md-4 py-2" data-bs-toggle="modal" data-bs-target="#editarLogoModal">
                     <i class="bi bi-upload me-2" style="color: #FFFFFF;"></i>Subir logo
                 </button>
                 {% endif %}
@@ -197,7 +159,7 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                             <span class="badge bg-warning bg-opacity-10 text-warning">
                                 <i class="bi bi-people me-1"></i>{{ total_suscriptores|default:"0" }} suscriptores
                             </span>
-                            <a href="{% url 'suscripciones:planes_negocio' negocio_id=negocio.id %}" class="btn btn-warning btn-sm">
+                            <a href="{% url 'suscripciones:planes_negocio' negocio_id=negocio.id %}" class="btn btn-secondary btn-sm">
                                 <i class="bi bi-gear me-1"></i>Gestionar
                             </a>
                         </div>
@@ -236,10 +198,10 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <a href="{% url 'suscripciones:planes_negocio' negocio_id=negocio.id %}" class="btn btn-warning rounded-pill px-4">
+                        <a href="{% url 'suscripciones:planes_negocio' negocio_id=negocio.id %}" class="btn btn-secondary px-4">
                             <i class="bi bi-crown me-2"></i>Gestionar Planes de Suscripción
                         </a>
-                        <a href="{% url 'suscripciones:dashboard_suscripciones' negocio_id=negocio.id %}" class="btn btn-outline-warning rounded-pill px-4 ms-2">
+                        <a href="{% url 'suscripciones:dashboard_suscripciones' negocio_id=negocio.id %}" class="btn btn-secondary px-4 ms-2">
                             <i class="bi bi-bar-chart me-2"></i>Ver Dashboard
                         </a>
                     </div>
@@ -269,7 +231,7 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                                 {% endif %}
                                 <h6 class="card-title mb-1 text-dark" style="font-size: 0.9rem;">{{ prof.nombre_completo }}</h6>
                                 <span class="badge bg-secondary mb-2" style="font-size: 0.7rem;">{{ prof.especialidad|default:'Barbero' }}</span>
-                                <a href="{% url 'negocios:ver_perfil_profesional' prof.id %}?negocio_id={{ negocio.id }}" class="btn btn-outline-primary btn-sm" style="font-size: 0.75rem;">Ver perfil</a>
+                                <a href="{% url 'negocios:ver_perfil_profesional' prof.id %}?negocio_id={{ negocio.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">Ver perfil</a>
                             </div>
                         </div>
                         {% endfor %}
@@ -290,7 +252,7 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                         <h3 class="h5 mb-0 text-dark mb-2 mb-sm-0">
                             <i class="bi bi-images text-primary me-2"></i>Imágenes
                         </h3>
-                        <a href="{% url 'negocios:galeria_negocio' negocio.id %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'negocios:galeria_negocio' negocio.id %}" class="btn btn-secondary btn-sm">
                             Agregar
                         </a>
                     </div>
@@ -418,7 +380,7 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                                 <input type="hidden" id="horaFinGlobal" name="horaFinGlobal" value="18:00">
                             </div>
                             <div class="col-12 col-md-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-outline-primary w-100" onclick="aplicarHorarioTodosLosDias()">
+                                <button type="button" class="btn btn-secondary w-100" onclick="aplicarHorarioTodosLosDias()">
                                     <span class="d-none d-md-inline">Usar este horario para todos los días</span>
                                     <span class="d-md-none">Aplicar a todos</span>
                                 </button>
@@ -479,8 +441,8 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                 </div>
 
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar cambios</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
                 </div>
             </div>
         </form>
@@ -510,15 +472,14 @@ body, h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, label, small, strong,
                             <i class="bi bi-camera fs-1 text-muted"></i>
                         </div>
                         {% endif %}
-                        <input type="file" name="logo" class="form-control" accept="image/*" id="logoInput">
-                        <label for="logoInput" class="btn btn-outline-primary rounded-pill mt-3 w-100">
+                        <label for="logoInput" class="btn btn-secondary mt-3 w-100">
                             <i class="bi bi-upload me-2"></i> Seleccionar imagen
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar logo</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar logo</button>
                 </div>
             </div>
         </form>
@@ -1265,10 +1226,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-1"></i> Cancelar
                     </button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <button type="submit" class="btn btn-primary  px-4">
                         <i class="bi bi-check-circle me-1"></i> Guardar Cambios
                     </button>
                 </div>
@@ -1361,10 +1322,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-1"></i> Cancelar
                     </button>
-                    <button type="submit" class="btn btn-info rounded-pill px-4">
+                    <button type="submit" class="btn btn-info  px-4">
                         <i class="bi bi-check-circle me-1"></i> Guardar Horario
                     </button>
                 </div>
@@ -1373,99 +1334,5 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 {% endfor %}
-
-<style>
-/* Estilos para los sliders de horario */
-.form-range {
-    height: 8px;
-    background: linear-gradient(to right, #e9ecef 0%, #e9ecef 100%);
-    border-radius: 5px;
-    outline: none;
-    -webkit-appearance: none;
-}
-
-.form-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #007bff;
-    cursor: pointer;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-}
-
-.form-range::-webkit-slider-thumb:hover {
-    background: #0056b3;
-    transform: scale(1.1);
-}
-
-.form-range::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #007bff;
-    cursor: pointer;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-}
-
-.form-range::-moz-range-thumb:hover {
-    background: #0056b3;
-    transform: scale(1.1);
-}
-
-/* Estilos para los checkboxes */
-.form-check-input {
-    width: 1.2em;
-    height: 1.2em;
-    margin-top: 0.1em;
-}
-
-.form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.form-check-input:focus {
-    border-color: #28a745;
-    box-shadow: 0 0 0 0.25rem rgba(40,167,69,0.25);
-}
-
-.form-check-label {
-    font-size: 1rem;
-    margin-left: 0.5rem;
-}
-
-/* Estilos para las tarjetas de días */
-.card {
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .form-range {
-        height: 6px;
-    }
-    
-    .form-range::-webkit-slider-thumb {
-        width: 18px;
-        height: 18px;
-    }
-    
-    .form-range::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-    }
-}
-</style>
 
 {% endblock %}

@@ -6,18 +6,6 @@
 {% block extra_css %}
 <link href="{% static 'css/clientes/dashboard.css' %}" rel="stylesheet">
 <style>
-:root {
-  --primary-color: #A8E6CF;
-  --primary-hover: #3CB371;
-  --secondary-color: #F5F5F5;
-  --accent-color: #A8E6CF;
-  --text-primary: #0D0D0D;
-  --text-secondary: #666666;
-  --border-color: #DDE6E8;
-  --neutral-text: #0D0D0D;
-  --neutral-muted: #666666;
-}
-
 .dashboard-stats-row {
   display: flex;
   flex-direction: row;
@@ -38,57 +26,40 @@
 }
 .dashboard-stats .stat-pill {
   display: inline-block;
-  min-width: 38px;
-  padding: 0.3em 1.1em;
+  min-width: 44px;
+  padding: 0.4em 1.2rem;
   font-size: 1.15rem;
   font-weight: 700;
-  border-radius: 999px;
-  background: var(--secondary-color);
-  color: var(--text-primary);
+  border-radius: var(--appo-radius);
+  background: var(--appo-neutral-bg);
+  color: var(--appo-primary);
   margin-bottom: 0.3em;
-  border: 1.5px solid var(--border-color);
-  font-family: var(--font-ui), sans-serif;
+  border: 1px solid var(--appo-neutral-border);
 }
 .dashboard-stats .stat-pill.total {
-  background: var(--primary-color);
-  color: var(--text-primary);
-  border-color: var(--primary-hover);
+  background: var(--appo-primary-soft);
+  color: var(--appo-primary);
 }
 .dashboard-stats .stat-pill.pendientes {
-  background: #fff4f4;
-  color: #b80000;
-  border-color: #ffd6d6;
+  background: #fef2f2;
+  color: #dc2626;
 }
 .dashboard-stats .stat-pill.completadas {
-  background: var(--primary-color);
-  color: var(--text-primary);
-  border-color: var(--primary-hover);
+  background: #f0fdf4;
+  color: #16a34a;
 }
 .dashboard-stats .stat-desc {
-  font-size: 0.98rem;
-  color: var(--neutral-muted);
-  font-family: var(--font-ui), sans-serif;
+  font-size: 0.85rem;
+  color: #64748b;
   margin-bottom: 0.7em;
   max-width: 140px;
 }
 .dashboard-stats-title {
-  font-family: var(--font-ui), sans-serif;
-  font-size: 1.1rem;
-  color: var(--text-primary);
+  font-size: 1rem;
+  color: #1e293b;
   font-weight: 600;
   margin-bottom: 0.5rem;
   text-align: right;
-}
-.dashboard-hero-content h1, .dashboard-hero-content h2, .dashboard-hero-content h3 {
-  font-family: var(--font-ui), sans-serif !important;
-  color: var(--text-primary) !important;
-}
-/* Cambiar fuente global en el dashboard */
-.dashboard-main *:not(i):not(svg) {
-  font-family: var(--font-ui), sans-serif !important;
-}
-.card-body h5.fw-bold {
-  color: var(--text-primary) !important;
 }
 </style>
 {% endblock %}
@@ -225,7 +196,7 @@
                                         </div>
                                     </div>
                                     
-                                    <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn w-100 mt-2" style="color:var(--text-primary) !important; font-weight:600; border:none !important; background:linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);">Reservar</a>
+                                    <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn btn-primary w-100 mt-2">Reservar</a>
                                 </div>
                             </div>
                         </div>
@@ -361,212 +332,15 @@
 </div>
 
 <style>
-body {
-  background: var(--secondary-color);
-}
 .dashboard-hero {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
-  border-radius: 1.2rem;
-  padding: 2.5rem 2rem 2rem 2rem;
+  background: white !important;
+  border-radius: var(--appo-radius);
+  padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 8px 24px rgba(168, 230, 207, 0.15);
-}
-.dashboard-hero-content {
-  flex: 1 1 0%;
-}
-.dashboard-hero .welcome-title {
-  font-family: var(--font-serif-title);
-  color: var(--text-primary);
-  font-size: 2.2rem;
-  margin-bottom: 0.5rem;
-}
-.dashboard-hero .welcome-desc {
-  font-family: var(--font-sans-content);
-  color: var(--text-primary);
-  font-size: 1.1rem;
-}
-.dashboard-hero .dashboard-stats {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1.2rem;
-  margin-left: 2.5rem;
-}
-.dashboard-hero .stat-box {
-  min-width: 120px;
-  min-height: 90px;
-  border-radius: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-ui);
-  box-shadow: 0 2px 8px rgba(46,46,58,0.04);
-}
-.dashboard-hero .stat-total {
-  background: var(--primary-color);
-  color: var(--text-primary);
-}
-.dashboard-hero .stat-pendientes {
-  background: #fff4f4;
-  color: #b80000;
-}
-.dashboard-hero .stat-completadas {
-  background: var(--primary-hover);
-  color: var(--text-primary);
-}
-.dashboard-hero .stat-box .stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.2rem;
-}
-.dashboard-hero .stat-box .stat-label {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-/* Buscador y cards */
-.search-section, .card, .buscador-card, .recent-reservations-card {
-  background: #fff !important;
-  border-radius: 1.1rem;
-  box-shadow: 0 2px 12px rgba(46,46,58,0.07);
-  border: 1px solid var(--border-color);
-}
-
-.search-section {
-  padding: 2rem 1.5rem;
-  margin-bottom: 2.5rem;
-}
-
-input, select, textarea {
-  background: #fff;
-  border: 1.5px solid var(--border-color);
-  border-radius: 0.6rem;
-  font-family: var(--font-ui);
-  color: var(--text-primary);
-  padding: 0.5em 1em;
-  transition: border-color 0.2s;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--primary-hover);
-  outline: none;
-}
-
-.buscador-btn {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: var(--text-primary);
-  border-radius: 2rem;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  border: none;
-  padding: 0.7em 2.2em;
-  transition: all 0.3s ease;
-}
-.buscador-btn:hover {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
-}
-
-/* Etiquetas y badges */
-.badge-encontrados {
-  background: var(--primary-hover);
-  color: var(--text-primary);
-  border-radius: 1em;
-  font-size: 1rem;
-  padding: 0.3em 1.1em;
-  font-family: var(--font-ui);
-  font-weight: 600;
-}
-.badge-pendientes {
-  background: #fff4f4;
-  color: #b80000;
-}
-.badge-completadas {
-  background: var(--primary-color);
-  color: var(--text-primary);
-}
-
-/* Botones */
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  border: none;
-  color: var(--text-primary);
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
-}
-
-.btn-outline-primary {
-  color: var(--primary-hover);
-  border-color: var(--primary-hover);
-}
-.btn-outline-primary:hover {
-  background-color: var(--primary-color);
-  color: var(--text-primary);
-}
-
-/* Cards de negocios */
-.card[style*="background:var(--color-warm-sand)"] {
-  background: #fff !important;
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-.card[style*="background:var(--color-warm-sand)"]:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(168, 230, 207, 0.2);
-}
-
-/* Botón de reservar en las cards */
-.btn[style*="background:#f4f6f8"] {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
-  color: var(--text-primary) !important;
-  font-weight: 600;
-  border: none !important;
-  transition: all 0.3s ease;
-}
-.btn[style*="background:#f4f6f8"]:hover {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.3);
-}
-
-@media (max-width: 900px) {
-  .dashboard-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1.2rem 0.7rem;
-  }
-  .dashboard-hero .dashboard-stats {
-    margin-left: 0;
-    margin-top: 1.2rem;
-    gap: 0.7rem;
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .dashboard-hero .stat-box {
-    min-width: 100px;
-    min-height: 70px;
-  }
-}
-@media (max-width: 600px) {
-  .dashboard-hero .dashboard-stats {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
-}
-.hover-shadow:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(168, 230, 207, 0.2) !important;
-    transition: all 0.3s ease;
+  border: 1px solid var(--appo-neutral-border);
 }
 </style>
 {% endblock %} 

@@ -45,29 +45,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #FFFFFF;
 }
 
-.btn-primary, .btn-outline-primary {
-  background: var(--color-teal-accent);
-  border-color: var(--color-teal-accent);
-  color: #fff;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  border-radius: 2rem;
-  padding: 0.5em 1.5em;
-  transition: background 0.2s, color 0.2s;
-}
-.btn-primary:hover, .btn-outline-primary:hover {
-  background: var(--color-primary-hover);
-  color: #FFFFFF;
-}
-
-.btn-secondary, .btn-outline-secondary {
-  background: var(--color-coral-blush);
-  border-color: var(--color-coral-blush);
-  color: #FFFFFF;
-  font-family: var(--font-ui);
-  border-radius: 2rem;
-  font-weight: 600;
-}
+/* Los estilos de botones ahora se manejan en buttons.css */
 
 input, select, textarea {
   background: #fff;

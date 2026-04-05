@@ -1,202 +1,27 @@
 /* ============================================
-   SISTEMA DE COLORES PROFESIONAL - APPO
-   Paleta simplificada para startup internacional
+   SISTEMA DE DISEÑO APPO - "SEDA Y ACERO"
+   UI/UX Senior - Foco: Institucional y Fresco
    ============================================ */
 
 :root {
-  /* ===== COLORES PRIMARIOS ===== */
-  /* Un solo color primario con variaciones */
-  --color-primary: #1E40AF;        /* Azul principal - Confianza, profesionalismo */
-  --color-primary-hover: #1E3A8A;  /* Hover más oscuro */
-  --color-primary-light: #3B82F6;  /* Versión clara para fondos */
-  --color-primary-lighter: #DBEAFE; /* Muy claro para backgrounds suaves */
-  
-  /* ===== COLORES SECUNDARIOS ===== */
-  /* Solo si realmente necesario - aquí verde para éxito/confirmación */
-  --color-accent: #10B981;         /* Verde para acciones positivas */
-  --color-accent-hover: #059669;
-  
-  /* ===== ESCALA DE GRISES (Texto y Fondos) ===== */
-  /* Sistema estándar internacional */
-  --color-text-primary: #111827;   /* Texto principal - casi negro */
-  --color-text-secondary: #4B5563; /* Texto secundario - gris medio oscuro (mejor contraste) */
-  --color-text-muted: #6B7280;     /* Texto deshabilitado - gris medio (mejor contraste) */
-  
-  --color-bg-primary: #FFFFFF;     /* Fondo principal - blanco */
-  --color-bg-secondary: #F9FAFB;   /* Fondo secundario - gris muy claro */
-  --color-bg-tertiary: #F3F4F6;    /* Fondo terciario - gris claro */
-  
-  --color-border: #E5E7EB;         /* Bordes - gris suave */
-  --color-border-light: #F3F4F6;   /* Bordes muy suaves */
-  
-  /* ===== COLORES SEMÁNTICOS ===== */
-  /* Solo para estados específicos */
-  --color-success: #10B981;        /* Éxito - verde */
-  --color-warning: #F59E0B;        /* Advertencia - amarillo/naranja */
-  --color-error: #EF4444;          /* Error - rojo */
-  --color-info: #3B82F6;           /* Información - azul */
-  
-  /* ===== TIPOGRAFÍA ===== */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Inter', sans-serif; /* Simplificado - una fuente es suficiente */
-  --font-serif-title: var(--font-display); /* Compatibilidad con CSS legado */
-  
-  /* ===== ESPACIADO ===== */
-  --spacing-xs: 0.25rem;   /* 4px */
-  --spacing-sm: 0.5rem;    /* 8px */
-  --spacing-md: 1rem;      /* 16px */
-  --spacing-lg: 1.5rem;    /* 24px */
-  --spacing-xl: 2rem;      /* 32px */
-  --spacing-2xl: 3rem;     /* 48px */
-  
-  /* ===== BORDES ===== */
-  --border-radius-sm: 0.375rem;   /* 6px */
-  --border-radius-md: 0.5rem;     /* 8px */
-  --border-radius-lg: 0.75rem;    /* 12px */
-  --border-radius-xl: 1rem;       /* 16px */
-  
-  /* ===== SOMBRAS ===== */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
-  /* ===== TRANSICIONES ===== */
-  --transition-fast: 0.15s ease-in-out;
-  --transition-normal: 0.3s ease-in-out;
-  
-  /* ===== ALIAS PARA COMPATIBILIDAD (LEGACY) ===== */
-  /* Estos alias apuntan a la paleta nueva para evitar roturas en CSS antiguo */
-  --color-background: var(--color-bg-secondary);
-  --color-light: var(--color-bg-tertiary);
-  --color-dark: var(--color-primary);
-  --color-mint-green: var(--color-accent);
-  --color-smoke-white: var(--color-text-secondary);
-  --color-champagne-beige: var(--color-text-secondary);
-  --color-light-blue-gray: var(--color-border);
-  --color-black-deep: var(--color-text-primary);
-  --color-graphite-gray: var(--color-bg-tertiary);
-  --primary-color: var(--color-primary);
-  --primary-hover: var(--color-primary-hover);
-  --accent-color: var(--color-accent);
-  --text-primary: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --border-color: var(--color-border);
-  /* Alias heredados de estilos antiguos */
-  --color-teal-accent: var(--color-primary); /* En la UI "primario" debe ser el azul, no el verde */
-  --color-aqua-mint: var(--color-primary-light);
-  --color-coral-blush: var(--color-warning);
-  --color-soft-lavender-gray: var(--color-bg-tertiary);
-  --color-deep-charcoal: var(--color-text-primary);
-  --font-branding: var(--font-display);
-}
+    /* --- PALETA PRIMARIA (LOGO APPO) --- */
+    --appo-primary: #133A7F;
+    --appo-primary-hover: #0A1F45;
+    --appo-primary-soft: #EBF1FF;
 
-/* ===== APLICACIÓN GLOBAL ===== */
-body {
-  background: var(--color-bg-secondary) !important;
-  color: var(--color-text-primary) !important;
-  font-family: var(--font-ui);
-}
+    /* --- PALETA NEUTRA (ESTÁNDAR SAAS) --- */
+    --appo-neutral-bg: #F8FAFC;      /* Grisáceo blancuzco para botones */
+    --appo-neutral-border: #E2E8F0;
+    --appo-neutral-text: #334155;
+    
+    /* --- SOMBRAS DE PROFUNDIDAD (SOFT SHADOWS) --- */
+    --appo-shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+    --appo-shadow-md: 0 4px 12px rgba(19, 58, 127, 0.08);
+    --appo-shadow-hover: 0 8px 20px rgba(19, 58, 127, 0.12);
 
-.header, header {
-  background: var(--color-bg-primary) !important;
-  color: var(--color-text-primary) !important;
-  border-bottom: 1px solid var(--color-border);
-}
-
-footer {
-  background: var(--color-bg-primary) !important;
-  color: var(--color-text-secondary) !important;
-  border-top: 1px solid var(--color-border);
-}
-
-/* ===== TARJETAS Y CONTENEDORES ===== */
-.card, .tarjeta, .box, .modal-content {
-  background: var(--color-bg-primary) !important;
-  color: var(--color-text-primary) !important;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-
-/* ===== BOTONES ===== */
-.btn-primary, .btn-success, .btn-accent {
-  background: var(--color-primary) !important;
-  color: #FFFFFF !important;
-  border: none;
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-fast);
-}
-
-.btn-primary:hover, .btn-success:hover, .btn-accent:hover {
-  background: var(--color-primary-hover) !important;
-}
-
-.btn-outline-primary, .btn-outline-accent {
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  background: transparent;
-}
-
-.btn-outline-primary:hover, .btn-outline-accent:hover {
-  background: var(--color-primary) !important;
-  color: #FFFFFF !important;
-}
-
-/* Botones semánticos */
-.btn-success {
-  background: var(--color-success) !important;
-}
-
-.btn-warning {
-  background: var(--color-warning) !important;
-  color: #FFFFFF !important;
-}
-
-.btn-danger {
-  background: var(--color-error) !important;
-  color: #FFFFFF !important;
-}
-
-/* ===== TEXTOS ===== */
-.text-primary {
-  color: var(--color-text-primary) !important;
-}
-
-.text-secondary {
-  color: var(--color-text-secondary) !important;
-}
-
-.text-muted {
-  color: var(--color-text-muted) !important;
-}
-
-/* ===== FONDOS ===== */
-.bg-primary {
-  background: var(--color-bg-primary) !important;
-}
-
-.bg-secondary {
-  background: var(--color-bg-secondary) !important;
-}
-
-.bg-tertiary {
-  background: var(--color-bg-tertiary) !important;
-}
-
-/* ===== BORDES ===== */
-.border, .border-top, .border-bottom, hr {
-  border-color: var(--color-border) !important;
-}
-
-/* ===== MODO CLARO (por defecto) ===== */
-/* Ya está configurado arriba - no necesita cambios */
-
-/* ===== UTILIDADES ===== */
-.text-accent {
-  color: var(--color-accent) !important;
-}
-
-.bg-accent {
-  background: var(--color-accent) !important;
-  color: #FFFFFF !important;
+    /* --- GEOMETRÍA (NO OVALADA) --- */
+    --appo-radius: 10px; /* Refinado y profesional */
+    
+    /* --- FLUIDEZ --- */
+    --appo-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

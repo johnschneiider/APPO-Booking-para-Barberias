@@ -42,7 +42,7 @@
                                 <div class="flex-fill">
                                     <div class="form-check w-100 h-100">
                                         <input class="form-check-input" type="radio" name="tipo" id="tipo_cliente" value="cliente" required>
-                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_cliente" style="min-width: 0;">
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_cliente" style="min-width: 0; border-radius: var(--appo-radius) !important;">
                                             <div class="text-start flex-grow-1">
                                                 <span class="fw-bold form-text">Cliente</span><br>
                                                 <small class="form-subtitle">Reservar servicios</small>
@@ -54,7 +54,7 @@
                                 <div class="flex-fill">
                                     <div class="form-check w-100 h-100">
                                         <input class="form-check-input" type="radio" name="tipo" id="tipo_negocio" value="negocio" required>
-                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_negocio" style="min-width: 0;">
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_negocio" style="min-width: 0; border-radius: var(--appo-radius) !important;">
                                             <div class="text-start flex-grow-1">
                                                 <span class="fw-bold form-text">Negocio</span><br>
                                                 <small class="form-subtitle">Ofrecer servicios</small>
@@ -66,7 +66,7 @@
                                 <div class="flex-fill">
                                     <div class="form-check w-100 h-100">
                                         <input class="form-check-input" type="radio" name="tipo" id="tipo_profesional" value="profesional" required>
-                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border rounded-3 d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_profesional" style="min-width: 0;">
+                                        <label class="form-check-label w-100 h-100 p-2 p-md-3 border d-flex flex-row align-items-center justify-content-between text-center gap-2 form-option" for="tipo_profesional" style="min-width: 0; border-radius: var(--appo-radius) !important;">
                                             <div class="text-start flex-grow-1">
                                                 <span class="fw-bold form-text">Profesional</span><br>
                                                 <small class="form-subtitle">Soy peluquero</small>
@@ -162,7 +162,7 @@
                         </div>
 
                         <!-- Botón de registro -->
-                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill mb-3" id="btn-registro">
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mb-3" id="btn-registro">
                             <i class="bi bi-person-plus me-2" style="color: #FFFFFF;"></i>Crear cuenta
                         </button>
                     </form>
@@ -179,7 +179,7 @@
                     {% is_provider_available 'google' as google_available %}
                     {% if google_available %}
                     <div class="mb-4">
-                        <a href="{% safe_provider_login_url 'google' %}" class="btn btn-outline-dark btn-google rounded-pill py-3 w-100 d-flex align-items-center justify-content-center gap-3">
+                        <a href="{% safe_provider_login_url 'google' %}" class="btn btn-secondary py-3 w-100 d-flex align-items-center justify-content-center gap-3">
                             <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" alt="Google" width="20">
                             <span class="fw-medium">Continuar con Google</span>
                         </a>
@@ -773,8 +773,8 @@ document.querySelectorAll('input[name="tipo"]').forEach(radio => {
         });
         
         if (this.checked) {
-            this.nextElementSibling.style.borderColor = '#0d6efd';
-            this.nextElementSibling.style.backgroundColor = '#f8f9ff';
+            this.nextElementSibling.style.borderColor = 'var(--appo-primary)';
+            this.nextElementSibling.style.backgroundColor = 'var(--appo-primary-soft)';
         }
     });
 });
