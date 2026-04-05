@@ -1,0 +1,6 @@
+# Cron jobs para recordatorios de APPO
+# Ejecutar cada hora para verificar recordatorios de 3 horas
+0 * * * * cd /var/www/appo.com.co && /var/www/appo.com.co/venv/bin/python manage.py enviar_recordatorios --tipo tres_horas >> logs/recordatorios.log 2>&1
+
+# Ejecutar diariamente a las 9:00 AM para recordatorios de 1 día
+0 9 * * * cd /var/www/appo.com.co && /var/www/appo.com.co/venv/bin/python manage.py enviar_recordatorios --tipo dia_antes >> logs/recordatorios.log 2>&1
