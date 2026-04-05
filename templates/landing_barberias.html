@@ -36,7 +36,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    border-radius: 999px;
+    border-radius: var(--appo-radius);
     background: #f5f7fb;
     font-weight: 600;
     color: #0d1b2a;
@@ -75,9 +75,22 @@
         <div class="stat-badge mb-3">
           <i class="bi bi-lightning-charge-fill"></i> 30 días gratis · Sin cobro inicial
         </div>
-        <h1 class="fw-bold mb-3" style="line-height:1.1;">Llena tu agenda sin contestar el teléfono.</h1>
+        <h1 class="fw-bold mb-3" style="line-height:1.1;">El software #1 para barberías en Colombia</h1>
+
+<p class="lead text-muted mb-3">Transforma la gestión de tu barbería con nuestra plataforma intuitiva. Asegúrate de que tus clientes siempre estén satisfechos.</p>
+
+<ul class="list-unstyled mb-4">
+    <li>• Manejo de calendario</li>
+    <li>• Gráficas avanzadas</li>
+    <li>• Cada negocio puede crear planes de suscripción</li>
+    <li>• Administra todas tus barberías</li>
+    <li>• Gestión de inasistencias</li>
+    <li>• Gestión de días de descanso</li>
+    <li>• Nómina de barberos</li>
+</ul>
+
         <p class="lead text-muted mb-3">
-          Reduce inasistencias, organiza a todo tu equipo en una sola agenda y recibe reservas 24/7 sin depender del teléfono ni de chats sueltos.
+          Reservas 24/7 y recordatorios automáticos por WhatsApp. Menos inasistencias, más tiempo para ti.
         </p>
         <div class="d-flex flex-wrap align-items-center mb-3">
           {% for b in beneficios %}
@@ -87,26 +100,26 @@
         <div class="row g-3 mb-3">
           <div class="col-sm-6">
             <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Menos inasistencias</div>
-              <small class="text-muted">Recordatorios y confirmaciones para evitar que te dejen esperando.</small>
+              <div class="fw-bold mb-1">Cero inasistencias</div>
+              <small class="text-muted">WhatsApp confirma tus citas automáticamente.</small>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Agenda 24/7</div>
-              <small class="text-muted">Tus clientes reservan cuando quieran; tú solo ves citas confirmadas.</small>
+              <div class="fw-bold mb-1">Reservas 24/7</div>
+              <small class="text-muted">Tus clientes agendan incluso cuando duermes.</small>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Todo tu equipo</div>
-              <small class="text-muted">Organiza horarios de todos los barberos en una sola vista.</small>
+              <div class="fw-bold mb-1">Equipo organizado</div>
+              <small class="text-muted">Todos tus barberos en una sola pantalla.</small>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Sin llamadas eternas</div>
-              <small class="text-muted">Ahorra tiempo del mostrador y evita chats sueltos.</small>
+              <div class="fw-bold mb-1">Menos llamadas</div>
+              <small class="text-muted">Libérate del teléfono y enfócate en el corte.</small>
             </div>
           </div>
         </div>
@@ -117,14 +130,13 @@
           </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
-          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Empezar prueba gratis</a>
-          <a href="#caso-exito" class="btn btn-outline-secondary btn-lg px-4">Ver caso de éxito</a>
+          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Pruébalo gratis</a>
+          <a href="#caso-exito" class="btn btn-outline-secondary btn-lg px-4">Ver resultados</a>
         </div>
-        <small class="text-muted d-block mb-3">Sin riesgo · Cancelas antes del primer cobro.</small>
+        <small class="text-muted d-block mb-3">Sin riesgo · Trial de {{ dias_trial }} días.</small>
         <div class="p-3 rounded-3 bg-white shadow-sm mb-2 d-inline-block">
           <div class="fw-bold">Precio transparente</div>
-          <div class="text-muted mb-1">Plan único: ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes</div>
-          <small class="text-muted">Cobro automático después del trial de {{ dias_trial }} días, cancelable antes.</small>
+          <div class="text-muted mb-1">${{ precio_mensual|floatformat:0 }} {{ moneda }} /barbero al mes</div>
         </div>
         <div class="d-flex align-items-center gap-3 mt-2">
           <div>
@@ -147,33 +159,31 @@
             <img src="{% static 'img/caso_exito_barberia.jpeg' %}" alt="Barbería Centro" class="w-100 h-100 object-fit-cover">
           </div>
           <div class="card-body p-3 p-md-4">
-            <div class="d-flex align-items-center mb-2">
-              <div class="badge bg-success-subtle text-success fw-semibold me-2">Caso de éxito</div>
-              <span class="fw-bold">{{ caso_exito.nombre }}</span>
+            <div class="d-flex align-items-center mb-3">
+              <div class="badge bg-success-subtle text-success fw-semibold me-2">ÉXITO</div>
+              <span class="fw-bold h6 mb-0">{{ caso_exito.nombre }}</span>
             </div>
-            <p class="h5 text-success fw-bold mb-1">−42% de inasistencias en solo 6 semanas</p>
-            <p class="h6 text-primary fw-bold mb-2">+18% de ingresos mensuales sin trabajar más horas</p>
-            <p class="text-muted mb-3">
-              Antes de usar la app, Barbería Centro perdía citas todos los días por clientes que no confirmaban o no asistían. En solo 6 semanas, lograron estabilizar su agenda y aprovechar mejor el tiempo de sus barberos.
+            <div class="row g-2 mb-4">
+              <div class="col-6">
+                <div class="p-3 bg-success-subtle rounded-3 text-center">
+                  <div class="h4 fw-bold text-success mb-0">-42%</div>
+                  <small class="text-success fw-semibold">Faltas</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 bg-primary-subtle rounded-3 text-center">
+                  <div class="h4 fw-bold text-primary mb-0">+18%</div>
+                  <small class="text-primary fw-semibold">Ingresos</small>
+                </div>
+              </div>
+            </div>
+            <p class="text-muted small mb-4">
+              Barbería Centro perdía citas todos los días. En solo 6 semanas, estabilizaron su agenda con WhatsApp automático y mejoraron el tiempo de sus barberos.
             </p>
             <hr>
-            <p class="mb-2 fw-semibold">Resultados reales</p>
-            <ul class="text-muted ps-3 mb-3">
-              <li>Inasistencias: de 28% → 16%</li>
-              <li>Citas mensuales: +64 citas cumplidas</li>
-              <li>Ingresos estimados: +$1.450.000 COP al mes</li>
-              <li>Llamadas y mensajes: −60%</li>
-            </ul>
-            <p class="mb-2 fw-semibold">Cómo lo lograron</p>
-            <ul class="text-muted ps-3 mb-3">
-              <li>Compartieron su link público de reservas en WhatsApp e Instagram</li>
-              <li>Organizaron los horarios de 3 barberos en una sola agenda</li>
-              <li>Activaron recordatorios automáticos para confirmar citas</li>
-              <li>Eliminaron el desorden de agendas en papel y mensajes sueltos</li>
-            </ul>
-            <div class="mt-3 p-3 bg-light rounded">
-              <p class="mb-1 fst-italic">“Antes perdíamos tiempo esperando clientes que nunca llegaban. Ahora casi todas las citas se cumplen y la agenda se llena sola.”</p>
-              <small class="text-muted">— Carlos M., dueño de Barbería Centro</small>
+            <div class="mt-3 p-3 bg-light rounded-3">
+              <p class="mb-1 fst-italic small">“Antes esperábamos clientes que no llegaban. Ahora la agenda se llena sola y las citas se cumplen.”</p>
+              <small class="text-muted">— Carlos M., Dueño</small>
             </div>
           </div>
         </div>
@@ -206,7 +216,7 @@
       color: #0d1b2a;
       letter-spacing: 0.02em;
       padding: 6px 12px;
-      border-radius: 999px;
+      border-radius: var(--appo-radius);
       background: #fff;
       box-shadow: 0 6px 14px rgba(13,17,38,0.08);
     }

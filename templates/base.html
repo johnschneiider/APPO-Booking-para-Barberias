@@ -49,10 +49,10 @@
   <!-- FullCalendar CSS (removido - usando calendario personalizado) -->
   
   <!-- CSS Modular -->
-  <link href="{% static 'css/base/variables.css' %}" rel="stylesheet">
-  <link href="{% static 'css/base/main.css' %}" rel="stylesheet">
-  <link href="{% static 'css/base/buttons.css' %}" rel="stylesheet">
-  <link href="{% static 'css/base/components.css' %}" rel="stylesheet">
+  <link href="{% static 'css/base/variables.css' %}?v=3.0.2" rel="stylesheet">
+  <link href="{% static 'css/base/main.css' %}?v=3.0.2" rel="stylesheet">
+  <link href="{% static 'css/base/buttons.css' %}?v=3.0.2" rel="stylesheet">
+  <link href="{% static 'css/base/components.css' %}?v=3.0.2" rel="stylesheet">
   
   {% block extra_css %}{% endblock %}
 </head>
@@ -72,7 +72,7 @@
     </div>
   </div>
   <!-- Header -->
-  <header class="header fixed-top" id="header" role="banner" style="color:var(--color-smoke-white);">
+  <header class="header fixed-top" id="header" role="banner" style="color:var(--color-smoke-white); background: #fff;">
     <!-- Desktop header -->
     <div class="container d-none d-md-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-3">

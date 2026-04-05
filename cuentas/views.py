@@ -1183,26 +1183,72 @@ def api_username_disponible(request):
 
 @require_http_methods(["GET"])
 def landing_barberias(request):
-    nombres_negocios = list(Negocio.objects.filter(activo=True).values_list('nombre', flat=True)[:30])
-    contexto = {
-        "precio_mensual": 49000,
-        "moneda": "COP",
-        "dias_trial": 30,
-        "beneficios": [
-            "Reservas en segundos, sin llamadas",
-            "Agenda para varios barberos",
-            "Servicios y precios configurables",
-            "Panel con citas y métricas básicas",
-            "Soporte digital",
-        ],
-        "caso_exito": {
-            "nombre": "Barbería Centro",
-            "resultado": "+30% citas cumplidas en 6 semanas",
-            "detalle": "Usaron el link público y organizaron horarios de 3 barberos.",
-        },
-        "nombres_negocios": nombres_negocios,
-    }
-    return render(request, "landing_barberias.html", contexto)
+    """
+    Ruta /cuentas/landing/barberias/: muestra el dashboard/buscador original de inicio.
+    El contenido institucional (landing) se movió a la ruta raíz.
+    """
+    from django.db.models import Count, Avg
+    from negocios.models import Negocio
+
+    if request.user.is_authenticated and hasattr(request.user, 'tipo') and request.user.tipo == 'cliente':
+        from clientes.utils import procesar_reservas_pasadas, obtener_reservas_activas, obtener_reservas_historial
+        reservas_completadas_auto = procesar_reservas_pasadas()
+        if reservas_completadas_auto > 0:
+            from django.contrib import messages
+            messages.info(request, f'Se han completado automáticamente {reservas_completadas_auto} reservas pasadas.')
+        proximas_reservas = obtener_reservas_activas(request.user)[:3]
+        historial_reservas = obtener_reservas_historial(request.user)[:5]
+        from clientes.models import ActividadUsuario
+        actividades_visitas = ActividadUsuario.objects.filter(
+            usuario=request.user, tipo='visita_negocio'
+        ).order_by('-fecha_creacion')[:10]
+        negocios_vistos_ids = [act.objeto_id for act in actividades_visitas if act.objeto_id]
+        negocios_vistos = Negocio.objects.filter(id__in=negocios_vistos_ids, activo=True).annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        )[:5]
+        negocios_recomendados = Negocio.objects.filter(activo=True).exclude(id__in=negocios_vistos_ids).annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        ).order_by('-rating', '-total_resenias')[:5]
+        todos_negocios = Negocio.objects.filter(activo=True).select_related().annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        ).order_by('-rating', '-total_resenias')
+        top_negocios = Negocio.objects.filter(activo=True).annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        ).filter(total_resenias__gte=1).order_by('-rating', '-total_resenias')[:10]
+        reservas_cliente = obtener_reservas_activas(request.user)
+        from clientes.models import Reserva
+        total_reservas = Reserva.objects.count()
+        context = {
+            'is_cliente': True,
+            'proximas_reservas': proximas_reservas,
+            'historial_reservas': historial_reservas,
+            'negocios_vistos': negocios_vistos,
+            'negocios_recomendados': negocios_recomendados,
+            'todos_negocios': todos_negocios,
+            'top_negocios': top_negocios,
+            'reservas_cliente': reservas_cliente,
+            'total_reservas': total_reservas,
+            'tiene_proximas_reservas': proximas_reservas.exists(),
+            'tiene_historial': historial_reservas.exists(),
+            'tiene_negocios_vistos': negocios_vistos.exists(),
+            'tiene_recomendados': negocios_recomendados.exists(),
+        }
+        return render(request, 'inicio.html', context)
+    else:
+        from clientes.models import Reserva
+        from django.db.models import Count, Avg
+        total_reservas = Reserva.objects.count()
+        todos_negocios = Negocio.objects.filter(activo=True).select_related().annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        ).order_by('-rating', '-total_resenias')
+        top_negocios = Negocio.objects.filter(activo=True).annotate(
+            rating=Avg('calificaciones__puntaje'), total_resenias=Count('calificaciones')
+        ).filter(total_resenias__gte=1).order_by('-rating', '-total_resenias')[:10]
+        return render(request, 'inicio.html', {
+            'total_reservas': total_reservas,
+            'todos_negocios': todos_negocios,
+            'top_negocios': top_negocios,
+        })
 
 
 def _pricing_context(form_data=None):

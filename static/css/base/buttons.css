@@ -11,42 +11,42 @@
     padding: 0.7rem 1.6rem;
     font-weight: 600;
     font-size: 0.9rem;
-    border-radius: var(--appo-radius) !important;
-    transition: var(--appo-transition) !important;
+    border-radius: 10px !important; /* Forzado a 10px */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer;
     border: 1.5px solid transparent;
-    box-shadow: var(--appo-shadow-sm);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     letter-spacing: -0.01em;
     user-select: none;
 }
 
 /* --- PRIMARIO (AZUL LOGO - INSTITUCIONAL) --- */
-.btn-primary, .btn-accent, .btn-success {
-    background-color: var(--appo-primary) !important;
+.btn-primary, .btn-accent, .btn-success, .btn-warning {
+    background-color: #133A7F !important; /* Azul APPO */
     color: #FFFFFF !important;
-    border-color: var(--appo-primary) !important;
+    border-color: #133A7F !important;
     box-shadow: 0 4px 8px -1px rgba(19, 58, 127, 0.15);
 }
 
-.btn-primary:hover, .btn-accent:hover, .btn-success:hover {
-    background-color: var(--appo-primary-hover) !important;
-    border-color: var(--appo-primary-hover) !important;
+.btn-primary:hover, .btn-accent:hover, .btn-success:hover, .btn-warning:hover {
+    background-color: #0A1F45 !important; /* Azul Oscuro */
+    border-color: #0A1F45 !important;
     transform: translateY(-2px);
-    box-shadow: var(--appo-shadow-hover);
+    box-shadow: 0 8px 20px rgba(19, 58, 127, 0.12);
 }
 
 /* --- SECUNDARIO (GRISÁCEO BLANCUZCO - FRESCO) --- */
-.btn-secondary, .btn-outline-secondary, .btn-outline-dark {
-    background-color: var(--appo-neutral-bg) !important;
-    color: var(--appo-neutral-text) !important;
-    border: 1px solid var(--appo-neutral-border) !important;
-    box-shadow: var(--appo-shadow-sm);
+.btn-secondary, .btn-outline-secondary, .btn-outline-dark, .btn-light {
+    background-color: #F8FAFC !important;
+    color: #334155 !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 
-.btn-secondary:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover {
+.btn-secondary:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover, .btn-light:hover {
     background-color: #FFFFFF !important;
-    border-color: var(--appo-primary) !important;
-    color: var(--appo-primary) !important;
+    border-color: #133A7F !important;
+    color: #133A7F !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.05);
 }
@@ -54,12 +54,12 @@
 /* --- OUTLINE (ELEGANTE) --- */
 .btn-outline-primary {
     background-color: transparent !important;
-    border-color: var(--appo-primary) !important;
-    color: var(--appo-primary) !important;
+    border-color: #133A7F !important;
+    color: #133A7F !important;
 }
 
 .btn-outline-primary:hover {
-    background-color: var(--appo-primary-soft) !important;
+    background-color: #EBF1FF !important;
     transform: translateY(-2px);
 }
 
@@ -84,6 +84,6 @@
 @media (max-width: 768px) {
     .btn {
         width: auto;
-        border-radius: var(--appo-radius) !important;
+        border-radius: 10px !important;
     }
 }
