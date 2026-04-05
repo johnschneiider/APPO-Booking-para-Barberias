@@ -1,269 +1,277 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Appo para barberías{% endblock %}
+{% block title %}Appo — El software #1 para barberías en Colombia{% endblock %}
 
 {% block content %}
 <style>
-  .hero-landing {
-    background: radial-gradient(120% 120% at 20% 20%, #e8f1ff 0%, #f7f9ff 50%, #ffffff 100%);
-    border-radius: 24px;
-    overflow: hidden;
-    position: relative;
+  /* ── HERO ── */
+  .hero-section {
+    text-align: center;
+    padding: 80px 20px 40px;
   }
-  .hero-blob {
-    position: absolute;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle at 30% 30%, rgba(19,58,127,0.2), transparent 60%);
-    top: -60px;
-    right: -60px;
-    filter: blur(6px);
-  }
-  .stat-badge {
-    background: rgba(19, 58, 127, 0.05);
-    border: 1px solid rgba(19, 58, 127, 0.1);
-    color: var(--appo-primary);
-    border-radius: 12px;
-    padding: 6px 12px;
-    font-weight: 600;
+  .hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    background: rgba(19,58,127,0.06);
+    border: 1px solid rgba(19,58,127,0.12);
+    color: #133A7F;
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 24px;
   }
-  .feature-chip {
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0d1b2a;
+    margin-bottom: 32px;
+  }
+  .hero-title span {
+    color: #133A7F;
+  }
+
+  /* ── FEATURE TICKER ── */
+  .ticker-wrap {
+    overflow: hidden;
+    position: relative;
+    padding: 14px 0;
+    margin-bottom: 56px;
+  }
+  .ticker-wrap::before,
+  .ticker-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .ticker-wrap::before { left: 0;  background: linear-gradient(90deg, #F4F3F1, transparent); }
+  .ticker-wrap::after  { right: 0; background: linear-gradient(270deg, #F4F3F1, transparent); }
+  .ticker-row {
+    display: inline-flex;
+    gap: 20px;
+    white-space: nowrap;
+    animation: ticker-left 30s linear infinite;
+  }
+  .ticker-item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border-radius: var(--appo-radius);
-    background: #f5f7fb;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 18px;
     font-weight: 600;
+    font-size: 0.9rem;
     color: #0d1b2a;
-    margin: 4px;
-    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    flex-shrink: 0;
   }
-  .card-lift {
-    transition: all 0.2s ease;
+  .ticker-item i {
+    color: #133A7F;
+    font-size: 1rem;
   }
-  .card-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  @keyframes ticker-left {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
-  .floating-img {
-    max-width: 520px;
+
+  /* ── IMAGEN CALENDARIO ── */
+  .calendar-section {
+    max-width: 860px;
+    margin: 0 auto 64px;
+    padding: 0 20px;
+    text-align: center;
+  }
+  .calendar-section img {
+    width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(19,58,127,0.12);
+  }
+
+  /* ── IMAGEN CASO ÉXITO ── */
+  .caso-section {
+    max-width: 860px;
+    margin: 0 auto 64px;
+    padding: 0 20px;
+  }
+  .caso-card {
     border-radius: 18px;
     overflow: hidden;
-    margin-top: 10px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.07);
+    background: #fff;
+    border: 1px solid #eef1f6;
   }
-  .floating-img img {
+  .caso-card img {
     width: 100%;
+    height: 320px;
+    object-fit: cover;
     display: block;
   }
-  @media (max-width: 992px) {
-    .hero-landing { border-radius: 16px; }
-    .hero-blob { width: 200px; height: 200px; }
-    .floating-img { max-width: 100%; }
+  .caso-body {
+    padding: 28px 32px;
+  }
+  .caso-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .caso-stat {
+    flex: 1;
+    text-align: center;
+    padding: 16px;
+    border-radius: 10px;
+  }
+  .caso-stat.green { background: #f0fdf4; }
+  .caso-stat.blue  { background: #eff6ff; }
+  .caso-stat .num  { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  .caso-stat.green .num { color: #16a34a; }
+  .caso-stat.blue  .num { color: #133A7F; }
+  .caso-quote {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #475569;
+    margin-top: 16px;
+  }
+
+  /* ── MARQUEE NEGOCIOS ── */
+  .trust-section {
+    padding: 0 0 64px;
+    text-align: center;
+  }
+  .trust-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+  }
+  .trust-marquee-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+  .trust-marquee-wrap::before,
+  .trust-marquee-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .trust-marquee-wrap::before { left: 0;  background: linear-gradient(90deg, #F4F3F1, transparent); }
+  .trust-marquee-wrap::after  { right: 0; background: linear-gradient(270deg, #F4F3F1, transparent); }
+  .trust-row {
+    display: inline-flex;
+    gap: 16px;
+    white-space: nowrap;
+    animation: ticker-left 24s linear infinite;
+    padding: 6px 0;
+  }
+  .trust-row span {
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #0d1b2a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
 </style>
 
-<section class="container py-5">
-  <div class="hero-landing p-4 p-md-5">
-    <div class="hero-blob"></div>
-    <div class="row align-items-center gy-4">
-      <div class="col-lg-7">
-        <div class="stat-badge mb-3">
-          <i class="bi bi-lightning-charge-fill"></i> 30 días gratis · Sin cobro inicial
-        </div>
-        <h1 class="fw-bold mb-3" style="line-height:1.1;">El software #1 para barberías en Colombia</h1>
-
-<p class="lead text-muted mb-3">Transforma la gestión de tu barbería con nuestra plataforma intuitiva. Asegúrate de que tus clientes siempre estén satisfechos.</p>
-
-<ul class="list-unstyled mb-4">
-    <li>• Manejo de calendario</li>
-    <li>• Gráficas avanzadas</li>
-    <li>• Cada negocio puede crear planes de suscripción</li>
-    <li>• Administra todas tus barberías</li>
-    <li>• Gestión de inasistencias</li>
-    <li>• Gestión de días de descanso</li>
-    <li>• Nómina de barberos</li>
-</ul>
-
-        <p class="lead text-muted mb-3">
-          Reservas 24/7 y recordatorios automáticos por WhatsApp. Menos inasistencias, más tiempo para ti.
-        </p>
-        <div class="d-flex flex-wrap align-items-center mb-3">
-          {% for b in beneficios %}
-            <span class="feature-chip"><i class="bi bi-check2-circle text-success"></i>{{ b }}</span>
-          {% endfor %}
-        </div>
-        <div class="row g-3 mb-3">
-          <div class="col-sm-6">
-            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Cero inasistencias</div>
-              <small class="text-muted">WhatsApp confirma tus citas automáticamente.</small>
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Reservas 24/7</div>
-              <small class="text-muted">Tus clientes agendan incluso cuando duermes.</small>
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Equipo organizado</div>
-              <small class="text-muted">Todos tus barberos en una sola pantalla.</small>
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div class="p-3 rounded-3 bg-white shadow-sm h-100">
-              <div class="fw-bold mb-1">Menos llamadas</div>
-              <small class="text-muted">Libérate del teléfono y enfócate en el corte.</small>
-            </div>
-          </div>
-        </div>
-        <!-- Imagen flotante del calendario -->
-        <div class="position-relative mb-4">
-          <div class="floating-img shadow-lg">
-            <img src="{% static 'img/calendario.JPG' %}" alt="Calendario Appo" class="img-fluid rounded-4">
-          </div>
-        </div>
-        <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
-          <a href="{% url 'cuentas:pricing_page' %}" class="btn btn-primary btn-lg px-4">Pruébalo gratis</a>
-          <a href="#caso-exito" class="btn btn-outline-secondary btn-lg px-4">Ver resultados</a>
-        </div>
-        <small class="text-muted d-block mb-3">Sin riesgo · Trial de {{ dias_trial }} días.</small>
-        <div class="p-3 rounded-3 bg-white shadow-sm mb-2 d-inline-block">
-          <div class="fw-bold">Precio transparente</div>
-          <div class="text-muted mb-1">${{ precio_mensual|floatformat:0 }} {{ moneda }} /barbero al mes</div>
-        </div>
-        <div class="d-flex align-items-center gap-3 mt-2">
-          <div>
-            <div class="fw-bold h4 mb-0">+30%</div>
-            <small class="text-muted">citas cumplidas en 6 semanas</small>
-          </div>
-          <div>
-            <div class="fw-bold h4 mb-0">24/7</div>
-            <small class="text-muted">reservas en línea</small>
-          </div>
-          <div>
-            <div class="fw-bold h4 mb-0">+{{ dias_trial }} días</div>
-            <small class="text-muted">de prueba gratis</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm card-lift" id="caso-exito">
-          <div class="ratio ratio-16x9 rounded-top overflow-hidden">
-            <img src="{% static 'img/caso_exito_barberia.jpeg' %}" alt="Barbería Centro" class="w-100 h-100 object-fit-cover">
-          </div>
-          <div class="card-body p-3 p-md-4">
-            <div class="d-flex align-items-center mb-3">
-              <div class="badge bg-success-subtle text-success fw-semibold me-2">ÉXITO</div>
-              <span class="fw-bold h6 mb-0">{{ caso_exito.nombre }}</span>
-            </div>
-            <div class="row g-2 mb-4">
-              <div class="col-6">
-                <div class="p-3 bg-success-subtle rounded-3 text-center">
-                  <div class="h4 fw-bold text-success mb-0">-42%</div>
-                  <small class="text-success fw-semibold">Faltas</small>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="p-3 bg-primary-subtle rounded-3 text-center">
-                  <div class="h4 fw-bold text-primary mb-0">+18%</div>
-                  <small class="text-primary fw-semibold">Ingresos</small>
-                </div>
-              </div>
-            </div>
-            <p class="text-muted small mb-4">
-              Barbería Centro perdía citas todos los días. En solo 6 semanas, estabilizaron su agenda con WhatsApp automático y mejoraron el tiempo de sus barberos.
-            </p>
-            <hr>
-            <div class="mt-3 p-3 bg-light rounded-3">
-              <p class="mb-1 fst-italic small">“Antes esperábamos clientes que no llegaban. Ahora la agenda se llena sola y las citas se cumplen.”</p>
-              <small class="text-muted">— Carlos M., Dueño</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- ── HERO ── -->
+<section class="hero-section">
+  <div class="hero-badge">
+    <i class="bi bi-lightning-charge-fill"></i> {{ dias_trial }} días gratis · Sin cobro inicial
   </div>
+  <h1 class="hero-title">
+    El software <span>#1</span> para barberías<br>en Colombia
+  </h1>
+  <a href="{% url 'cuentas:registro_unificado' %}" class="btn btn-primary btn-lg px-5 py-3" style="font-size:1.1rem; font-weight:700;">
+    Empezar hoy <i class="bi bi-arrow-right ms-2"></i>
+  </a>
+  <p class="text-muted mt-3" style="font-size:0.85rem;">Sin tarjeta de crédito · {{ dias_trial }} días gratis</p>
 </section>
 
-<!-- Sección confianza -->
-<section class="container py-5">
-  <div class="text-center mb-4">
-    <h2 class="fw-bold">Ellos confían en nosotros</h2>
-    <p class="text-muted mb-0">Negocios que ya usan Appo para sus agendas</p>
+<!-- ── TICKER DE FEATURES ── -->
+<div class="ticker-wrap">
+  <div class="ticker-row">
+    <span class="ticker-item"><i class="bi bi-calendar3"></i> Manejo de calendario</span>
+    <span class="ticker-item"><i class="bi bi-bar-chart-line"></i> Gráficas avanzadas</span>
+    <span class="ticker-item"><i class="bi bi-card-checklist"></i> Planes de suscripción</span>
+    <span class="ticker-item"><i class="bi bi-shop"></i> Múltiples barberías</span>
+    <span class="ticker-item"><i class="bi bi-person-x"></i> Gestión de inasistencias</span>
+    <span class="ticker-item"><i class="bi bi-calendar-x"></i> Días de descanso</span>
+    <span class="ticker-item"><i class="bi bi-cash-stack"></i> Nómina de barberos</span>
+    <span class="ticker-item"><i class="bi bi-clock"></i> Reservas 24/7</span>
+    <span class="ticker-item"><i class="bi bi-whatsapp"></i> WhatsApp automático</span>
+    <span class="ticker-item"><i class="bi bi-headset"></i> Soporte digital</span>
+    <span class="ticker-item"><i class="bi bi-calendar3"></i> Manejo de calendario</span>
+    <span class="ticker-item"><i class="bi bi-bar-chart-line"></i> Gráficas avanzadas</span>
+    <span class="ticker-item"><i class="bi bi-card-checklist"></i> Planes de suscripción</span>
+    <span class="ticker-item"><i class="bi bi-shop"></i> Múltiples barberías</span>
+    <span class="ticker-item"><i class="bi bi-person-x"></i> Gestión de inasistencias</span>
+    <span class="ticker-item"><i class="bi bi-calendar-x"></i> Días de descanso</span>
+    <span class="ticker-item"><i class="bi bi-cash-stack"></i> Nómina de barberos</span>
+    <span class="ticker-item"><i class="bi bi-clock"></i> Reservas 24/7</span>
+    <span class="ticker-item"><i class="bi bi-whatsapp"></i> WhatsApp automático</span>
+    <span class="ticker-item"><i class="bi bi-headset"></i> Soporte digital</span>
   </div>
-  <style>
-    .trust-card {
-      background: radial-gradient(120% 120% at 20% 20%, #f5f8ff 0%, #ffffff 60%, #f7f9ff 100%);
-      border-radius: 20px;
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.06);
-      border: 1px solid #eef1f6;
-    }
-    .marquee-container { overflow: hidden; position: relative; }
-    .marquee-row { display: inline-flex; gap: 28px; white-space: nowrap; width: 200%; }
-    .marquee-row span {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: #0d1b2a;
-      letter-spacing: 0.02em;
-      padding: 6px 12px;
-      border-radius: var(--appo-radius);
-      background: #fff;
-      box-shadow: 0 6px 14px rgba(13,17,38,0.08);
-    }
-    .marquee-anim-1 { animation: marquee-left 22s linear infinite; }
-    .marquee-anim-2 { animation: marquee-right 24s linear infinite; }
-    .marquee-anim-3 { animation: marquee-left 26s linear infinite; }
-    @keyframes marquee-left {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    @keyframes marquee-right {
-      0% { transform: translateX(-50%); }
-      100% { transform: translateX(0); }
-    }
-    .marquee-fade-left,
-    .marquee-fade-right {
-      position: absolute;
-      top: 0; bottom: 0; width: 60px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .marquee-fade-left { left: 0; background: linear-gradient(90deg, #f5f8ff, transparent); }
-    .marquee-fade-right { right: 0; background: linear-gradient(270deg, #f5f8ff, transparent); }
-  </style>
-  {% if nombres_negocios %}
-  <div class="trust-card">
-    <div class="marquee-fade-left"></div>
-    <div class="marquee-fade-right"></div>
-    <div class="marquee-container py-2">
-      <div class="marquee-row marquee-anim-1">
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+</div>
+
+<!-- ── IMAGEN CALENDARIO ── -->
+<div class="calendar-section">
+  <img src="{% static 'img/calendario.JPG' %}" alt="Panel de reservas Appo">
+</div>
+
+<!-- ── CASO ÉXITO ── -->
+<div class="caso-section">
+  <div class="caso-card">
+    <img src="{% static 'img/caso_exito_barberia.jpeg' %}" alt="Barbería Centro">
+    <div class="caso-body">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-success-subtle text-success fw-semibold">CASO DE ÉXITO</span>
+        <span class="fw-bold">{{ caso_exito.nombre }}</span>
       </div>
-    </div>
-    <div class="marquee-container py-2">
-      <div class="marquee-row marquee-anim-2">
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      <div class="caso-stats">
+        <div class="caso-stat green">
+          <div class="num">-42%</div>
+          <small class="text-success fw-semibold">Inasistencias</small>
+        </div>
+        <div class="caso-stat blue">
+          <div class="num">+18%</div>
+          <small style="color:#133A7F;" class="fw-semibold">Ingresos</small>
+        </div>
       </div>
-    </div>
-    <div class="marquee-container py-2">
-      <div class="marquee-row marquee-anim-3">
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
-        {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      <div class="caso-quote">
+        "Antes esperábamos clientes que no llegaban. Ahora la agenda se llena sola y las citas se cumplen."
+        <div class="mt-2 fw-semibold" style="font-style:normal; font-size:0.85rem;">— Carlos M., Dueño</div>
       </div>
     </div>
   </div>
-  {% endif %}
-</section>
+</div>
+
+<!-- ── CONFIANZA / NEGOCIOS ── -->
+{% if nombres_negocios %}
+<div class="trust-section">
+  <p class="trust-title">{{ nombres_negocios|length }}+ barberías ya confían en Appo</p>
+  <div class="trust-marquee-wrap">
+    <div class="trust-row">
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+      {% for name in nombres_negocios %}<span>{{ name }}</span>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
