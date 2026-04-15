@@ -106,6 +106,7 @@
             <li><a class="dropdown-item" href="{% url 'cuentas:enviar_feedback' %}"><i class="bi bi-lightbulb"></i> Dinos cómo mejorar</a></li>
             {% if user.is_superuser or user.tipo == 'super_admin' %}
               <li><a class="dropdown-item" href="{% url 'cuentas:dashboard_super_admin' %}"><i class="bi bi-speedometer2"></i> Panel Super Admin</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:admin_lista_negocios' %}"><i class="bi bi-shop"></i> Gestionar Negocios</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:ejecutar_tests' %}"><i class="bi bi-bug-fill"></i> Ejecutar Tests Automáticos</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:poblar_demo' %}"><i class="bi bi-database-fill-add"></i> Poblar Base Demo</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:borrar_demo' %}"><i class="bi bi-trash-fill"></i> Borrar Base Demo</a></li>
@@ -182,6 +183,7 @@
             <li><a class="dropdown-item" href="{% url 'cuentas:enviar_feedback' %}"><i class="bi bi-lightbulb"></i> Dinos cómo mejorar</a></li>
             {% if user.is_superuser or user.tipo == 'super_admin' %}
               <li><a class="dropdown-item" href="{% url 'cuentas:dashboard_super_admin' %}"><i class="bi bi-speedometer2"></i> Panel Super Admin</a></li>
+              <li><a class="dropdown-item" href="{% url 'cuentas:admin_lista_negocios' %}"><i class="bi bi-shop"></i> Gestionar Negocios</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:ejecutar_tests' %}"><i class="bi bi-bug-fill"></i> Ejecutar Tests Automáticos</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:poblar_demo' %}"><i class="bi bi-database-fill-add"></i> Poblar Base Demo</a></li>
               <li><a class="dropdown-item" href="{% url 'cuentas:borrar_demo' %}"><i class="bi bi-trash-fill"></i> Borrar Base Demo</a></li>
