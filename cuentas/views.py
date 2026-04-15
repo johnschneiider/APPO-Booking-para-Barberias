@@ -958,6 +958,63 @@ def ajustes_usuario(request):
 def politica_datos(request):
     return render(request, 'cuentas/politica_datos.html')
 
+
+def _superuser_required(view_func):
+    """Decorador que exige is_superuser (más estricto que staff_member_required)."""
+    from functools import wraps
+    from django.contrib.auth.views import redirect_to_login
+
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        if not request.user.is_superuser:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('Acceso restringido a superusuarios.')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@_superuser_required
+def admin_lista_negocios(request):
+    """Lista todos los negocios con opción de eliminar. Solo superusuarios."""
+    from negocios.models import Negocio
+    from django.db.models import Count
+
+    q = request.GET.get('q', '').strip()
+    negocios = Negocio.objects.select_related('propietario').annotate(
+        total_reservas=Count('reservas_peluquero', distinct=True),
+        total_profesionales=Count('matriculaciones', distinct=True),
+    ).order_by('-creado_en')
+
+    if q:
+        negocios = negocios.filter(
+            Q(nombre__icontains=q) |
+            Q(propietario__username__icontains=q) |
+            Q(propietario__email__icontains=q) |
+            Q(ciudad__icontains=q)
+        )
+
+    return render(request, 'cuentas/admin_negocios.html', {
+        'negocios': negocios,
+        'total': negocios.count(),
+        'q': q,
+    })
+
+
+@_superuser_required
+def admin_borrar_negocio(request, negocio_id):
+    """Elimina un negocio. Solo superusuarios. Requiere POST."""
+    from negocios.models import Negocio
+    if request.method != 'POST':
+        return HttpResponseForbidden('Método no permitido.')
+    negocio = get_object_or_404(Negocio, id=negocio_id)
+    nombre = negocio.nombre
+    negocio.delete()
+    logger.warning(f"Negocio eliminado por superusuario {request.user.username}: '{nombre}' (ID {negocio_id})")
+    messages.success(request, f'Negocio "{nombre}" eliminado correctamente.')
+    return redirect('cuentas:admin_lista_negocios')
+
 @staff_member_required
 def ejecutar_tests(request):
     if not settings.DEBUG:

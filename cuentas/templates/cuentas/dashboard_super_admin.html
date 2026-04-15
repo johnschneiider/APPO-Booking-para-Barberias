@@ -20,7 +20,7 @@
       <div class="card text-white bg-primary mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span>Negocios</span>
-          <a href="/admin/negocios/negocio/" class="btn btn-light btn-sm">Gestionar</a>
+          <a href="{% url 'cuentas:admin_lista_negocios' %}" class="btn btn-light btn-sm">Gestionar</a>
         </div>
         <div class="card-body">
           <h5 class="card-title">{{ total_negocios }}</h5>
