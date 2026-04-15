@@ -5,6 +5,7 @@ Script para configurar el procesamiento automático de inasistencias
 
 import os
 import sys
+import subprocess
 from datetime import datetime, timedelta
 
 def crear_cron_job():
@@ -31,6 +32,7 @@ def crear_cron_job():
     
     # Agregar al crontab
     os.system(f"crontab -l 2>/dev/null | cat - {temp_file} | crontab -")
+    # TODO: migrar a subprocess.run() con shell=False cuando sea posible
     
     # Limpiar archivo temporal
     os.remove(temp_file)
@@ -65,7 +67,7 @@ def crear_cron_job_windows():
     schtasks_cmd = f'schtasks /create /tn "{task_name}" /tr "{batch_file}" /sc minute /mo 5 /f'
     
     print(f"🔄 Ejecutando: {schtasks_cmd}")
-    result = os.system(schtasks_cmd)
+    result = subprocess.run(schtasks_cmd, shell=True).returncode
     
     if result == 0:
         print("✅ Tarea programada creada exitosamente!")

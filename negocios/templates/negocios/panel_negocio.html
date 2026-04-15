@@ -5,31 +5,80 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+<style>
+/* ── Brand color scope ── */
+.panel-content .text-primary   { color: #133A7F !important; }
+.panel-content .bg-primary     { background-color: #133A7F !important; }
+.panel-content .bg-primary.bg-opacity-10 { background-color: rgba(19,58,127,0.1) !important; }
+.panel-content .border-primary { border-color: #133A7F !important; }
+.panel-content .rounded-circle.bg-primary { background-color: #133A7F !important; }
+.panel-content .card { border-radius: 14px; }
+.panel-content .card-header.bg-primary { background: linear-gradient(135deg,#133A7F,#1E5BC6) !important; }
+
+/* ── Quick-nav bar ── */
+.panel-quick-nav {
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
+    border-radius: 16px; padding: 1.5rem 2rem;
+    margin-bottom: 2rem; color: #fff;
+    box-shadow: 0 6px 24px rgba(19,58,127,0.18);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.panel-biz-info { display: flex; align-items: center; gap: 1rem; }
+.panel-biz-logo {
+    width: 54px; height: 54px; border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.5); object-fit: cover; flex-shrink: 0;
+}
+.panel-biz-logo-placeholder {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: #fff; flex-shrink: 0;
+}
+.panel-biz-name { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+.panel-biz-addr { font-size: 0.83rem; opacity: 0.82; margin-top: 0.2rem; }
+.panel-shortcuts { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.psc { 
+    background: rgba(255,255,255,0.15); color: #fff; 
+    border: 1.5px solid rgba(255,255,255,0.32); border-radius: 10px;
+    padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 600;
+    text-decoration: none; display: flex; align-items: center; gap: 0.4rem;
+    transition: background 0.18s;
+    white-space: nowrap;
+}
+.psc:hover { background: rgba(255,255,255,0.28); color: #fff; text-decoration: none; }
+</style>
+
 <div class="container-fluid px-3 px-md-4 py-3 py-md-5 panel-content">
+
+    <!-- ── Brand header with quick shortcuts ── -->
+    <div class="col-12 col-lg-8 mx-auto mb-4">
+        <div class="panel-quick-nav">
+            <div class="panel-biz-info">
+                {% if negocio.logo %}
+                <img src="{{ negocio.logo.url }}" class="panel-biz-logo" alt="Logo {{ negocio.nombre }}"
+                     data-bs-toggle="modal" data-bs-target="#editarLogoModal" style="cursor:pointer;" title="Cambiar logo">
+                {% else %}
+                <div class="panel-biz-logo-placeholder" data-bs-toggle="modal" data-bs-target="#editarLogoModal" style="cursor:pointer;" title="Subir logo">
+                    <i class="bi bi-shop-window"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <div class="panel-biz-name">{{ negocio.nombre }}</div>
+                    <div class="panel-biz-addr"><i class="bi bi-geo-alt-fill me-1"></i>{{ negocio.direccion }}</div>
+                </div>
+            </div>
+            <div class="panel-shortcuts">
+                <a href="{% url 'negocios:calendario_reservas' negocio.id %}" class="psc"><i class="bi bi-calendar-week"></i> Calendario</a>
+                <a href="{% url 'negocios:dashboard_negocio' negocio.id %}" class="psc"><i class="bi bi-graph-up"></i> Métricas</a>
+                <a href="{% url 'negocios:galeria_negocio' negocio.id %}" class="psc"><i class="bi bi-images"></i> Galería</a>
+                <a href="{% url 'negocios:gestionar_inasistencias' negocio.id %}" class="psc"><i class="bi bi-person-x"></i> Inasistencias</a>
+                <a href="{% url 'negocios:configurar_negocio' negocio.id %}" class="psc"><i class="bi bi-gear"></i> Configurar</a>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4 mb-md-5">
         <div class="col-12 col-lg-8 mx-auto">
-            <!-- Header del negocio -->
-            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-4">
-                <div class="text-center text-md-start mb-3 mb-md-0">
-                    <h1 class="display-5 display-md-4 fw-bold text-dark mb-2">{{ negocio.nombre }}</h1>
-                    <p class="lead text-muted mb-0">
-                        <i class="bi bi-geo-alt-fill text-primary"></i> {{ negocio.direccion }}
-                    </p>
-                </div>
-                
-                {% if negocio.logo %}
-                <div class="position-relative d-inline-block">
-                    <img src="{{ negocio.logo.url }}" class="img-fluid rounded-circle shadow-lg border border-3 border-white" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editarLogoModal">
-                    <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1 border border-2 border-white">
-                        <i class="bi bi-pencil-fill text-white" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#editarLogoModal"></i>
-                    </div>
-                </div>
-                {% else %}
-                <button class="btn btn-primary px-3 px-md-4 py-2" data-bs-toggle="modal" data-bs-target="#editarLogoModal">
-                    <i class="bi bi-upload me-2" style="color: #FFFFFF;"></i>Subir logo
-                </button>
-                {% endif %}
-            </div>
 
             <!-- Servicios activos del negocio -->
             <div class="card border-0 shadow-sm mb-4 mb-md-5">
@@ -240,6 +289,9 @@
                     <div class="text-center py-4">
                         <i class="bi bi-people fs-1 text-muted opacity-25 mb-3"></i>
                         <p class="text-muted">No hay profesionales aceptados aún</p>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#onboardingProfesionalesModal">
+                            <i class="bi bi-info-circle me-1"></i> ¿Cómo agregar profesionales?
+                        </button>
                     </div>
                     {% endif %}
                 </div>
@@ -285,63 +337,62 @@
                 </div>
             </div>
 
-            <!-- Acciones rápidas -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-3 p-md-4">
-                    <h3 class="h5 mb-3 mb-md-4 text-dark">
-                        <i class="bi bi-lightning-charge text-primary me-2"></i>Acciones rápidas
-                    </h3>
-                    <div class="list-group list-group-flush">
-                        <a href="{% url 'negocios:dashboard_negocio' negocio.id %}" class="list-group-item list-group-item-action border-0 py-2 py-md-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 me-md-3">
-                                    <i class="bi bi-graph-up"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h5 class="mb-1 text-dark">Dashboard y Métricas</h5>
-                                    <small class="text-muted">Visualiza KPIs, gráficos y estadísticas de tu negocio</small>
-                                </div>
-                                <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                            </div>
-                        </a>
-                        <a href="{% url 'negocios:galeria_negocio' negocio.id %}" class="list-group-item list-group-item-action border-0 py-2 py-md-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 me-md-3">
-                                    <i class="bi bi-images"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h5 class="mb-1 text-dark">Galería de imágenes</h5>
-                                    <small class="text-muted">Agrega fotos con título y descripción a tu negocio</small>
-                                </div>
-                                <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                            </div>
-                        </a>
-                        <a href="{% url 'negocios:configurar_negocio' negocio.id %}" class="list-group-item list-group-item-action border-0 py-2 py-md-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 me-md-3">
-                                    <i class="bi bi-gear"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h5 class="mb-1 text-dark">Configurar negocio</h5>
-                                    <small class="text-muted">Configura horarios y detalles de tu negocio</small>
-                                </div>
-                                <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                            </div>
-                        </a>
-                        <a href="{% url 'negocios:calendario_reservas' negocio.id %}" class="list-group-item list-group-item-action border-0 py-2 py-md-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 me-md-3">
-                                    <i class="bi bi-calendar-event"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h5 class="mb-1 text-dark">Calendario de Reservas</h5>
-                                    <small class="text-muted">Visualiza y gestiona reservas en formato calendario</small>
-                                </div>
-                                <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                            </div>
-                        </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de onboarding de profesionales -->
+<div class="modal fade" id="onboardingProfesionalesModal" tabindex="-1" aria-labelledby="onboardingProfesionalesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-primary text-white">
+                <h5 class="modal-title" id="onboardingProfesionalesLabel">
+                    <i class="bi bi-people-fill me-2"></i> ¿Cómo agregar profesionales?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex flex-column gap-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <strong>1</strong>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-dark">El profesional crea su cuenta</h6>
+                            <p class="text-muted small mb-0">El profesional se registra en APPO como profesional desde la página de registro.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <strong>2</strong>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-dark">Envía solicitud de matrícula</h6>
+                            <p class="text-muted small mb-0">Desde su perfil, el profesional busca tu negocio y envía una solicitud de matrícula.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <strong>3</strong>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-dark">Tú aceptas la solicitud</h6>
+                            <p class="text-muted small mb-0">Recibirás una notificación. Acepta la solicitud y el profesional aparecerá aquí.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <strong>4</strong>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-dark">Configura turnos y servicios</h6>
+                            <p class="text-muted small mb-0">Una vez aceptado, podrás ver su perfil, asignarle servicios y gestionar sus horarios.</p>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
             </div>
         </div>
     </div>
@@ -472,6 +523,7 @@
                             <i class="bi bi-camera fs-1 text-muted"></i>
                         </div>
                         {% endif %}
+                        <input type="file" id="logoInput" name="logo" accept="image/*" class="d-none" onchange="previewLogo(this)">
                         <label for="logoInput" class="btn btn-secondary mt-3 w-100">
                             <i class="bi bi-upload me-2"></i> Seleccionar imagen
                         </label>
@@ -479,7 +531,7 @@
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4">Guardar logo</button>
+                    <button type="submit" class="btn btn-primary px-4" id="guardarLogoBtn" disabled>Guardar logo</button>
                 </div>
             </div>
         </form>
@@ -490,6 +542,28 @@
 </div>
 
 <script>
+// Preview de logo seleccionado
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const container = input.closest('.modal-body').querySelector('.text-center');
+            let img = container.querySelector('img');
+            if (!img) {
+                const placeholder = container.querySelector('.bg-light');
+                if (placeholder) placeholder.remove();
+                img = document.createElement('img');
+                img.className = 'img-thumbnail rounded-circle mb-3 border-0 shadow-sm';
+                img.style.cssText = 'width: 120px; height: 120px; object-fit: cover;';
+                container.insertBefore(img, container.firstChild);
+            }
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+        document.getElementById('guardarLogoBtn').disabled = false;
+    }
+}
+
 // Utilidad para convertir el valor del slider (0-95) a hora en formato HH:MM
 function sliderToTime(val) {
     const totalMinutes = val * 15;
@@ -741,6 +815,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 slider.style.pointerEvents = 'auto';
                 slider.style.zIndex = '100004';
             });
+            
+            // Configurar handlers de sliders para modales por día
+            const modalId = this.id;
+            const match = modalId.match(/editarHorarioModal(\d+)/);
+            if (match) {
+                const idx = match[1];
+                const sliderInicio = document.getElementById(`slider_inicio_${idx}`);
+                const displayInicio = document.getElementById(`display_inicio_${idx}`);
+                const inputInicio = document.getElementById(`hora_inicio_${idx}`);
+                const sliderFin = document.getElementById(`slider_fin_${idx}`);
+                const displayFin = document.getElementById(`display_fin_${idx}`);
+                const inputFin = document.getElementById(`hora_fin_${idx}`);
+                
+                if (sliderInicio && displayInicio && inputInicio) {
+                    // Inicializar posición del slider desde el valor guardado
+                    const valorGuardado = inputInicio.value || '09:00';
+                    const [h, m] = valorGuardado.split(':').map(Number);
+                    sliderInicio.value = (h * 60 + m) / 15;
+                    displayInicio.textContent = valorGuardado;
+                    
+                    sliderInicio.oninput = function() {
+                        const hora = sliderToTime(this.value);
+                        displayInicio.textContent = hora;
+                        inputInicio.value = hora;
+                    };
+                }
+                if (sliderFin && displayFin && inputFin) {
+                    const valorGuardado = inputFin.value || '18:00';
+                    const [h, m] = valorGuardado.split(':').map(Number);
+                    sliderFin.value = (h * 60 + m) / 15;
+                    displayFin.textContent = valorGuardado;
+                    
+                    sliderFin.oninput = function() {
+                        const hora = sliderToTime(this.value);
+                        displayFin.textContent = hora;
+                        inputFin.value = hora;
+                    };
+                }
+            }
         });
     });
 });
@@ -759,12 +872,12 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: border-color 0.2s;
 }
 .flatpickr-input:focus {
-    border-color: #3b82f6;
+    border-color: #1E5BC6;
     outline: none;
 }
 .flatpickr-calendar {
     border-radius: 1rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(59,130,246,0.08);
+    box-shadow: 0 0.5rem 1.5rem rgba(30,91,198,0.08);
     font-family: inherit;
 }
 .flatpickr-time {
@@ -784,7 +897,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: rgba(59, 130, 246, 0.2);
+    border-color: rgba(30, 91, 198, 0.2);
 }
 
 /* Items de servicio */
@@ -802,7 +915,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(30, 91, 198, 0.1);
     border-radius: 10px;
 }
 
@@ -825,7 +938,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .horario-item:hover {
-    border-color: rgba(59, 130, 246, 0.2);
+    border-color: rgba(30, 91, 198, 0.2);
 }
 
 /* Badges mejorados */
@@ -866,7 +979,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Estilos para los modales de servicios */
 .modal-header.bg-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    background: linear-gradient(135deg, #1E5BC6 0%, #133A7F 100%) !important;
 }
 
 .modal-content {
@@ -875,20 +988,20 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    border-color: #1E5BC6;
+    box-shadow: 0 0 0 0.2rem rgba(30, 91, 198, 0.25);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #1E5BC6 0%, #133A7F 100%);
     border: none;
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #0e2d66 100%);
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0.5rem 1rem rgba(30, 91, 198, 0.3);
 }
 
 /* Estilos para los modales de horarios */
@@ -940,39 +1053,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Bordes azules para las secciones principales */
 .card.border-0.shadow-sm {
-    border: 3px solid rgba(13, 110, 253, 0.3) !important;
+    border: 3px solid rgba(19, 58, 127, 0.3) !important;
     transition: all 0.3s ease;
 }
 
 .card.border-0.shadow-sm:hover {
-    border-color: rgba(13, 110, 253, 0.5) !important;
+    border-color: rgba(19, 58, 127, 0.5) !important;
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 253, 0.15) !important;
+    box-shadow: 0 0.5rem 1.5rem rgba(19, 58, 127, 0.15) !important;
 }
 
 /* Borde especial para la sección de servicios */
 .card.border-0.shadow-sm:has(.bi-scissors) {
-    border-color: rgba(13, 110, 253, 0.4) !important;
+    border-color: rgba(19, 58, 127, 0.4) !important;
 }
 
 /* Borde especial para la sección de horarios */
 .card.border-0.shadow-sm:has(.bi-clock-history) {
-    border-color: rgba(13, 110, 253, 0.4) !important;
+    border-color: rgba(19, 58, 127, 0.4) !important;
 }
 
 /* Borde especial para la sección de profesionales */
 .card.border-0.shadow-sm:has(.bi-person-check) {
-    border-color: rgba(13, 110, 253, 0.4) !important;
+    border-color: rgba(19, 58, 127, 0.4) !important;
 }
 
 /* Borde especial para la sección de imágenes */
 .card.border-0.shadow-sm:has(.bi-images) {
-    border-color: rgba(13, 110, 253, 0.4) !important;
+    border-color: rgba(19, 58, 127, 0.4) !important;
 }
 
 /* Borde especial para la sección de acciones rápidas */
 .card.border-0.shadow-sm:has(.bi-lightning-charge) {
-    border-color: rgba(13, 110, 253, 0.4) !important;
+    border-color: rgba(19, 58, 127, 0.4) !important;
 }
 
 /* Responsive adjustments */
@@ -1252,6 +1365,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <form method="POST" action="{% url 'negocios:panel_negocio' negocio.id %}">
                 {% csrf_token %}
+                <input type="hidden" name="editar_dia" value="{{ dia }}">
                 <div class="modal-body">
                     <!-- Switch para activar/desactivar el día -->
                     <div class="mb-4">
@@ -1302,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                            step="1" 
                                            value="72" 
                                            class="form-range" 
-                                           id="slider_inicio_{{ forloop.counter }}" 
+                                           id="slider_fin_{{ forloop.counter }}" 
                                            style="width:70%">
                                     <span id="display_fin_{{ forloop.counter }}" class="fw-bold fs-5">18:00</span>
                                 </div>

@@ -4,13 +4,34 @@
    ============================================ */
 
 :root {
+    /* --- TIPOGRAFÍA --- */
+    --font-ui: 'Century Gothic', 'CenturyGothic', 'AppleGothic', sans-serif;
+    --font-serif-title: 'Century Gothic', 'CenturyGothic', 'AppleGothic', sans-serif;
+    --font-branding: 'Century Gothic', 'CenturyGothic', 'AppleGothic', sans-serif;
+
     /* --- PALETA PRIMARIA (LOGO APPO) --- */
     --appo-primary: #133A7F;
     --appo-primary-hover: #0A1F45;
     --appo-primary-soft: #EBF1FF;
 
+    /* --- COLORES SEMÁNTICOS --- */
+    --color-primary: #133A7F;
+    --color-accent: #1E5BC6;
+    --color-bg-secondary: #F4F3F1;
+    --color-text-primary: #222222;
+    --color-deep-charcoal: #0D0D0D;
+    --color-teal-accent: #133A7F;
+    --color-aqua-mint: #1E5BC6;
+    --color-soft-lavender-gray: #F0F0F0;
+    --color-warm-sand: #E2E8F0;
+    --color-mint-green: #16a34a;
+    --color-smoke-white: #F8FAFC;
+    --color-success: #16a34a;
+    --color-error: #dc2626;
+    --color-warning: #f59e0b;
+
     /* --- PALETA NEUTRA (ESTÁNDAR SAAS) --- */
-    --appo-neutral-bg: #F8FAFC;      /* Grisáceo blancuzco para botones */
+    --appo-neutral-bg: #F8FAFC;
     --appo-neutral-border: #E2E8F0;
     --appo-neutral-text: #334155;
     
@@ -20,7 +41,7 @@
     --appo-shadow-hover: 0 8px 20px rgba(19, 58, 127, 0.12);
 
     /* --- GEOMETRÍA (NO OVALADA) --- */
-    --appo-radius: 10px; /* Refinado y profesional */
+    --appo-radius: 10px;
     
     /* --- FLUIDEZ --- */
     --appo-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

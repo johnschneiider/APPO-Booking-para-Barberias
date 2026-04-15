@@ -412,7 +412,7 @@
 
 <!-- Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
     position: relative;
     overflow: hidden;
 }
@@ -495,7 +495,7 @@
 
 /* CTA Section */
 .cta-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
     position: relative;
     overflow: hidden;
 }
@@ -613,7 +613,7 @@
     }
     .search-bar-elevated label.form-label:hover {
         background: #f3f4f6;
-        color: #3b82f6;
+        color: #1E5BC6;
     }
     .search-bar-elevated .btn-search {
         transition: background 0.2s, box-shadow 0.2s;
@@ -626,7 +626,7 @@
 
 /* Barra de búsqueda avanzada mejorada */
 .search-bar-elevated-custom {
-    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10);
+    box-shadow: 0 4px 24px rgba(19, 58, 127, 0.10);
     border: none !important;
     min-height: 44px !important;
     padding-top: 0.5rem !important;
@@ -667,7 +667,7 @@
     border-bottom: none !important;
 }
 .search-bar-mobile {
-    box-shadow: 0 4px 16px rgba(80, 60, 120, 0.10);
+    box-shadow: 0 4px 16px rgba(19, 58, 127, 0.10);
     border: 2px solid #f3eafd;
     font-size: 1.1rem;
     transition: box-shadow 0.2s;
@@ -756,12 +756,12 @@
     min-height: 38px !important;
     padding-top: 0.1rem !important;
     padding-bottom: 0.1rem !important;
-    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10) !important;
+    box-shadow: 0 4px 24px rgba(19, 58, 127, 0.10) !important;
 }
 </style>
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg&libraries=places&v=weekly" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&v=weekly" async defer></script>
 <script src="https://unpkg.com/@googlemaps/places-autocomplete-element@latest/dist/index.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script>
-const API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg';
+const API_KEY = '{{ GOOGLE_MAPS_API_KEY }}';
 function setupUbicacionAutocomplete(inputId, sugerenciasId, ciudadId, barrioId, latId, lonId) {
     const input = document.getElementById(inputId);
     const sugerenciasDiv = document.getElementById(sugerenciasId);

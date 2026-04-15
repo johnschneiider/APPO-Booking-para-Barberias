@@ -1,312 +1,256 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Gestionar Inasistencias - {{ negocio.nombre }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'negocios/gestionar_inasistencias.css' %}">
-{% endblock %}
+{% block title %}Inasistencias — {{ negocio.nombre }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">
-                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                    Gestión de Inasistencias
-                </h1>
-                <div>
-                    <a href="{% url 'negocios:configurar_politica_inasistencias' negocio.id %}" 
-                       class="btn btn-outline-primary">
-                        <i class="fas fa-cog"></i> Configurar Política
-                    </a>
-                    <a href="{% url 'negocios:panel_negocio' negocio.id %}" 
-                       class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Volver al Panel
-                    </a>
-                </div>
+<style>
+/* ── Page ── */
+.inas-page { background:#f4f6fb; min-height:100vh; padding:2rem 0 3rem; }
+
+/* ── Header band ── */
+.inas-header {
+    background:linear-gradient(135deg,#133A7F 0%,#1E5BC6 100%);
+    border-radius:16px; padding:1.75rem 2rem; color:#fff;
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    margin-bottom:2rem; box-shadow:0 6px 24px rgba(19,58,127,0.18);
+}
+.inas-header .hd-left { display:flex; align-items:center; gap:1rem; }
+.inas-header .hd-icon {
+    width:52px; height:52px; border-radius:12px;
+    background:rgba(255,255,255,0.15);
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0;
+}
+.inas-header h1 { font-size:1.35rem; font-weight:700; margin:0; }
+.inas-header p  { margin:0; opacity:0.82; font-size:0.9rem; }
+.hd-actions { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
+.btn-hd-outline {
+    background:rgba(255,255,255,0.14); color:#fff;
+    border:1.5px solid rgba(255,255,255,0.38); border-radius:10px;
+    padding:0.5rem 1rem; font-size:0.82rem; font-weight:600;
+    transition:background 0.18s; white-space:nowrap;
+}
+.btn-hd-outline:hover { background:rgba(255,255,255,0.28); color:#fff; }
+.btn-hd-solid {
+    background:#fff; color:#133A7F;
+    border:none; border-radius:10px;
+    padding:0.5rem 1rem; font-size:0.82rem; font-weight:700;
+    transition:all 0.18s; white-space:nowrap;
+}
+.btn-hd-solid:hover { background:#e8edf8; color:#133A7F; }
+
+/* ── Stat cards ── */
+.stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+@media(max-width:768px){ .stat-grid { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:480px){ .stat-grid { grid-template-columns:1fr 1fr; } }
+.stat-card {
+    background:#fff; border-radius:14px; padding:1.25rem 1.5rem;
+    box-shadow:0 2px 10px rgba(19,58,127,0.07); border:none;
+    display:flex; align-items:center; gap:1rem;
+}
+.stat-icon {
+    width:46px; height:46px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:1.25rem;
+}
+.stat-num { font-size:1.6rem; font-weight:800; color:#1a2540; line-height:1; }
+.stat-label { font-size:0.78rem; color:#64748b; font-weight:500; }
+
+/* ── Card base ── */
+.inas-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(19,58,127,0.07);
+    border:none; overflow:hidden; margin-bottom:1.5rem;
+}
+.inas-card-header {
+    background:#fff; border-bottom:1.5px solid #e8edf5;
+    padding:1.1rem 1.5rem; display:flex; align-items:center; gap:0.75rem;
+}
+.ch-icon {
+    width:34px; height:34px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:1rem;
+}
+.inas-card-header h5 { margin:0; font-size:1rem; font-weight:700; color:#1a2540; }
+.inas-card .card-body { padding:1.25rem 1.5rem; }
+
+/* ── Problematic clients ── */
+.prob-client {
+    display:flex; align-items:center; gap:0.85rem;
+    padding:0.7rem 1rem; border-radius:10px;
+    border:1px solid #fde8e8; background:#fff; margin-bottom:0.5rem;
+    transition:box-shadow 0.15s;
+}
+.prob-client:hover { box-shadow:0 2px 10px rgba(220,38,38,0.1); }
+.prob-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,#fee2e2,#fca5a5);
+    display:flex; align-items:center; justify-content:center;
+    color:#dc2626; font-weight:700; font-size:0.9rem; flex-shrink:0;
+}
+.prob-info { flex:1; min-width:0; }
+.prob-info strong { display:block; font-size:0.85rem; color:#1a2540; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.prob-info small { color:#64748b; font-size:0.77rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.prob-count {
+    background:#fee2e2; color:#dc2626; border-radius:20px;
+    padding:0.2rem 0.7rem; font-size:0.78rem; font-weight:700; white-space:nowrap;
+}
+
+/* ── Inasistencias list ── */
+.inas-row {
+    display:flex; align-items:center; gap:1rem;
+    padding:0.85rem 1.25rem; border-bottom:1px solid #f1f5fb;
+    transition:background 0.12s;
+}
+.inas-row:hover { background:#f8faff; }
+.inas-row:last-child { border-bottom:none; }
+.inas-date {
+    min-width:80px; text-align:center;
+    background:#f0f4fb; border-radius:10px; padding:0.4rem 0.6rem;
+}
+.inas-date .day { font-size:1.2rem; font-weight:800; color:#133A7F; line-height:1; }
+.inas-date .month { font-size:0.68rem; color:#64748b; font-weight:600; text-transform:uppercase; }
+.inas-main { flex:1; min-width:0; }
+.inas-main strong { display:block; font-size:0.88rem; color:#1a2540; }
+.inas-main small { color:#64748b; font-size:0.78rem; }
+.inas-hour {
+    font-size:0.8rem; font-weight:600; color:#133A7F;
+    background:#eef2fb; border-radius:8px; padding:0.25rem 0.6rem; white-space:nowrap;
+}
+.badge-inas { background:#fee2e2; color:#dc2626; border-radius:20px; padding:0.2rem 0.7rem; font-size:0.75rem; font-weight:700; white-space:nowrap; }
+
+/* ── Empty state ── */
+.empty-inas { display:flex; flex-direction:column; align-items:center; padding:2.5rem 1rem; }
+.empty-inas .ei-icon { font-size:3rem; color:#16a34a; margin-bottom:0.75rem; }
+</style>
+
+<div class="inas-page">
+<div class="container" style="max-width:960px;">
+
+    <!-- Header -->
+    <div class="inas-header">
+        <div class="hd-left">
+            <div class="hd-icon"><i class="bi bi-person-x-fill"></i></div>
+            <div>
+                <h1>Gestión de Inasistencias</h1>
+                <p>{{ negocio.nombre }}</p>
+            </div>
+        </div>
+        <div class="hd-actions">
+            <a href="{% url 'negocios:configurar_politica_inasistencias' negocio.id %}" class="btn-hd-outline">
+                <i class="bi bi-sliders me-1"></i> Configurar política
+            </a>
+            <a href="{% url 'negocios:panel_negocio' negocio.id %}" class="btn-hd-outline">
+                <i class="bi bi-arrow-left me-1"></i> Volver al panel
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fee2e2; color:#dc2626;"><i class="bi bi-person-x-fill"></i></div>
+            <div>
+                <div class="stat-num">{{ total_inasistencias }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fef9ec; color:#f59e0b;"><i class="bi bi-calendar-month"></i></div>
+            <div>
+                <div class="stat-num">{{ inasistencias_este_mes }}</div>
+                <div class="stat-label">Este mes</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#eef2fb; color:#133A7F;"><i class="bi bi-calendar-week"></i></div>
+            <div>
+                <div class="stat-num">{{ inasistencias_esta_semana }}</div>
+                <div class="stat-label">Esta semana</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fdf2f8; color:#9333ea;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <div class="stat-num">{{ clientes_problematicos|length }}</div>
+                <div class="stat-label">Con recurrencia</div>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ total_inasistencias }}</h4>
-                            <p class="card-text">Total Inasistencias</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-user-times fa-2x"></i>
-                        </div>
-                    </div>
+    <div class="row g-4">
+        <!-- Main: inasistencias list -->
+        <div class="col-lg-8">
+            <div class="inas-card">
+                <div class="inas-card-header">
+                    <div class="ch-icon" style="background:#fee2e2; color:#dc2626;"><i class="bi bi-list-ul"></i></div>
+                    <h5>Historial de inasistencias</h5>
+                    {% if total_inasistencias %}
+                    <span class="ms-auto badge rounded-pill" style="background:#fee2e2;color:#dc2626;font-size:0.8rem;">{{ total_inasistencias }}</span>
+                    {% endif %}
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ inasistencias_este_mes }}</h4>
-                            <p class="card-text">Este Mes</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar-alt fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ inasistencias_esta_semana }}</h4>
-                            <p class="card-text">Esta Semana</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar-week fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ clientes_problematicos|length }}</h4>
-                            <p class="card-text">Clientes Problemáticos</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-exclamation-circle fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Clientes Problemáticos -->
-    {% if clientes_problematicos %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-exclamation-triangle text-warning"></i>
-                        Clientes con Múltiples Inasistencias
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Cliente</th>
-                                    <th>Email</th>
-                                    <th>Total Inasistencias</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cliente in clientes_problematicos %}
-                                <tr>
-                                    <td>{{ cliente.cliente__username }}</td>
-                                    <td>{{ cliente.cliente__email }}</td>
-                                    <td>
-                                        <span class="badge bg-danger">{{ cliente.total_inasistencias }}</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-warning" 
-                                                onclick="verHistorialCliente('{{ cliente.cliente__username }}')">
-                                            <i class="fas fa-history"></i> Ver Historial
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Lista de Inasistencias -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-list"></i>
-                        Lista de Inasistencias
-                    </h5>
-                </div>
-                <div class="card-body">
+                <div class="card-body" style="padding:0;">
                     {% if inasistencias %}
-                    <!-- Vista de tabla para desktop -->
-                    <div class="table-responsive d-none d-md-block">
-                        <table class="table table-striped table-inasistencias">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Cliente</th>
-                                    <th>Profesional</th>
-                                    <th>Servicio</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for reserva in inasistencias %}
-                                <tr>
-                                    <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
-                                    <td>{{ reserva.hora_inicio|time:"H:i" }}</td>
-                                    <td>
-                                        <strong>{{ reserva.cliente.username }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ reserva.cliente.email }}</small>
-                                    </td>
-                                    <td>
-                                        {% if reserva.profesional %}
-                                            {{ reserva.profesional.nombre }}
-                                        {% else %}
-                                            <span class="text-muted">No asignado</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if reserva.servicio %}
-                                            {{ reserva.servicio.nombre }}
-                                        {% else %}
-                                            <span class="text-muted">No especificado</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-danger">Inasistencia</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-info" 
-                                                    onclick="verDetalleReserva({{ reserva.id }})">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" 
-                                                    onclick="contactarCliente('{{ reserva.cliente.email }}')">
-                                                <i class="fas fa-envelope"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Vista de cards para móvil -->
-                    <div class="d-md-none">
                         {% for reserva in inasistencias %}
-                        <div class="card card-inasistencia mb-3">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="cliente-nombre">{{ reserva.cliente.username }}</strong>
-                                        <div class="fecha-servicio">{{ reserva.fecha|date:"d/m/Y" }} - {{ reserva.hora_inicio|time:"H:i" }}</div>
-                                    </div>
-                                    <span class="badge bg-danger">Inasistencia</span>
-                                </div>
+                        <div class="inas-row">
+                            <div class="inas-date">
+                                <div class="day">{{ reserva.fecha|date:"d" }}</div>
+                                <div class="month">{{ reserva.fecha|date:"M Y" }}</div>
                             </div>
-                            <div class="card-body">
-                                <div class="servicio-nombre">
-                                    {% if reserva.servicio %}
-                                        <i class="fas fa-cut me-2"></i>{{ reserva.servicio.nombre }}
-                                    {% else %}
-                                        <i class="fas fa-cut me-2"></i>Servicio no especificado
-                                    {% endif %}
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-user me-1"></i>
-                                        {% if reserva.profesional %}
-                                            {{ reserva.profesional.nombre }}
-                                        {% else %}
-                                            No asignado
-                                        {% endif %}
-                                    </small>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-envelope me-1"></i>{{ reserva.cliente.email }}
-                                    </small>
-                                </div>
-                                <div class="btn-group w-100" role="group">
-                                    <button class="btn btn-accion btn-ver-detalle" 
-                                            onclick="verDetalleReserva({{ reserva.id }})">
-                                        <i class="fas fa-eye me-1"></i>Ver Detalle
-                                    </button>
-                                    <button class="btn btn-accion btn-contactar" 
-                                            onclick="contactarCliente('{{ reserva.cliente.email }}')">
-                                        <i class="fas fa-envelope me-1"></i>Contactar
-                                    </button>
-                                </div>
+                            <div class="inas-main">
+                                <strong>{{ reserva.cliente.username }}</strong>
+                                <small>
+                                    {% if reserva.servicio %}{{ reserva.servicio.nombre }}{% else %}Sin servicio{% endif %}
+                                    {% if reserva.profesional %} · {{ reserva.profesional.nombre }}{% endif %}
+                                </small>
                             </div>
+                            <div class="inas-hour"><i class="bi bi-clock me-1"></i>{{ reserva.hora_inicio|time:"H:i" }}</div>
+                            <span class="badge-inas">Inasistencia</span>
                         </div>
                         {% endfor %}
-                    </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
-                        <h5>¡Excelente!</h5>
-                        <p class="text-muted">No hay inasistencias registradas.</p>
-                    </div>
+                        <div class="empty-inas">
+                            <div class="ei-icon"><i class="bi bi-check-circle-fill"></i></div>
+                            <h6 class="fw-bold">¡Sin inasistencias!</h6>
+                            <p class="text-muted mb-0" style="font-size:0.88rem;">No hay registros de inasistencias en este negocio.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: problematic clients -->
+        <div class="col-lg-4">
+            <div class="inas-card">
+                <div class="inas-card-header">
+                    <div class="ch-icon" style="background:#fde8e8; color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <h5>Clientes frecuentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if clientes_problematicos %}
+                        {% for c in clientes_problematicos %}
+                        <div class="prob-client">
+                            <div class="prob-avatar">{{ c.cliente__username|first|upper }}</div>
+                            <div class="prob-info">
+                                <strong>{{ c.cliente__username }}</strong>
+                                <small>{{ c.cliente__email }}</small>
+                            </div>
+                            <span class="prob-count">{{ c.total_inasistencias }}×</span>
+                        </div>
+                        {% endfor %}
+                        <p class="mt-2 mb-0" style="font-size:0.77rem;color:#94a3b8;">
+                            <i class="bi bi-info-circle me-1"></i>Solo clientes con 2 o más inasistencias.
+                        </p>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-emoji-smile" style="font-size:2rem;color:#16a34a;"></i>
+                            <p class="text-muted mt-2 mb-0" style="font-size:0.88rem;">Sin clientes recurrentes</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal para detalles de reserva -->
-<div class="modal fade" id="detalleReservaModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detalle de Inasistencia</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="detalleReservaContent">
-                <!-- Contenido dinámico -->
-            </div>
-        </div>
-    </div>
+</div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-function verDetalleReserva(reservaId) {
-    // Implementar lógica para cargar detalles de la reserva
-    console.log('Ver detalles de reserva:', reservaId);
-    $('#detalleReservaModal').modal('show');
-}
-
-function verHistorialCliente(username) {
-    // Implementar lógica para ver historial del cliente
-    console.log('Ver historial de cliente:', username);
-}
-
-function contactarCliente(email) {
-    // Abrir cliente de email
-    window.open(`mailto:${email}?subject=Inasistencia a cita`, '_blank');
-}
-</script>
-{% endblock %} 

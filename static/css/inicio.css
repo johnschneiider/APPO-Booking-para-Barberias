@@ -27,9 +27,9 @@
 .rounded { border-radius: 0.5rem; }
 .rounded-pill { border-radius: 50rem; }
 .rounded-4 { border-radius: 1.25rem; }
-.shadow { box-shadow: 0 2px 16px rgba(102, 126, 234, 0.07); }
-.shadow-lg { box-shadow: 0 4px 32px rgba(102, 126, 234, 0.13); }
-.shadow-sm { box-shadow: 0 1px 4px rgba(102, 126, 234, 0.04); }
+.shadow { box-shadow: 0 2px 16px rgba(19, 58, 127, 0.07); }
+.shadow-lg { box-shadow: 0 4px 32px rgba(19, 58, 127, 0.13); }
+.shadow-sm { box-shadow: 0 1px 4px rgba(19, 58, 127, 0.04); }
 .bg-white { background: #fff; }
 .text-center { text-align: center; }
 /* .text-muted { color: #6c757d; } */
@@ -246,11 +246,11 @@
     height: 100%;
     background: #fff;
     border-radius: 1.25rem;
-    box-shadow: 0 2px 16px rgba(102, 126, 234, 0.07);
+    box-shadow: 0 2px 16px rgba(19, 58, 127, 0.07);
     transition: box-shadow 0.2s;
 }
 .feature-card:hover {
-    box-shadow: 0 4px 32px rgba(102, 126, 234, 0.13);
+    box-shadow: 0 4px 32px rgba(19, 58, 127, 0.13);
 }
 .feature-icon {
     width: 80px;
@@ -263,8 +263,8 @@
     font-size: 2.5rem;
 }
 .feature-icon.bg-primary {
-    background: rgba(13,110,253,0.10);
-    color: #0d6efd;
+    background: rgba(19,58,127,0.10);
+    color: #133A7F;
 }
 .feature-icon.bg-success {
     background: rgba(25,135,84,0.10);
@@ -303,13 +303,13 @@
 }
 @media (min-width: 768px) {
     .search-bar-elevated label.form-label { transition: background 0.2s, color 0.2s; border-radius: 2rem; padding: 0.25rem 1.2rem 0.25rem 1.2rem; cursor: pointer; }
-    .search-bar-elevated label.form-label:hover { background: #f3f4f6; color: #3b82f6; }
+    .search-bar-elevated label.form-label:hover { background: #f3f4f6; color: #1E5BC6; }
     .search-bar-elevated .btn-search { transition: background 0.2s, box-shadow 0.2s; }
     .search-bar-elevated .btn-search:hover { background: #d81b60 !important; box-shadow: 0 6px 20px rgba(216,27,96,0.18); }
 }
 
 /* Barra de búsqueda avanzada mejorada */
-.search-bar-elevated-custom { box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10); border: none !important; min-height: 44px !important; padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.search-bar-elevated-custom { box-shadow: 0 4px 24px rgba(19, 58, 127, 0.10); border: none !important; min-height: 44px !important; padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
 .search-bar-elevated-custom .form-label { margin-bottom: 0.2rem !important; font-size: 0.93rem; }
 .search-bar-elevated-custom .form-control { border: none !important; box-shadow: none !important; background: transparent !important; padding: 0.35rem 0.5rem !important; font-size: 1rem; min-height: 32px !important; height: 32px !important; }
 .search-bar-elevated-custom .form-control:focus { box-shadow: none !important; border: none !important; }
@@ -317,7 +317,7 @@
 .search-bar-elevated-custom .flex.flex-col { padding-bottom: 0 !important; margin-bottom: 0 !important; }
 .search-bar-elevated-custom input::placeholder { color: #b0b0b0; font-size: 0.98rem; }
 .search-bar-elevated-custom { border-bottom: none !important; }
-.search-bar-mobile { box-shadow: 0 4px 16px rgba(80, 60, 120, 0.10); border: 2px solid #f3eafd; font-size: 1.1rem; transition: box-shadow 0.2s; }
+.search-bar-mobile { box-shadow: 0 4px 16px rgba(19, 58, 127, 0.10); border: 2px solid #f3eafd; font-size: 1.1rem; transition: box-shadow 0.2s; }
 
 @media (max-width: 576px) {
     .hero-section-custom { padding-top: 1.2rem !important; align-items: center !important; text-align: center !important; }
@@ -344,7 +344,7 @@
     background: #fff !important;
     border: 2px solid #ececec !important;
     border-radius: 2.5rem !important;
-    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.07) !important;
+    box-shadow: 0 4px 24px rgba(19, 58, 127, 0.07) !important;
     padding: 0.5rem 1.2rem !important;
     gap: 0.5rem !important;
     display: flex !important;
@@ -360,7 +360,7 @@
     .search-bar-elevated-custom {
         border-radius: 1rem !important;   /* Rectángulo redondeado */
         padding: 1rem 0.7rem !important;
-        box-shadow: 0 2px 12px rgba(102, 126, 234, 0.07) !important;
+        box-shadow: 0 2px 12px rgba(19, 58, 127, 0.07) !important;
         flex-direction: column !important;
         align-items: stretch !important;
         gap: 0.7rem !important;
@@ -427,7 +427,7 @@
     background: #fff !important;
     border: 2px solid #ececec !important;
     border-radius: 1rem !important;
-    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.07) !important;
+    box-shadow: 0 4px 24px rgba(19, 58, 127, 0.07) !important;
     padding: 1rem 0.7rem !important;
     gap: 0.7rem !important;
     display: flex !important;

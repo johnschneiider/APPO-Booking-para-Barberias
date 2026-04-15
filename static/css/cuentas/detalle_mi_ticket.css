@@ -27,7 +27,7 @@
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(19, 58, 127, 0.3);
 }
 
 .badge {
@@ -42,5 +42,5 @@
 
 .form-control:focus {
     border-color: var(--color-blue-primary);
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(19, 58, 127, 0.25);
 } 

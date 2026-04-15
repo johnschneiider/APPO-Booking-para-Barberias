@@ -75,3 +75,11 @@ def app_metrics(request):
         'total_reservas_app': total,
         'total_reservas_app_mkt': total_mkt,
     }
+
+
+def google_maps_key(request):
+    """Expone la API key de Google Maps a los templates de forma segura."""
+    from django.conf import settings
+    return {
+        'GOOGLE_MAPS_API_KEY': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
+    }

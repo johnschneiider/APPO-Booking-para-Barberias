@@ -10,7 +10,7 @@
 .planes-header,
 .planes-disponibles-header,
 .dashboard-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
     color: white;
     padding: 2rem;
     border-radius: 1rem;
@@ -758,8 +758,8 @@
 
 .form-control:focus,
 .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #133A7F;
+    box-shadow: 0 0 0 3px rgba(19, 58, 127, 0.1);
     outline: none;
 }
 
@@ -848,8 +848,8 @@
 }
 
 .upload-area:hover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.05);
+    border-color: #133A7F;
+    background: rgba(19, 58, 127, 0.05);
 }
 
 .upload-area i {
@@ -954,7 +954,7 @@
 .ranking-position {
     width: 30px;
     height: 30px;
-    background: #667eea;
+    background: #133A7F;
     color: white;
     border-radius: 50%;
     display: flex;
@@ -1169,7 +1169,7 @@
 
 .accion-icon {
     font-size: 1.25rem;
-    color: #667eea;
+    color: #133A7F;
 }
 
 .accion-content {
@@ -1297,8 +1297,8 @@
 }
 
 .categoria-badge {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(19, 58, 127, 0.1);
+    color: #133A7F;
     padding: 0.25rem 0.75rem;
     border-radius: 1rem;
     font-size: 0.8rem;
@@ -1398,7 +1398,7 @@
 
 .page-link {
     border: none;
-    color: #667eea;
+    color: #133A7F;
     padding: 0.75rem 1rem;
     margin: 0 0.25rem;
     border-radius: 0.5rem;
@@ -1406,12 +1406,12 @@
 }
 
 .page-link:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(19, 58, 127, 0.1);
+    color: #133A7F;
 }
 
 .page-item.active .page-link {
-    background: #667eea;
+    background: #133A7F;
     color: white;
 }
 
@@ -1429,7 +1429,7 @@
 }
 
 .text-primary {
-    color: #667eea !important;
+    color: #133A7F !important;
 }
 
 .text-muted {
@@ -1449,5 +1449,5 @@
 }
 
 .bg-primary {
-    background-color: #667eea !important;
+    background-color: #133A7F !important;
 }

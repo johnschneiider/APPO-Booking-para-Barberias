@@ -115,7 +115,7 @@
 .form-control:focus {
     outline: none;
     border-color: var(--color-blue-primary);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(19, 58, 127, 0.1);
 }
 
 .switch {
@@ -176,7 +176,7 @@ input:checked + .slider:before {
 
 .btn-save:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(19, 58, 127, 0.3);
 }
 
 .help-text {

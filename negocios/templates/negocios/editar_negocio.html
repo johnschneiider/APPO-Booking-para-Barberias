@@ -837,7 +837,7 @@ body {
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg&libraries=places&v=weekly" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&v=weekly" async defer></script>
 <script src="https://unpkg.com/@googlemaps/places-autocomplete-element@latest/dist/index.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

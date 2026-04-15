@@ -98,7 +98,7 @@
                     <div class="text-center pt-3 border-top">
                         <p class="mb-2 form-subtitle">
                             ¿No tienes una cuenta? 
-                            <a href="{% url 'cuentas:registro_unificado' %}" class="text-decoration-none fw-medium form-link">
+                            <a href="{% url 'cuentas:registro_unificado' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="text-decoration-none fw-medium form-link">
                                 Regístrate aquí
                             </a>
                         </p>
@@ -116,9 +116,9 @@
 
 <style>
     :root {
-        --primary: #6e48aa;
-        --primary-dark: #4b2d7f;
-        --secondary: #9d50bb;
+        --primary: #133A7F;
+        --primary-dark: #0e2d66;
+        --secondary: #1E5BC6;
         --accent: #d4af37;
     }
     
@@ -133,7 +133,7 @@
     
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(110, 72, 170, 0.2) !important;
+        box-shadow: 0 15px 30px rgba(19, 58, 127, 0.2) !important;
     }
     
     .rounded-4 {

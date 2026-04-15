@@ -146,7 +146,7 @@
 </div>
 <style>
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
 }
 .form-control, .form-select {
     border-radius: 0.5rem;
@@ -155,8 +155,8 @@
     transition: all 0.3s ease;
 }
 .form-control:focus, .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+    border-color: #133A7F;
+    box-shadow: 0 0 0 0.25rem rgba(19, 58, 127, 0.15);
 }
 .btn {
     border-radius: 0.5rem;
@@ -165,12 +165,12 @@
     transition: all 0.3s ease;
 }
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
     border: none;
 }
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(19, 58, 127, 0.3);
 }
 .alert {
     border-radius: 0.75rem;
@@ -262,7 +262,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
 <script>
 window.onload = function() {
     const input = document.getElementById('autocomplete-direccion');
@@ -276,7 +276,7 @@ window.onload = function() {
     let seleccionValida = false;
     let placeIdSeleccionado = null;
     let timeout = null;
-    const API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg';
+    const API_KEY = '{{ GOOGLE_MAPS_API_KEY }}';
 
     function logPaso(msg, extra) {
         console.log('[DEBUG DIRECCION]', msg, extra || '');

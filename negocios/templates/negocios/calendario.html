@@ -15,7 +15,7 @@
 <style>
 /* Estilos específicos para el nuevo diseño de calendario */
 :root {
-    --primary-color: #6366f1;
+    --primary-color: #133A7F;
     --secondary-color: #64748b;
     --success-color: #10b981;
     --warning-color: #f59e0b;
@@ -25,7 +25,7 @@
     --dark-color: #1e293b;
     --border-color: #e2e8f0;
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --sidebar-bg: #1e1b4b;
+    --sidebar-bg: #0e2d66;
     --header-bg: #ffffff;
     --calendar-bg: #f8fafc;
 }
@@ -206,7 +206,7 @@
 }
 
 .today-btn-header:hover {
-    background: #4f46e5;
+    background: #1E5BC6;
     transform: translateY(-1px);
 }
 
@@ -458,7 +458,7 @@
 }
 
 .calendar-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: #4f46e5; /* Color más oscuro al hacer hover */
+    background: #1E5BC6; /* Color más oscuro al hacer hover */
 }
 
 /* Asegurar que el sticky funcione correctamente en todos los navegadores */
@@ -1803,20 +1803,20 @@
 }
 
 .calendar-modal-btn {
-    background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+    background: linear-gradient(135deg, var(--primary-color), #1E5BC6);
     border: none;
     padding: 1rem 2rem;
     font-size: 1.1rem;
     font-weight: 600;
     border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 16px rgba(19, 58, 127, 0.3);
     transition: all 0.3s ease;
 }
 
 .calendar-modal-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    box-shadow: 0 8px 24px rgba(19, 58, 127, 0.4);
+    background: linear-gradient(135deg, #1E5BC6, #0e2d66);
 }
 
 /* Modal de calendario en pantalla completa */
@@ -2106,7 +2106,7 @@
 }
 
 .calendar-fullscreen-container::-webkit-scrollbar-thumb:hover {
-    background: #4f46e5;
+    background: #1E5BC6;
 }
 
 /* Scrollbar horizontal específico */
@@ -2515,9 +2515,9 @@
 
 /* Color por defecto para servicios no especificados en el modal */
 .calendar-fullscreen-container .appointment-block:not([data-service]) {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #133A7F, #1E5BC6);
+    border-color: rgba(19, 58, 127, 0.4);
+    box-shadow: 0 4px 16px rgba(19, 58, 127, 0.3);
 }
 
 /* Asegurar que el texto sea blanco en todas las reservas del modal */
@@ -2555,7 +2555,7 @@
 }
 
 .calendar-fullscreen-container::-webkit-scrollbar-thumb:hover {
-    background: #4f46e5;
+    background: #1E5BC6;
 }
 
 /* Scrollbar para Firefox */
@@ -2658,7 +2658,7 @@
     
     .appointment-block {
         cursor: pointer;
-        -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+        -webkit-tap-highlight-color: rgba(19, 58, 127, 0.2);
     }
     
     .appointment-block:active {
@@ -2864,7 +2864,7 @@
     }
     
     .form-control:focus, .form-select:focus {
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(19, 58, 127, 0.25);
     }
     
     /* Modal de calendario en móviles */
@@ -2977,7 +2977,7 @@
 }
 
 .mensaje-info {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #1E5BC6, #133A7F);
 }
 </style>
 {% endblock %}
@@ -3534,13 +3534,13 @@ function calcularDuracionServicio(horaInicio, horaFin) {
 function obtenerColorServicio(tipoServicio) {
     const colores = {
         'corte': '#f97316',      // Naranja
-        'color': '#3b82f6',      // Azul
+        'color': '#1E5BC6',      // Azul
         'peinado': '#ec4899',    // Rosa
         'tratamiento': '#14b8a6', // Verde azulado
         'masaje': '#8b5cf6',     // Púrpura
         'manicure': '#f59e0b',   // Amarillo
         'pedicure': '#10b981',   // Verde
-        'default': '#6366f1'     // Color primario por defecto
+        'default': '#133A7F'     // Color primario por defecto
     };
     
     const tipo = tipoServicio.toLowerCase();
@@ -4972,7 +4972,7 @@ function mostrarMensaje(mensaje, tipo = 'info') {
         'success': '#10b981',
         'error': '#ef4444',
         'warning': '#f59e0b',
-        'info': '#3b82f6'
+        'info': '#1E5BC6'
     };
     
     mensajeElement.innerHTML = `

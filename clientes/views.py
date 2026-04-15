@@ -28,6 +28,7 @@ from .models import ActividadUsuario
 import requests
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import json
 
 logger = logging.getLogger(__name__)
@@ -224,16 +225,16 @@ class DetallePeluqueroView(DetailView):
             ).order_by('precio_mensual')
             
             # Debug: imprimir información para verificar
-            print(f"DEBUG: Negocio ID: {self.object.id}, Nombre: {self.object.nombre}")
-            print(f"DEBUG: Planes encontrados: {planes_suscripcion.count()}")
+            logger.debug(f"DEBUG: Negocio ID: {self.object.id}, Nombre: {self.object.nombre}")
+            logger.debug(f"DEBUG: Planes encontrados: {planes_suscripcion.count()}")
             for plan in planes_suscripcion:
-                print(f"DEBUG: Plan: {plan.nombre} (ID: {plan.id}) - Activo: {plan.activo}")
+                logger.debug(f"DEBUG: Plan: {plan.nombre} (ID: {plan.id}) - Activo: {plan.activo}")
             
             context['planes_suscripcion'] = planes_suscripcion
             context['tiene_planes_suscripcion'] = planes_suscripcion.exists()
         except Exception as e:
             logger.warning(f"No se pudieron cargar los planes de suscripción: {str(e)}")
-            print(f"DEBUG ERROR: {str(e)}")
+            logger.debug(f"DEBUG ERROR: {str(e)}")
             context['planes_suscripcion'] = []
             context['tiene_planes_suscripcion'] = False
         
@@ -1782,7 +1783,7 @@ def api_negocios_vistos_recientes(request):
 def api_buscar_negocios(request):
     """API para búsqueda AJAX de negocios con radios expandibles"""
     try:
-        print("=== API BUSCAR NEGOCIOS INICIADA ===")
+        logger.debug("=== API BUSCAR NEGOCIOS INICIADA ===")
         
         # Parámetros de búsqueda
         ubicacion = request.GET.get('ubicacion', '').strip()
@@ -1791,24 +1792,24 @@ def api_buscar_negocios(request):
         servicio = request.GET.get('servicio', '').strip()
         negocio = request.GET.get('negocio', '').strip()
         
-        print(f"=== PARÁMETROS RECIBIDOS ===")
-        print(f"ubicacion: '{ubicacion}'")
-        print(f"lat: '{lat}'")
-        print(f"lon: '{lon}'")
-        print(f"servicio: '{servicio}'")
-        print(f"negocio: '{negocio}'")
-        print(f"Todos los parámetros GET: {dict(request.GET)}")
+        logger.debug(f"=== PARÁMETROS RECIBIDOS ===")
+        logger.debug(f"ubicacion: '{ubicacion}'")
+        logger.debug(f"lat: '{lat}'")
+        logger.debug(f"lon: '{lon}'")
+        logger.debug(f"servicio: '{servicio}'")
+        logger.debug(f"negocio: '{negocio}'")
+        logger.debug(f"Todos los parámetros GET: {dict(request.GET)}")
         
         # Query base - TODOS los negocios activos
         queryset = Negocio.objects.filter(activo=True)
-        print(f"Negocios activos totales: {queryset.count()}")
+        logger.debug(f"Negocios activos totales: {queryset.count()}")
         
         # Filtrar por servicio si se especifica
         if servicio:
             queryset = queryset.filter(
                 servicios_negocio__servicio__nombre__icontains=servicio
             ).distinct()
-            print(f"Negocios después del filtro de servicio: {queryset.count()}")
+            logger.debug(f"Negocios después del filtro de servicio: {queryset.count()}")
         
         # Filtrar por ubicación textual si se especifica (sin coordenadas)
         if ubicacion and not lat and not lon:
@@ -1818,19 +1819,19 @@ def api_buscar_negocios(request):
                 Q(direccion__icontains=ubicacion) |
                 Q(nombre__icontains=ubicacion)
             )
-            print(f"Negocios después del filtro de ubicación: {queryset.count()}")
+            logger.debug(f"Negocios después del filtro de ubicación: {queryset.count()}")
         
         negocios_data = []
         
         if lat and lon:
-            print(f"=== BÚSQUEDA CON COORDENADAS ===")
+            logger.debug(f"=== BÚSQUEDA CON COORDENADAS ===")
             # BÚSQUEDA CON COORDENADAS - RADIOS EXPANDIBLES
             from math import radians, cos, sin, asin, sqrt
             
             try:
                 lat = float(lat)
                 lon = float(lon)
-                print(f"Coordenadas convertidas: lat={lat}, lon={lon}")
+                logger.debug(f"Coordenadas convertidas: lat={lat}, lon={lon}")
                 
                 def haversine(lat1, lon1, lat2, lon2):
                     R = 6371.0
@@ -1846,7 +1847,7 @@ def api_buscar_negocios(request):
                 negocios_con_distancia = []
                 
                 for radio in radios:
-                    print(f"Buscando en radio de {radio}m...")
+                    logger.debug(f"Buscando en radio de {radio}m...")
                     
                     for negocio_obj in queryset:
                         if negocio_obj.id in negocios_encontrados:
@@ -1858,7 +1859,7 @@ def api_buscar_negocios(request):
                             if distancia <= radio:
                                 negocios_encontrados.add(negocio_obj.id)
                                 negocios_con_distancia.append((negocio_obj, distancia))
-                                print(f"  - {negocio_obj.nombre}: {round(distancia)}m")
+                                logger.debug(f"  - {negocio_obj.nombre}: {round(distancia)}m")
                     
                     # Si encontramos suficientes negocios, parar
                     if len(negocios_con_distancia) >= 20:
@@ -1884,10 +1885,10 @@ def api_buscar_negocios(request):
                     }
                     negocios_data.append(negocio_data)
                 
-                print(f"Total negocios encontrados con coordenadas: {len(negocios_data)}")
+                logger.debug(f"Total negocios encontrados con coordenadas: {len(negocios_data)}")
                 
             except Exception as e:
-                print(f"Error calculando distancias: {e}")
+                logger.debug(f"Error calculando distancias: {e}")
                 import traceback
                 traceback.print_exc()
                 # Fallback: mostrar todos los negocios sin distancia
@@ -1907,8 +1908,8 @@ def api_buscar_negocios(request):
                     }
                     negocios_data.append(negocio_data)
         else:
-            print(f"=== BÚSQUEDA SIN COORDENADAS ===")
-            print("Sin coordenadas - mostrando todos los negocios")
+            logger.debug(f"=== BÚSQUEDA SIN COORDENADAS ===")
+            logger.debug("Sin coordenadas - mostrando todos los negocios")
             for negocio_obj in queryset[:50]:  # Limitar a 50 para no sobrecargar
                 negocio_data = {
                     'id': negocio_obj.id,
@@ -1925,7 +1926,7 @@ def api_buscar_negocios(request):
                 }
                 negocios_data.append(negocio_data)
         
-        print(f"Total negocios procesados: {len(negocios_data)}")
+        logger.debug(f"Total negocios procesados: {len(negocios_data)}")
         
         return JsonResponse({
             'negocios': negocios_data,
@@ -1939,7 +1940,7 @@ def api_buscar_negocios(request):
         })
         
     except Exception as e:
-        print(f"ERROR EN API: {str(e)}")
+        logger.debug(f"ERROR EN API: {str(e)}")
         import traceback
         traceback.print_exc()
         logger.error(f"Error en búsqueda AJAX de negocios: {str(e)}")
@@ -1949,7 +1950,7 @@ def api_buscar_negocios(request):
             'error': 'Error en la búsqueda'
         }, status=500)
 
-@csrf_exempt
+@login_required
 @require_GET
 def google_places_autocomplete(request):
     """Proxy para autocompletado de Google Places (evita CORS)"""
@@ -1961,7 +1962,7 @@ def google_places_autocomplete(request):
         # Parámetros para la API de Google Places
         params = {
             'input': query,
-            'key': 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg',
+            'key': settings.GOOGLE_MAPS_API_KEY,
             'language': 'es',
             'components': 'country:co',
             'types': 'geocode'
@@ -1981,7 +1982,7 @@ def google_places_autocomplete(request):
         logger.error(f"Error en autocompletado de Google Places: {str(e)}")
         return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
-@csrf_exempt
+@login_required
 @require_GET
 def google_places_details(request):
     """Proxy para obtener detalles de Google Places (evita CORS)"""
@@ -1993,7 +1994,7 @@ def google_places_details(request):
         # Parámetros para la API de Google Places
         params = {
             'place_id': place_id,
-            'key': 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg',
+            'key': settings.GOOGLE_MAPS_API_KEY,
             'language': 'es'
         }
         
@@ -2014,20 +2015,20 @@ def google_places_details(request):
 @require_GET
 def profesionales_por_servicio(request, negocio_id):
     """Vista AJAX para obtener profesionales que ofrecen un servicio específico"""
-    print(f"DEBUG: profesionales_por_servicio llamado con negocio_id={negocio_id}")
+    logger.debug(f"DEBUG: profesionales_por_servicio llamado con negocio_id={negocio_id}")
     servicio_id = request.GET.get('servicio_id')
-    print(f"DEBUG: servicio_id={servicio_id}")
+    logger.debug(f"DEBUG: servicio_id={servicio_id}")
     
     if not servicio_id:
-        print("DEBUG: No hay servicio_id, retornando lista vacía")
+        logger.debug("DEBUG: No hay servicio_id, retornando lista vacía")
         return JsonResponse({'profesionales': []})
     
     try:
         negocio = Negocio.objects.get(id=negocio_id, activo=True)
-        print(f"DEBUG: Negocio encontrado: {negocio.nombre}")
+        logger.debug(f"DEBUG: Negocio encontrado: {negocio.nombre}")
         
         servicio_negocio = negocio.servicios_negocio.get(id=servicio_id)
-        print(f"DEBUG: Servicio encontrado: {servicio_negocio.servicio.nombre}")
+        logger.debug(f"DEBUG: Servicio encontrado: {servicio_negocio.servicio.nombre}")
         
         # Obtener profesionales que ofrecen este servicio
         from profesionales.models import Profesional
@@ -2037,13 +2038,13 @@ def profesionales_por_servicio(request, negocio_id):
             matriculaciones__negocio=negocio,
             matriculaciones__estado='aprobada'
         )
-        print(f"DEBUG: Profesionales matriculados en este negocio: {profesionales_matriculados.count()}")
+        logger.debug(f"DEBUG: Profesionales matriculados en este negocio: {profesionales_matriculados.count()}")
         
         # Luego, verificar si hay profesionales que ofrecen este servicio
         profesionales_con_servicio = Profesional.objects.filter(
             servicios=servicio_negocio.servicio
         )
-        print(f"DEBUG: Profesionales con este servicio: {profesionales_con_servicio.count()}")
+        logger.debug(f"DEBUG: Profesionales con este servicio: {profesionales_con_servicio.count()}")
         
         # Finalmente, la intersección
         profesionales = Profesional.objects.filter(
@@ -2053,19 +2054,19 @@ def profesionales_por_servicio(request, negocio_id):
             disponible=True
         ).distinct().values('id', 'nombre_completo')
         
-        print(f"DEBUG: Profesionales encontrados: {list(profesionales)}")
+        logger.debug(f"DEBUG: Profesionales encontrados: {list(profesionales)}")
         
         return JsonResponse({
             'profesionales': list(profesionales)
         })
     except Negocio.DoesNotExist:
-        print(f"DEBUG: Negocio {negocio_id} no encontrado")
+        logger.debug(f"DEBUG: Negocio {negocio_id} no encontrado")
         return JsonResponse({'profesionales': []})
     except negocio.servicios_negocio.model.DoesNotExist:
-        print(f"DEBUG: Servicio {servicio_id} no encontrado")
+        logger.debug(f"DEBUG: Servicio {servicio_id} no encontrado")
         return JsonResponse({'profesionales': []})
     except Exception as e:
-        print(f"DEBUG: Error inesperado: {str(e)}")
+        logger.debug(f"DEBUG: Error inesperado: {str(e)}")
         return JsonResponse({'profesionales': []})
 
 @login_required

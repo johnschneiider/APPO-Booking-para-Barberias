@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 
 # Create your models here.
 
@@ -22,7 +23,10 @@ class Mensaje(models.Model):
     conversacion = models.ForeignKey(Conversacion, related_name='mensajes', on_delete=models.CASCADE)
     remitente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mensajes_enviados')
     texto = models.TextField(blank=True)
-    archivo = models.FileField(upload_to='chat_adjuntos/', blank=True, null=True)
+    archivo = models.FileField(
+        upload_to='chat_adjuntos/', blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'])]
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
     leido = models.BooleanField(default=False)
 

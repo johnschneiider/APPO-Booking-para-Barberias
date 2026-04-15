@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.validators import FileExtensionValidator
 from negocios.models import Negocio, Servicio
 
 User = get_user_model()
@@ -12,9 +13,12 @@ class Profesional(models.Model):
     especialidad = models.CharField(max_length=100, blank=True)
     experiencia_anos = models.PositiveIntegerField(default=0)
     descripcion = models.TextField(blank=True)
-    foto_perfil = models.ImageField(upload_to='profesionales/fotos/', blank=True, null=True)
-    portada = models.ImageField(upload_to='profesionales/portadas/', blank=True, null=True)
-    cv = models.FileField(upload_to='profesionales/cv/', blank=True, null=True)
+    foto_perfil = models.ImageField(upload_to='profesionales/fotos/', blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp'])])
+    portada = models.ImageField(upload_to='profesionales/portadas/', blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp'])])
+    cv = models.FileField(upload_to='profesionales/cv/', blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])])
     certificaciones = models.TextField(blank=True)
     disponible = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)

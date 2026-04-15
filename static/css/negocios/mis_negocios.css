@@ -1,9 +1,9 @@
 @import url('base.css');
 
 :root {
-    --primary: #6e48aa;
-    --primary-dark: #4b2d7f;
-    --secondary: #9d50bb;
+    --primary: #133A7F;
+    --primary-dark: #0e2d66;
+    --secondary: #1E5BC6;
     --danger: #dc3545;
 }
 
@@ -18,7 +18,7 @@
 }
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(110, 72, 170, 0.15) !important;
+    box-shadow: 0 10px 25px rgba(19, 58, 127, 0.15) !important;
 }
 .transition-all {
     transition: all 0.3s ease;

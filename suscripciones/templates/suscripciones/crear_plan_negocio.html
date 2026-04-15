@@ -3,7 +3,7 @@
 
 {% block suscripciones_content %}
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-warning text-white">
+    <div class="card-header text-white" style="background: linear-gradient(135deg, #133A7F, #1E5BC6);">
         <h3 class="mb-0">
             <i class="bi bi-plus-circle me-2"></i>
             Crear Nuevo Plan de Suscripción
@@ -61,24 +61,16 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Estado del Plan</label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="activo" id="planActivo" value="true" checked>
-                                <label class="form-check-label" for="planActivo">
-                                    <i class="bi bi-check-circle-fill text-success"></i> Activo
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="activo" id="planInactivo" value="false">
-                                <label class="form-check-label" for="planInactivo">
-                                    <i class="bi bi-x-circle-fill text-danger"></i> Inactivo
-                                </label>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="planActivo" name="activo" value="true" checked>
+                            <label class="form-check-label" for="planActivo">
+                                <i class="bi bi-check-circle-fill text-success"></i> Activo
+                            </label>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <div class="form-check">
+                        <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="planDestacado" name="destacado">
                             <label class="form-check-label" for="planDestacado">
                                 <i class="bi bi-star-fill text-warning"></i> Plan Destacado
@@ -126,7 +118,7 @@
                 <a href="{% url 'suscripciones:planes_negocio' negocio_id=negocio.id %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Cancelar
                 </a>
-                <button type="submit" class="btn btn-warning">
+                <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #133A7F, #1E5BC6); border: none;">
                     <i class="bi bi-save me-2"></i>Crear Plan
                 </button>
             </div>

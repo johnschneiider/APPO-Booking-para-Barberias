@@ -8,7 +8,7 @@
 <style>
 :root {
   --primary-color: #133A7F;
-  --primary-hover: #1E40AF;
+  --primary-hover: #133A7F;
   --secondary-color: #F4F3F1;
   --accent-color: #133A7F;
   --text-primary: #0D0D0D;
@@ -17,8 +17,11 @@
   --neutral-text: #0D0D0D;
   --neutral-muted: #666666;
 }
-body, .container, .card, .form-card, .equipo-circular, .pro-card, .pro-nombre, .pro-puesto, .pro-rating, .list-unstyled, .btn, .card-title, .fw-bold, .fw-semibold, .fw-normal, .fw-light, .h1, .h2, .h3, .h4, .h5, .h6, p, a, span, li, ul, div {
-  color: var(--neutral-text) !important;
+body {
+  color: var(--neutral-text);
+}
+.card, .form-card {
+  color: var(--neutral-text);
 }
 .text-muted, .small, small {
   color: var(--neutral-muted) !important;

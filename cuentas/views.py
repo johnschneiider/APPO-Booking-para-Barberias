@@ -23,7 +23,7 @@ from django.db import models
 from clientes.models import MetricaCliente
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 import subprocess
 from .utils import log_user_activity, log_security_event, log_error, get_rate_limit_config
 from django_ratelimit.decorators import ratelimit
@@ -58,7 +58,18 @@ def registro_unificado(request):
                 )
                 
                 # Iniciar sesión automáticamente con backend específico
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                login(request, user, backend='cuentas.backends.CaseInsensitiveAuthBackend')
+                
+                # Redirigir a next si existe y es una URL interna segura
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url and next_url.startswith('/'):
+                    if user.tipo == 'negocio':
+                        messages.success(request, f'¡Bienvenido a Melissa, {user.username}! Tu cuenta de negocio ha sido creada exitosamente.')
+                    elif user.tipo == 'profesional':
+                        messages.success(request, f'¡Bienvenido a Melissa, {user.username}! Ahora completa tu perfil profesional.')
+                    else:
+                        messages.success(request, f'¡Bienvenido a Melissa, {user.username}! Tu cuenta ha sido creada exitosamente.')
+                    return redirect(next_url)
                 
                 # Mensaje de bienvenida según el tipo
                 if user.tipo == 'cliente':
@@ -937,13 +948,20 @@ def ajustes_usuario(request):
             logout(request)
             user.delete()
             return redirect('inicio')
-    return render(request, 'cuentas/ajustes.html')
+    context = {}
+    if request.user.is_authenticated and getattr(request.user, 'tipo', None) == 'negocio':
+        negocio = request.user.negocios.first()
+        if negocio:
+            context['negocio'] = negocio
+    return render(request, 'cuentas/ajustes.html', context)
 
 def politica_datos(request):
     return render(request, 'cuentas/politica_datos.html')
 
 @staff_member_required
 def ejecutar_tests(request):
+    if not settings.DEBUG:
+        return HttpResponseForbidden('No disponible en producción')
     resultado = None
     if request.method == 'POST':
         # Ejecutar los tests usando manage.py test
@@ -956,6 +974,8 @@ def ejecutar_tests(request):
 
 @staff_member_required
 def poblar_demo(request):
+    if not settings.DEBUG:
+        return HttpResponseForbidden('No disponible en producción')
     resultado = None
     if request.method == 'POST':
         try:
@@ -967,6 +987,8 @@ def poblar_demo(request):
 
 @staff_member_required
 def borrar_demo(request):
+    if not settings.DEBUG:
+        return HttpResponseForbidden('No disponible en producción')
     resultado = None
     if request.method == 'POST':
         try:
@@ -978,6 +1000,8 @@ def borrar_demo(request):
 
 @staff_member_required
 def reiniciar_servidor(request):
+    if not settings.DEBUG:
+        return HttpResponseForbidden('No disponible en producción')
     import os, sys
     resultado = None
     if request.method == 'POST':
@@ -1332,7 +1356,7 @@ def crear_trial_payu(request):
             # Intentar autenticar con la contraseña entregada
             auth_user = authenticate(request, username=existing.username, password=password1)
             if not auth_user:
-                messages.error(request, "Ya existe una cuenta con este correo y la contraseña no coincide. Inicia sesión o usa otra cuenta.")
+                messages.error(request, "Ya existe una cuenta con este correo electrónico. Ingresa la contraseña correcta de esa cuenta o usa un correo diferente.")
                 return render(request, "precios.html", _pricing_context(form_prefill))
             user = auth_user
         else:
@@ -1350,12 +1374,14 @@ def crear_trial_payu(request):
                 tipo='negocio',
                 telefono=telefono_contacto
             )
-            # Crear negocio básico
-            negocio_creado = Negocio.objects.create(
-                propietario=user,
-                nombre=nombre_negocio or "Mi barbería",
-                direccion="Sin dirección"
-            )
+
+    # Crear negocio si el usuario aún no tiene uno con ese nombre
+    if not user.negocios.filter(nombre=nombre_negocio).exists():
+        negocio_creado = Negocio.objects.create(
+            propietario=user,
+            nombre=nombre_negocio or "Mi barbería",
+            direccion="Sin dirección"
+        )
 
     trial_inicio = timezone.now()
     trial_fin = trial_inicio + timedelta(days=30)
@@ -1379,8 +1405,11 @@ def crear_trial_payu(request):
 
     # Autenticar la sesión siempre que tengamos usuario
     if user:
-        auth_user = authenticate(request, username=user.username, password=password1) or user
-        login(request, auth_user, backend='django.contrib.auth.backends.ModelBackend')
+        auth_user = authenticate(request, username=user.username, password=password1)
+        if auth_user:
+            login(request, auth_user)
+        else:
+            login(request, user, backend='cuentas.backends.CaseInsensitiveAuthBackend')
         request.session.save()
         return redirect('negocios:mis_negocios')
 

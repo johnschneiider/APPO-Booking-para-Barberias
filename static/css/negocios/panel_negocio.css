@@ -34,12 +34,12 @@
 
 /* Botones */
 .btn-primary {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background-color: #1E5BC6;
+    border-color: #1E5BC6;
 }
 .btn-primary:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
+    background-color: #133A7F;
+    border-color: #133A7F;
 }
 
 /* Logo y avatar */
@@ -103,12 +103,12 @@
     transition: border-color 0.2s;
 }
 .flatpickr-input:focus {
-    border-color: #3b82f6;
+    border-color: #1E5BC6;
     outline: none;
 }
 .flatpickr-calendar {
     border-radius: 1rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(59,130,246,0.08);
+    box-shadow: 0 0.5rem 1.5rem rgba(30,91,198,0.08);
     font-family: inherit;
 }
 .flatpickr-time {

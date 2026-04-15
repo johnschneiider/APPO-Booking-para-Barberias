@@ -156,9 +156,13 @@
 
                         <!-- Botones de acción -->
                         <div class="form-actions">
+                            <a href="{% url 'inicio' %}" class="btn btn-secondary">
+                                <i class="bi bi-house"></i>
+                                <span>Inicio</span>
+                            </a>
                             <a href="{% url 'cuentas:mis_tickets' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i>
-                                <span>Ver mis mensajes</span>
+                                <i class="bi bi-inbox"></i>
+                                <span>Mis mensajes</span>
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-send-fill"></i>
@@ -229,9 +233,9 @@
 <style>
 /* Variables CSS */
 :root {
-    --primary-color: #1E40AF;
-    --primary-light: #3B82F6;
-    --primary-dark: #1E3A8A;
+    --primary-color: #133A7F;
+    --primary-light: #1E5BC6;
+    --primary-dark: #0A1F45;
     --secondary-color: #10B981;
     --accent-color: #F59E0B;
     --text-dark: #1F2937;
@@ -318,8 +322,8 @@
 }
 
 .form-header {
-    background: var(--gradient-secondary);
-    padding: 3rem 2rem;
+    background: var(--gradient-primary);
+    padding: 2rem 2rem 1.75rem;
     text-align: center;
     color: white;
     position: relative;
@@ -732,7 +736,7 @@ textarea.form-control {
 }
 
 .category-icon.feature {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
 }
 
 .category-content h4 {
@@ -840,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (currentLength > 900) {
                 characterCounter.style.color = '#DC2626';
             } else {
-                characterCounter.style.color = '#1E40AF';
+                characterCounter.style.color = '#133A7F';
             }
         });
     }
@@ -859,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Drag & drop
         imageUploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            imageUploadArea.style.borderColor = '#1E40AF';
+            imageUploadArea.style.borderColor = '#133A7F';
             imageUploadArea.style.background = 'rgba(30, 64, 175, 0.05)';
         });
         

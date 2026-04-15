@@ -68,28 +68,77 @@ _load_env_fallback_parser()
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'clave-super-secreta-para-desarrollo')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('La variable de entorno SECRET_KEY es obligatoria. Configúrala en .env')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
     'appo.com.co',
     'www.appo.com.co',
-    '92.113.39.100',
-    'localhost',
-    '127.0.0.1',
 ]
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1']
 
 AUTH_USER_MODEL = 'cuentas.UsuarioPersonalizado'
 
 # Configuración de seguridad
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Forzar HTTPS en producción
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Content Security Policy (implementado vía SecurityHeadersMiddleware)
+CSP_POLICY = {
+    "default-src": ["'self'"],
+    "script-src": [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://maps.googleapis.com",
+        "https://maps.gstatic.com",
+        "https://cdnjs.cloudflare.com",
+    ],
+    "style-src": [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com",
+    ],
+    "img-src": [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://maps.googleapis.com",
+        "https://maps.gstatic.com",
+        "https://*.googleusercontent.com",
+    ],
+    "font-src": [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+    ],
+    "connect-src": [
+        "'self'",
+        "https://maps.googleapis.com",
+        "wss://appo.com.co",
+    ],
+    "frame-src": ["'none'"],
+    "object-src": ["'none'"],
+    "base-uri": ["'self'"],
+    "form-action": ["'self'"],
+}
 
 # Configuración de sesiones
 SESSION_COOKIE_SECURE = not DEBUG  # True en producción, False en desarrollo
@@ -109,13 +158,14 @@ SESSION_CACHE_ALIAS = 'default'
 CSRF_TRUSTED_ORIGINS = [
     "https://appo.com.co",
     "https://www.appo.com.co",
-    "http://appo.com.co",
-    "http://www.appo.com.co",
-    "https://92.113.39.100",
-    "http://92.113.39.100",
     "https://vitalmix.com.co",
     "https://www.vitalmix.com.co",
 ]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS += [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 # Configuración de mensajes
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
@@ -164,8 +214,9 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'cuentas.middleware.AuthenticationMiddleware',
     'cuentas.middleware.UserTypeMiddleware',
-    #'cuentas.middleware.RateLimitMiddleware',
+    'cuentas.middleware.RateLimitMiddleware',
     'cuentas.middleware.ActivityLoggingMiddleware',
+    'cuentas.middleware.SecurityHeadersMiddleware',
     'clientes.middleware.ActividadUsuarioMiddleware',
 ]
 
@@ -184,6 +235,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'cuentas.context_processors.tipo_usuario',
                 'cuentas.context_processors.app_metrics',
+                'cuentas.context_processors.google_maps_key',
             ],
         },
     },
@@ -478,7 +530,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -499,6 +551,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Configuración de archivos
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# Extensiones permitidas para subida de archivos
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+ALLOWED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx']
+ALLOWED_UPLOAD_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS + ALLOWED_DOCUMENT_EXTENSIONS
 
 # Configuración de django-allauth
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
@@ -529,14 +586,12 @@ ACCOUNT_SIGNUP_REDIRECT_URL = '/'
 CORS_ALLOWED_ORIGINS = [
     "https://appo.com.co",
     "https://www.appo.com.co",
-    "http://appo.com.co",
-    "http://www.appo.com.co",
-    "https://92.113.39.100",
-    "http://92.113.39.100",
-    "http://localhost",
-    "http://localhost:80",
-    "http://127.0.0.1:8000",
 ]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -736,8 +791,8 @@ META_WHATSAPP_ENABLED = os.getenv('META_WHATSAPP_ENABLED', 'False').lower() == '
 META_WHATSAPP_PHONE_NUMBER_ID = os.getenv('META_WHATSAPP_PHONE_NUMBER_ID', '')
 # El token puede venir como META_WHATSAPP_ACCESS_TOKEN o TOKEN_WHATSAPP (para compatibilidad)
 META_WHATSAPP_ACCESS_TOKEN = os.getenv('META_WHATSAPP_ACCESS_TOKEN') or os.getenv('TOKEN_WHATSAPP', '')
-META_WHATSAPP_VERIFY_TOKEN = os.getenv('META_WHATSAPP_VERIFY_TOKEN', 'appo_whatsapp_verify_2024')
-META_WHATSAPP_WEBHOOK_SECRET = os.getenv('META_WHATSAPP_WEBHOOK_SECRET', 'appo_webhook_secret_2024')
+META_WHATSAPP_VERIFY_TOKEN = os.getenv('META_WHATSAPP_VERIFY_TOKEN', '')
+META_WHATSAPP_WEBHOOK_SECRET = os.getenv('META_WHATSAPP_WEBHOOK_SECRET', '')
 META_WHATSAPP_API_VERSION = os.getenv('META_WHATSAPP_API_VERSION', 'v22.0')
 
 # Nombres de templates de Meta (los nombres exactos que creaste en Meta WhatsApp Manager)
@@ -749,7 +804,7 @@ META_TEMPLATE_RESERVA_REAGENDADA = os.getenv('META_TEMPLATE_RESERVA_REAGENDADA',
 META_TEMPLATE_INASISTENCIA = os.getenv('META_TEMPLATE_INASISTENCIA', 'inasistencia_appo')
 
 # Google Maps API Key (Places, Maps JavaScript, Geocoding)
-# API_KEY = 'AIzaSyAn0n-nfpaAcvWeEWRg7iGIgNxC9X1FYHg'
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
 
 # Configuración de Logging
 import os

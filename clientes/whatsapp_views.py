@@ -68,7 +68,8 @@ def verify_webhook_signature(body, signature):
     """
     try:
         if not signature:
-            return True  # Si no hay firma, permitir (para desarrollo)
+            logger.warning("Webhook recibido sin firma X-Hub-Signature-256 — rechazado")
+            return False  # Rechazar si no hay firma
         
         # Extraer la firma del header
         if signature.startswith('sha256='):
@@ -76,7 +77,7 @@ def verify_webhook_signature(body, signature):
         
         # Calcular la firma esperada
         expected_signature = hmac.new(
-            settings.WHATSAPP_CONFIG['VERIFY_TOKEN'].encode('utf-8'),
+            settings.META_WHATSAPP_WEBHOOK_SECRET.encode('utf-8'),
             body,
             hashlib.sha256
         ).hexdigest()

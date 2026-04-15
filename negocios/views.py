@@ -182,19 +182,43 @@ def panel_negocio(request, negocio_id):
         # Servicios activos del negocio
         servicios_activos = negocio.servicios_negocio.filter(activo=True).select_related('servicio')
 
+        # Guardar logo si es POST con archivo de logo
+        if request.method == 'POST' and 'logo' in request.FILES:
+            negocio.logo = request.FILES['logo']
+            negocio.save()
+            messages.success(request, "Logo actualizado correctamente.")
+            return redirect('negocios:panel_negocio', negocio_id=negocio.id)
+
         # Guardar horario de atención si es POST y no es cambio de logo
         if request.method == 'POST' and 'logo' not in request.FILES:
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            nuevo_horario = {}
-            dias_activos = request.POST.getlist('dias_activos')
-            for dia in dias:
-                if dia in dias_activos:
-                    inicio = request.POST.get(f'inicio_{dia}', '')
-                    fin = request.POST.get(f'fin_{dia}', '')
+            editar_dia = request.POST.get('editar_dia', '')
+            
+            if editar_dia and editar_dia in dias:
+                # Edición de un solo día: merge con horario existente
+                horario_actual = negocio.horario_atencion or {}
+                dias_activos = request.POST.getlist('dias_activos')
+                if editar_dia in dias_activos:
+                    inicio = request.POST.get(f'inicio_{editar_dia}', '')
+                    fin = request.POST.get(f'fin_{editar_dia}', '')
                     if inicio and fin:
-                        nuevo_horario[dia] = {"inicio": inicio, "fin": fin}
-                # Si el día no está activo, no lo incluimos (aparecerá como cerrado)
-            negocio.horario_atencion = nuevo_horario
+                        horario_actual[editar_dia] = {"inicio": inicio, "fin": fin}
+                else:
+                    # Día desactivado: removerlo del horario
+                    horario_actual.pop(editar_dia, None)
+                negocio.horario_atencion = horario_actual
+            else:
+                # Edición general (todos los días a la vez)
+                nuevo_horario = {}
+                dias_activos = request.POST.getlist('dias_activos')
+                for dia in dias:
+                    if dia in dias_activos:
+                        inicio = request.POST.get(f'inicio_{dia}', '')
+                        fin = request.POST.get(f'fin_{dia}', '')
+                        if inicio and fin:
+                            nuevo_horario[dia] = {"inicio": inicio, "fin": fin}
+                negocio.horario_atencion = nuevo_horario
+            
             negocio.save()
             messages.success(request, "Horario de atención actualizado correctamente.")
             return redirect('negocios:panel_negocio', negocio_id=negocio.id)
@@ -312,6 +336,12 @@ def panel_negocio(request, negocio_id):
 
 @login_required
 def dashboard_negocio(request, negocio_id):
+    from datetime import datetime, timedelta, date
+    from django.db.models import Count, Avg, Q
+    from django.utils import timezone
+    from clientes.models import Reserva
+    from clientes.models import Calificacion
+
     # Obtener el negocio específico del usuario
     negocio = get_object_or_404(Negocio, id=negocio_id, propietario=request.user)
     
@@ -325,12 +355,6 @@ def dashboard_negocio(request, negocio_id):
         delta = trial_intent.trial_fin - timezone.now()
         trial_dias_restantes = max(0, delta.days)
         trial_fin = trial_intent.trial_fin
-    
-    from datetime import datetime, timedelta, date
-    from django.db.models import Count, Avg, Q
-    from django.utils import timezone
-    from clientes.models import Reserva
-    from clientes.models import Calificacion
     
     # Fechas para los últimos 30 días
     hoy = timezone.now().date()

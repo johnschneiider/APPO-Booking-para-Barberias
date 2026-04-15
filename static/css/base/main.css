@@ -1,19 +1,12 @@
 body, html, main {
-  background: var(--color-bg-secondary) !important;
-  color: var(--color-text-primary) !important;
-  font-family: var(--font-ui) !important;
-}
-* {
-  color: var(--color-text-primary) !important;
-  font-family: var(--font-ui) !important;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
 }
 
 /* Excepción para iconos de Bootstrap - mantener su color original */
 .bi, i.bi {
   color: inherit !important;
-}
-.bg-black, .bg-dark, .bg-graphite, .bg-deep, .bg-charcoal {
-  background: #fff !important;
 }
 
 h1, h2, h3, h4, h5, h6 {

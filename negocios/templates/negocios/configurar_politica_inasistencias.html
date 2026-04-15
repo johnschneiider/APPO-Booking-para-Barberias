@@ -1,138 +1,301 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Configurar Política de Inasistencias - {{ negocio.nombre }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'negocios/configurar_politica_inasistencias.css' %}">
-{% endblock %}
+{% block title %}Política de Inasistencias — {{ negocio.nombre }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">
-                    <i class="fas fa-cog text-primary"></i>
-                    Configurar Política de Inasistencias
-                </h1>
-                <a href="{% url 'negocios:gestionar_inasistencias' negocio.id %}" 
-                   class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </a>
+<style>
+/* ── Page layout ── */
+.inas-page { background: #f4f6fb; min-height: 100vh; padding: 2rem 0 3rem; }
+
+/* ── Header band ── */
+.inas-header {
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 6px 24px rgba(19,58,127,0.18);
+}
+.inas-header .header-left { display: flex; align-items: center; gap: 1rem; }
+.inas-header .header-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.inas-header h1 { font-size: 1.35rem; font-weight: 700; margin: 0; }
+.inas-header p  { margin: 0; opacity: 0.82; font-size: 0.9rem; }
+.inas-header .btn-back {
+    background: rgba(255,255,255,0.15);
+    color: #fff; border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 10px; padding: 0.5rem 1.1rem;
+    font-size: 0.85rem; font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.inas-header .btn-back:hover { background: rgba(255,255,255,0.28); color: #fff; }
+
+/* ── Card base ── */
+.inas-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(19,58,127,0.07);
+    border: none;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.inas-card .card-header {
+    background: #fff;
+    border-bottom: 1.5px solid #e8edf5;
+    padding: 1.1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.inas-card .card-header .ch-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.inas-card .card-header h5 { margin: 0; font-size: 1rem; font-weight: 700; color: #1a2540; }
+.inas-card .card-body { padding: 1.5rem; }
+
+/* ── Field rows ── */
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 576px) { .field-row { grid-template-columns: 1fr; } }
+
+.field-block { display: flex; flex-direction: column; gap: 0.4rem; }
+.field-block .field-label {
+    font-size: 0.82rem; font-weight: 700; color: #334155;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.field-block .field-desc { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+
+/* ── Number stepper ── */
+.num-stepper {
+    display: flex; align-items: center; gap: 0;
+    border: 1.5px solid #d0dae8; border-radius: 10px; overflow: hidden;
+    width: fit-content; min-width: 160px;
+}
+.num-stepper button {
+    width: 40px; height: 42px; border: none;
+    background: #f0f4fb; color: #133A7F;
+    font-size: 1.15rem; font-weight: 700; cursor: pointer;
+    transition: background 0.15s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.num-stepper button:hover { background: #dde6f5; }
+.num-stepper input {
+    width: 70px; height: 42px; border: none;
+    text-align: center; font-size: 1rem; font-weight: 700;
+    color: #133A7F; background: #fff; outline: none;
+}
+.num-stepper input:focus { background: #f8faff; }
+.stepper-unit {
+    padding: 0 0.7rem; background: #f0f4fb; color: #64748b;
+    font-size: 0.78rem; font-weight: 600; height: 42px;
+    display: flex; align-items: center; border-left: 1.5px solid #d0dae8;
+    white-space: nowrap;
+}
+
+/* ── Toggle switches ── */
+.toggle-row {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem 1.1rem; border-radius: 10px;
+    background: #f8faff; border: 1.5px solid #e4ecf8;
+    margin-bottom: 1rem; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.toggle-row:hover { border-color: #1E5BC6; background: #f0f5ff; }
+.toggle-row .toggle-text { flex: 1; }
+.toggle-row .toggle-text strong { display: block; font-size: 0.9rem; color: #1a2540; }
+.toggle-row .toggle-text span { font-size: 0.8rem; color: #64748b; }
+.form-switch .form-check-input { width: 2.5em; height: 1.3em; cursor: pointer; }
+.form-switch .form-check-input:checked {
+    background-color: #133A7F; border-color: #133A7F;
+}
+.form-switch .form-check-input:focus { box-shadow: 0 0 0 0.2rem rgba(19,58,127,0.2); border-color: #1E5BC6; }
+
+/* ── Submit button ── */
+.btn-guardar {
+    background: linear-gradient(135deg, #133A7F, #1E5BC6);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 0.7rem 2rem; font-weight: 700;
+    font-size: 0.95rem; transition: all 0.2s;
+    box-shadow: 0 3px 12px rgba(19,58,127,0.2);
+}
+.btn-guardar:hover {
+    background: linear-gradient(135deg, #0e2d66, #133A7F);
+    color: #fff; transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(19,58,127,0.3);
+}
+
+/* ── Divider ── */
+.inas-divider { border: none; border-top: 1.5px solid #e8edf5; margin: 1.25rem 0; }
+
+/* ── Blocked clients table ── */
+.blocked-item {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.75rem 1rem; border-radius: 10px;
+    border: 1px solid #f0e8ea; background: #fff;
+    margin-bottom: 0.6rem; transition: box-shadow 0.15s;
+}
+.blocked-item:hover { box-shadow: 0 2px 8px rgba(220,38,38,0.08); }
+.blocked-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #fee2e2, #fca5a5);
+    display: flex; align-items: center; justify-content: center;
+    color: #dc2626; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
+}
+.blocked-info { flex: 1; min-width: 0; }
+.blocked-info strong { display: block; font-size: 0.87rem; color: #1a2540; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.blocked-info small { color: #64748b; font-size: 0.77rem; }
+.badge-inasist {
+    background: #fee2e2; color: #dc2626;
+    border-radius: 20px; padding: 0.2rem 0.6rem;
+    font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+}
+.btn-unlock {
+    background: #f0fdf4; color: #16a34a;
+    border: 1.5px solid #bbf7d0; border-radius: 8px;
+    padding: 0.3rem 0.7rem; font-size: 0.8rem; font-weight: 600;
+    transition: all 0.15s; white-space: nowrap;
+}
+.btn-unlock:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+
+/* ── Info list ── */
+.info-step {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+.info-step .step-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; flex-shrink: 0;
+}
+.info-step .step-text strong { display: block; font-size: 0.85rem; color: #1a2540; }
+.info-step .step-text span { font-size: 0.8rem; color: #64748b; }
+
+/* ── Rec pill ── */
+.rec-pill {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: #f0f5ff; border: 1px solid #c7d9f5;
+    border-radius: 20px; padding: 0.3rem 0.75rem;
+    font-size: 0.8rem; color: #133A7F; margin: 0.2rem 0;
+}
+.rec-pill i { color: #1E5BC6; }
+
+/* ── Empty state ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; padding: 1.5rem 1rem; }
+.empty-icon { font-size: 2.5rem; color: #16a34a; margin-bottom: 0.5rem; }
+</style>
+
+<div class="inas-page">
+<div class="container" style="max-width:960px;">
+
+    <!-- Header -->
+    <div class="inas-header">
+        <div class="header-left">
+            <div class="header-icon"><i class="bi bi-sliders"></i></div>
+            <div>
+                <h1>Política de Inasistencias</h1>
+                <p>{{ negocio.nombre }} — define reglas de tolerancia y bloqueo</p>
             </div>
         </div>
+        <a href="{% url 'negocios:gestionar_inasistencias' negocio.id %}" class="btn-back">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
+    <div class="row g-4">
+
+        <!-- ── Left: Configuration form ── -->
+        <div class="col-lg-7">
+            <div class="inas-card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-sliders-h"></i>
-                        Configuración de Política
-                    </h5>
+                    <div class="ch-icon" style="background:#eef2fb; color:#133A7F;"><i class="bi bi-gear-fill"></i></div>
+                    <h5>Parámetros de control</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="configForm">
                         {% csrf_token %}
-                        
-                        <!-- Tolerancia de tiempo -->
-                        <div class="mb-4">
-                            <label for="tolerancia_minutos" class="form-label">
-                                <strong>Tolerancia de Tiempo (minutos)</strong>
-                            </label>
-                            <div class="input-group">
-                                <input type="number" 
-                                       class="form-control" 
-                                       id="tolerancia_minutos" 
-                                       name="tolerancia_minutos" 
-                                       value="{{ config_actual.tolerancia_minutos|default:15 }}"
-                                       min="0" 
-                                       max="60">
-                                <span class="input-group-text">minutos</span>
+
+                        <!-- Row 1: tolerancia + penalización -->
+                        <div class="field-row">
+                            <div class="field-block">
+                                <label class="field-label" for="tolerancia_minutos">Tolerancia</label>
+                                <div class="num-stepper">
+                                    <button type="button" onclick="stepField('tolerancia_minutos',-1,0,60)">−</button>
+                                    <input type="number" id="tolerancia_minutos" name="tolerancia_minutos"
+                                           value="{{ config_actual.tolerancia_minutos|default:15 }}" min="0" max="60">
+                                    <span class="stepper-unit">min</span>
+                                    <button type="button" onclick="stepField('tolerancia_minutos',+1,0,60)">+</button>
+                                </div>
+                                <span class="field-desc">Tiempo antes de registrar inasistencia automáticamente.</span>
                             </div>
-                            <div class="form-text">
-                                Tiempo de tolerancia antes de marcar automáticamente como inasistencia.
+                            <div class="field-block">
+                                <label class="field-label" for="penalizacion_dias">Penalización</label>
+                                <div class="num-stepper">
+                                    <button type="button" onclick="stepField('penalizacion_dias',-1,0,30)">−</button>
+                                    <input type="number" id="penalizacion_dias" name="penalizacion_dias"
+                                           value="{{ config_actual.penalizacion_dias|default:0 }}" min="0" max="30">
+                                    <span class="stepper-unit">días</span>
+                                    <button type="button" onclick="stepField('penalizacion_dias',+1,0,30)">+</button>
+                                </div>
+                                <span class="field-desc">Días sin poder reservar tras una inasistencia. 0 = sin penalización.</span>
                             </div>
                         </div>
 
-                        <!-- Penalización -->
-                        <div class="mb-4">
-                            <label for="penalizacion_dias" class="form-label">
-                                <strong>Días de Penalización</strong>
-                            </label>
-                            <div class="input-group">
-                                <input type="number" 
-                                       class="form-control" 
-                                       id="penalizacion_dias" 
-                                       name="penalizacion_dias" 
-                                       value="{{ config_actual.penalizacion_dias|default:0 }}"
-                                       min="0" 
-                                       max="30">
-                                <span class="input-group-text">días</span>
+                        <!-- Row 2: max inasistencias -->
+                        <div class="field-block mb-4">
+                            <label class="field-label" for="max_inasistencias">Máximo de inasistencias</label>
+                            <div class="num-stepper">
+                                <button type="button" onclick="stepField('max_inasistencias',-1,1,10)">−</button>
+                                <input type="number" id="max_inasistencias" name="max_inasistencias"
+                                       value="{{ config_actual.max_inasistencias|default:3 }}" min="1" max="10">
+                                <span class="stepper-unit">veces</span>
+                                <button type="button" onclick="stepField('max_inasistencias',+1,1,10)">+</button>
                             </div>
-                            <div class="form-text">
-                                Días que un cliente no podrá reservar después de una inasistencia (0 = sin penalización).
-                            </div>
+                            <span class="field-desc">Al superar este número se activan las restricciones automáticas.</span>
                         </div>
 
-                        <!-- Máximo de inasistencias -->
-                        <div class="mb-4">
-                            <label for="max_inasistencias" class="form-label">
-                                <strong>Máximo de Inasistencias</strong>
-                            </label>
-                            <div class="input-group">
-                                <input type="number" 
-                                       class="form-control" 
-                                       id="max_inasistencias" 
-                                       name="max_inasistencias" 
-                                       value="{{ config_actual.max_inasistencias|default:3 }}"
-                                       min="1" 
-                                       max="10">
-                                <span class="input-group-text">inasistencias</span>
-                            </div>
-                            <div class="form-text">
-                                Número máximo de inasistencias antes de aplicar restricciones adicionales.
-                            </div>
-                        </div>
+                        <hr class="inas-divider">
 
-                        <!-- Notificaciones automáticas -->
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" 
-                                       type="checkbox" 
-                                       id="notificaciones_automaticas" 
-                                       name="notificaciones_automaticas" 
-                                       checked>
-                                <label class="form-check-label" for="notificaciones_automaticas">
-                                    <strong>Notificaciones Automáticas</strong>
-                                </label>
+                        <!-- Toggle: notificaciones -->
+                        <label class="toggle-row" for="notificaciones_automaticas">
+                            <div class="toggle-text">
+                                <strong><i class="bi bi-bell-fill text-warning me-1"></i>Notificaciones automáticas</strong>
+                                <span>Avisar al cliente cuando acumule inasistencias.</span>
                             </div>
-                            <div class="form-text">
-                                Enviar notificaciones automáticas a clientes con inasistencias.
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox"
+                                       id="notificaciones_automaticas" name="notificaciones_automaticas" checked>
                             </div>
-                        </div>
+                        </label>
 
-                        <!-- Bloqueo automático -->
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" 
-                                       type="checkbox" 
-                                       id="bloqueo_automatico" 
-                                       name="bloqueo_automatico">
-                                <label class="form-check-label" for="bloqueo_automatico">
-                                    <strong>Bloqueo Automático</strong>
-                                </label>
+                        <!-- Toggle: bloqueo automático -->
+                        <label class="toggle-row" for="bloqueo_automatico">
+                            <div class="toggle-text">
+                                <strong><i class="bi bi-shield-fill-x text-danger me-1"></i>Bloqueo automático</strong>
+                                <span>Impedir reservas al cliente que supere el máximo.</span>
                             </div>
-                            <div class="form-text">
-                                Bloquear automáticamente reservas de clientes con múltiples inasistencias.
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox"
+                                       id="bloqueo_automatico" name="bloqueo_automatico">
                             </div>
-                        </div>
+                        </label>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Configuración
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn-guardar">
+                                <i class="bi bi-check2-circle me-2"></i>Guardar configuración
                             </button>
                         </div>
                     </form>
@@ -140,138 +303,118 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <!-- Clientes Bloqueados -->
-            <div class="card mb-3">
+        <!-- ── Right column ── -->
+        <div class="col-lg-5 d-flex flex-column gap-4">
+
+            <!-- Blocked clients -->
+            <div class="inas-card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-ban text-danger"></i>
-                        Clientes Bloqueados
-                        {% if clientes_bloqueados %}
-                            <span class="badge bg-danger">{{ clientes_bloqueados|length }}</span>
-                        {% endif %}
-                    </h5>
-                </div>
-                <div class="card-body">
+                    <div class="ch-icon" style="background:#fee2e2; color:#dc2626;"><i class="bi bi-person-x-fill"></i></div>
+                    <h5>Clientes bloqueados</h5>
                     {% if clientes_bloqueados %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Cliente</th>
-                                        <th>Inasistencias</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for bloqueo in clientes_bloqueados %}
-                                    <tr>
-                                        <td>
-                                            <strong>{{ bloqueo.cliente.username }}</strong><br>
-                                            <small class="text-muted">{{ bloqueo.cliente.email }}</small>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-danger">{{ bloqueo.inasistencias_que_causaron }}</span>
-                                        </td>
-                                        <td>
-                                            <form method="post" action="{% url 'negocios:desbloquear_cliente' negocio.id bloqueo.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" 
-                                                        onclick="return confirm('¿Estás seguro de desbloquear a {{ bloqueo.cliente.username }}?')">
-                                                    <i class="fas fa-unlock"></i> Desbloquear
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                    <span class="ms-auto badge rounded-pill" style="background:#fee2e2;color:#dc2626;font-size:0.8rem;">
+                        {{ clientes_bloqueados|length }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="card-body" style="padding:1rem 1.25rem;">
+                    {% if clientes_bloqueados %}
+                        {% for bloqueo in clientes_bloqueados %}
+                        <div class="blocked-item">
+                            <div class="blocked-avatar">{{ bloqueo.cliente.username|first|upper }}</div>
+                            <div class="blocked-info">
+                                <strong>{{ bloqueo.cliente.username }}</strong>
+                                <small>{{ bloqueo.cliente.email }}</small>
+                            </div>
+                            <span class="badge-inasist">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ bloqueo.inasistencias_que_causaron }}
+                            </span>
+                            <form method="post" action="{% url 'negocios:desbloquear_cliente' negocio.id bloqueo.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-unlock"
+                                        onclick="return confirm('¿Desbloquear a {{ bloqueo.cliente.username }}?')">
+                                    <i class="bi bi-unlock-fill me-1"></i>Liberar
+                                </button>
+                            </form>
                         </div>
-                        <div class="mt-2">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle"></i>
-                                Los clientes bloqueados no verán horarios disponibles al intentar agendar.
-                            </small>
-                        </div>
+                        {% endfor %}
+                        <p class="mt-2 mb-0" style="font-size:0.78rem;color:#94a3b8;">
+                            <i class="bi bi-info-circle me-1"></i>Los clientes bloqueados no verán horarios disponibles.
+                        </p>
                     {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
-                            <p class="text-muted mb-0">No hay clientes bloqueados</p>
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="bi bi-check-circle-fill"></i></div>
+                            <p class="text-muted mb-0" style="font-size:0.9rem;">Sin clientes bloqueados</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Información de ayuda -->
-            <div class="card">
+            <!-- Help card -->
+            <div class="inas-card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle text-info"></i>
-                        Información
-                    </h5>
+                    <div class="ch-icon" style="background:#eef2fb; color:#133A7F;"><i class="bi bi-lightbulb-fill"></i></div>
+                    <h5>Guía rápida</h5>
                 </div>
                 <div class="card-body">
-                    <h6>¿Cómo funciona?</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-clock text-warning"></i>
-                            <strong>Tolerancia:</strong> Tiempo antes de marcar como inasistencia
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-ban text-danger"></i>
-                            <strong>Bloqueo:</strong> Al alcanzar el máximo de inasistencias, el cliente no verá horarios disponibles
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-exclamation-triangle text-warning"></i>
-                            <strong>Máximo:</strong> Número de inasistencias antes del bloqueo automático
-                        </li>
-                    </ul>
+                    <div class="info-step">
+                        <div class="step-icon" style="background:#fef9ec; color:#f59e0b;"><i class="bi bi-clock-fill"></i></div>
+                        <div class="step-text">
+                            <strong>Tolerancia</strong>
+                            <span>Minutos que esperas antes de registrar la falta.</span>
+                        </div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-icon" style="background:#fee2e2; color:#dc2626;"><i class="bi bi-slash-circle-fill"></i></div>
+                        <div class="step-text">
+                            <strong>Bloqueo</strong>
+                            <span>Al alcanzar el máximo, el cliente no puede reservar.</span>
+                        </div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-icon" style="background:#f0fdf4; color:#16a34a;"><i class="bi bi-unlock-fill"></i></div>
+                        <div class="step-text">
+                            <strong>Desbloqueo manual</strong>
+                            <span>Puedes liberar a cualquier cliente en cualquier momento.</span>
+                        </div>
+                    </div>
 
-                    <hr>
-
-                    <h6>Recomendaciones:</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Tolerancia: 15-30 minutos
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Máximo: 3-5 inasistencias
-                        </li>
-                    </ul>
+                    <hr class="inas-divider">
+                    <p style="font-size:0.8rem;font-weight:700;color:#334155;margin-bottom:0.6rem;">Valores recomendados</p>
+                    <span class="rec-pill"><i class="bi bi-clock"></i> Tolerancia: 15 – 30 min</span>
+                    <span class="rec-pill"><i class="bi bi-list-ol"></i> Máximo: 3 – 5 fallas</span>
                 </div>
             </div>
+
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
+</div>
+</div>
+
 <script>
-// Validación del formulario
-document.querySelector('form').addEventListener('submit', function(e) {
-    const tolerancia = parseInt(document.getElementById('tolerancia_minutos').value);
-    const penalizacion = parseInt(document.getElementById('penalizacion_dias').value);
+function stepField(id, delta, min, max) {
+    const el = document.getElementById(id);
+    const val = Math.min(max, Math.max(min, parseInt(el.value || 0) + delta));
+    el.value = val;
+}
+
+document.getElementById('configForm').addEventListener('submit', function(e) {
+    const tolerancia     = parseInt(document.getElementById('tolerancia_minutos').value);
+    const penalizacion   = parseInt(document.getElementById('penalizacion_dias').value);
     const maxInasistencias = parseInt(document.getElementById('max_inasistencias').value);
-    
-    if (tolerancia < 0 || tolerancia > 60) {
-        e.preventDefault();
-        alert('La tolerancia debe estar entre 0 y 60 minutos.');
-        return;
-    }
-    
-    if (penalizacion < 0 || penalizacion > 30) {
-        e.preventDefault();
-        alert('La penalización debe estar entre 0 y 30 días.');
-        return;
-    }
-    
-    if (maxInasistencias < 1 || maxInasistencias > 10) {
-        e.preventDefault();
-        alert('El máximo de inasistencias debe estar entre 1 y 10.');
-        return;
-    }
+
+    if (isNaN(tolerancia)   || tolerancia < 0   || tolerancia > 60)   { e.preventDefault(); showError('La tolerancia debe estar entre 0 y 60 minutos.'); return; }
+    if (isNaN(penalizacion) || penalizacion < 0 || penalizacion > 30)  { e.preventDefault(); showError('La penalización debe estar entre 0 y 30 días.'); return; }
+    if (isNaN(maxInasistencias) || maxInasistencias < 1 || maxInasistencias > 10) { e.preventDefault(); showError('El máximo de inasistencias debe estar entre 1 y 10.'); return; }
 });
+
+function showError(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;background:#dc2626;color:#fff;padding:0.8rem 1.2rem;border-radius:10px;font-size:0.9rem;box-shadow:0 4px 16px rgba(0,0,0,0.15);';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
 </script>
-{% endblock %} 
+{% endblock %}

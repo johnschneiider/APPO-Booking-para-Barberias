@@ -439,8 +439,8 @@ new Chart(reservasCtx, {
         datasets: [{
             label: 'Reservas',
             data: {{ reservas|safe }},
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderColor: '#133A7F',
+            backgroundColor: 'rgba(19, 58, 127, 0.1)',
             tension: 0.4,
             fill: true
         }]
@@ -497,9 +497,9 @@ new Chart(ingresosCtx, {
         datasets: [{
             data: {{ ventas_mes|safe }},
             backgroundColor: [
-                '#667eea',
-                '#764ba2',
-                '#f093fb',
+                '#133A7F',
+                '#1E5BC6',
+                '#1E5BC6',
                 '#f5576c',
                 '#4facfe',
                 '#00f2fe',
@@ -668,7 +668,7 @@ new Chart(reservasProfCtx, {
             label: 'Reservas',
             data: {{ reservas_por_profesional|default:"[0]"|safe }},
             backgroundColor: [
-                'rgba(102, 126, 234, 0.8)',
+                'rgba(19, 58, 127, 0.8)',
                 'rgba(118, 75, 162, 0.8)',
                 'rgba(240, 147, 251, 0.8)',
                 'rgba(245, 87, 108, 0.8)',
@@ -678,9 +678,9 @@ new Chart(reservasProfCtx, {
                 'rgba(56, 249, 215, 0.8)'
             ],
             borderColor: [
-                '#667eea',
-                '#764ba2',
-                '#f093fb',
+                '#133A7F',
+                '#1E5BC6',
+                '#1E5BC6',
                 '#f5576c',
                 '#4facfe',
                 '#00f2fe',
@@ -758,7 +758,7 @@ new Chart(ingresosProfCtx, {
                 'rgba(253, 126, 20, 0.8)',
                 'rgba(220, 53, 69, 0.8)',
                 'rgba(255, 193, 7, 0.8)',
-                'rgba(102, 126, 234, 0.8)'
+                'rgba(19, 58, 127, 0.8)'
             ],
             borderColor: [
                 '#28a745',
@@ -768,7 +768,7 @@ new Chart(ingresosProfCtx, {
                 '#fd7e14',
                 '#dc3545',
                 '#ffc107',
-                '#667eea'
+                '#133A7F'
             ],
             borderWidth: 2,
             borderRadius: 8
@@ -839,7 +839,7 @@ new Chart(ingresosProfCtx, {
 }
 
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
 }
 
 .btn {
@@ -849,13 +849,13 @@ new Chart(ingresosProfCtx, {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
     border: none;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(19, 58, 127, 0.3);
 }
 
 /* Estilos para suscripciones */

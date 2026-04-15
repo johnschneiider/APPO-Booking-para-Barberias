@@ -237,3 +237,39 @@ class ActivityLoggingMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip 
+
+
+class SecurityHeadersMiddleware(MiddlewareMixin):
+    """Middleware para agregar encabezados de seguridad avanzados (CSP, Permissions-Policy, etc.)"""
+
+    def process_response(self, request, response):
+        # Content-Security-Policy
+        csp = getattr(settings, 'CSP_POLICY', None)
+        if csp:
+            directives = []
+            for directive, sources in csp.items():
+                directives.append(f"{directive} {' '.join(sources)}")
+            response['Content-Security-Policy'] = '; '.join(directives)
+
+        # Permissions-Policy — restringir APIs del navegador
+        response['Permissions-Policy'] = (
+            'accelerometer=(), camera=(self), geolocation=(self), '
+            'gyroscope=(), magnetometer=(), microphone=(), '
+            'payment=(), usb=()'
+        )
+
+        # Cache-Control para respuestas con datos privados
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+            response['Pragma'] = 'no-cache'
+
+        # Evitar MIME-sniffing (refuerzo)
+        response['X-Content-Type-Options'] = 'nosniff'
+
+        # Referrer Policy
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        # Cross-Origin policies
+        response['Cross-Origin-Opener-Policy'] = 'same-origin'
+
+        return response
