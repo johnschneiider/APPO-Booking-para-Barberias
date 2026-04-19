@@ -19,7 +19,7 @@ def inicio(request):
     if request.user.is_authenticated:
         tipo = getattr(request.user, 'tipo', None)
         if tipo == 'cliente':
-            return redirect('clientes:lista_negocios')
+            return redirect('clientes:dashboard')
         if tipo == 'negocio':
             return redirect('negocios:mis_negocios')
         if tipo == 'profesional':
