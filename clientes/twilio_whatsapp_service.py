@@ -208,7 +208,7 @@ class TwilioWhatsAppService:
                 to=f'whatsapp:{formatted_phone}'
             )
             
-            logger.info(f"Template de WhatsApp enviado exitosamente a {formatted_phone}")
+            logger.warning(f"Template WhatsApp enviado a {formatted_phone} — SID: {message_obj.sid} — status: {message_obj.status}")
             return {
                 'success': True,
                 'message_id': message_obj.sid,
