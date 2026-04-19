@@ -329,23 +329,8 @@ def reservar_turno(request, peluquero_id):
 
                     messages.success(request, '¡Reserva realizada con éxito!')
 
-                    # Enviar WhatsApp de confirmación (independiente del email)
-                    try:
-                        from .utils import enviar_notificacion_whatsapp
-                        telefono = reserva.get_cliente_telefono()
-                        if telefono:
-                            resultado_wa = enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
-                            # resultado_wa puede ser dict {'success': True/False} o bool
-                            wa_ok = resultado_wa.get('success') if isinstance(resultado_wa, dict) else bool(resultado_wa)
-                            if wa_ok:
-                                logger.warning(f"WhatsApp OK para reserva #{reserva.id} enviado a {telefono}")
-                            else:
-                                error_detail = resultado_wa.get('error', '') if isinstance(resultado_wa, dict) else ''
-                                logger.warning(f"WhatsApp FALLÓ para reserva #{reserva.id} a {telefono}: {error_detail}")
-                        else:
-                            logger.warning(f"WhatsApp omitido para reserva #{reserva.id}: el cliente no tiene teléfono en su perfil")
-                    except Exception as e_wa:
-                        logger.warning(f"WhatsApp excepción para reserva #{reserva.id}: {e_wa}")
+                    # WhatsApp de confirmación: lo maneja automáticamente recordatorios/signals.py
+                    # al dispararse post_save de Reserva. No llamar aquí para evitar duplicados.
                     
                     return redirect('clientes:reserva_exitosa', reserva_id=reserva.id)
                 except Exception as e:

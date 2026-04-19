@@ -106,9 +106,9 @@ def _notificar_cita_agendada(reserva, whatsapp):
             resultado = whatsapp.send_reserva_confirmada(reserva)
             
             if resultado.get('success'):
-                logger.info(f"✅ Notificación de cita agendada enviada - Reserva {reserva.id}")
+                logger.warning(f"WhatsApp OK (signal) reserva #{reserva.id}")
             else:
-                logger.warning(f"⚠️ No se pudo enviar notificación - Reserva {reserva.id}: {resultado.get('error')}")
+                logger.warning(f"WhatsApp FALLÓ (signal) reserva #{reserva.id}: {resultado.get('error')}")
                 
     except Exception as e:
         logger.error(f"Error notificando cita agendada: {e}")
