@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 from django.conf.urls.static import static
 from negocios.models import Negocio
@@ -10,9 +10,21 @@ from negocios import views
 
 def inicio(request):
     """
-    Ruta raíz: muestra la landing institucional de barberías.
-    La lógica original del dashboard de clientes se movió a cuentas/landing/barberias/
+    Ruta raíz: redirige según el tipo de usuario autenticado.
+    - cliente      → lista de negocios para agendar cita
+    - negocio      → panel de mis negocios
+    - profesional  → panel del profesional
+    - sin sesión   → landing institucional
     """
+    if request.user.is_authenticated:
+        tipo = getattr(request.user, 'tipo', None)
+        if tipo == 'cliente':
+            return redirect('clientes:lista_negocios')
+        if tipo == 'negocio':
+            return redirect('negocios:mis_negocios')
+        if tipo == 'profesional':
+            return redirect('profesionales:panel')
+
     nombres_negocios = list(Negocio.objects.filter(activo=True).values_list('nombre', flat=True)[:30])
     contexto = {
         "precio_mensual": 49000,

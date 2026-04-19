@@ -312,32 +312,45 @@ class TwilioWhatsAppService:
     
     # Métodos específicos para el negocio de reservas
     
+    def _get_telefono(self, reserva) -> str:
+        """Obtiene el teléfono del cliente (con cuenta o provisional)."""
+        return reserva.get_cliente_telefono() if hasattr(reserva, 'get_cliente_telefono') else (
+            (reserva.cliente.telefono if reserva.cliente else '') or
+            (reserva.cliente_provisional.telefono if reserva.cliente_provisional else '')
+        )
+
+    def _get_nombre(self, reserva) -> str:
+        """Obtiene el nombre del cliente (con cuenta o provisional)."""
+        if hasattr(reserva, 'get_cliente_nombre'):
+            return reserva.get_cliente_nombre()
+        if reserva.cliente:
+            return reserva.cliente.get_full_name() or reserva.cliente.username
+        if reserva.cliente_provisional:
+            return reserva.cliente_provisional.nombre
+        return 'Cliente'
+
     def send_reserva_confirmada(self, reserva) -> Dict[str, Any]:
         """
         Envía notificación de reserva confirmada con mensaje personalizado
         """
-        if not reserva.cliente.telefono:
-            logger.warning(f"Cliente {reserva.cliente.username} no tiene teléfono configurado")
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            cliente_id = getattr(reserva.cliente, 'username', None) or getattr(reserva.cliente_provisional, 'nombre', 'provisional')
+            logger.warning(f"Reserva {reserva.id}: cliente '{cliente_id}' no tiene teléfono — notificación omitida")
             return {'success': False, 'error': 'Cliente sin teléfono'}
-        
-        # Preparar datos para el mensaje personalizado
+
         fecha_formateada = reserva.fecha.strftime('%d/%m/%Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio = reserva.peluquero
         negocio_nombre = negocio.nombre
         servicio_nombre = reserva.servicio.servicio.nombre if reserva.servicio else "Servicio general"
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        cliente_nombre = self._get_nombre(reserva)
         profesional_nombre = reserva.profesional.nombre_completo if reserva.profesional else negocio_nombre
-        
-        # Obtener dirección del negocio
         direccion = getattr(negocio, 'direccion', None) or 'Dirección no disponible'
-        
-        # Recomendado: template específico (Utility) para iniciar conversación sin depender de ventana 24h.
-        # Variables sugeridas (deben coincidir con {{1}}, {{2}}, ... en el template de Twilio):
-        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=profesional, 7=dirección
+
         return self._send_event_template(
             template_key="reserva_confirmada",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
@@ -353,30 +366,27 @@ class TwilioWhatsAppService:
         """
         Envía recordatorio 1 día antes de la cita con información completa y botones
         """
-        if not reserva.cliente.telefono:
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            logger.warning(f"Reserva {reserva.id}: sin teléfono para recordatorio día antes")
             return {'success': False, 'error': 'Cliente sin teléfono'}
         
         fecha_formateada = reserva.fecha.strftime('%d de %B de %Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio_nombre = reserva.peluquero.nombre
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        cliente_nombre = self._get_nombre(reserva)
         servicio_nombre = reserva.servicio.servicio.nombre if reserva.servicio else "Servicio general"
-        
-        # Obtener información del negocio
+
         direccion = getattr(reserva.peluquero, 'direccion', 'Dirección no disponible')
         telefono_negocio = getattr(reserva.peluquero, 'telefono', 'Teléfono no disponible')
-        
-        # URL para editar la reserva
-        from django.urls import reverse
+
         from django.conf import settings
-        base_url = getattr(settings, 'BASE_URL', 'http://127.0.0.1:8000')
+        base_url = getattr(settings, 'BASE_URL', 'https://appo.com.co')
         editar_url = f"{base_url}/clientes/editar-reserva/{reserva.id}/"
-        
-        # Variables sugeridas:
-        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=dirección, 7=teléfono negocio, 8=url edición
+
         return self._send_event_template(
             template_key="recordatorio_dia_antes",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
@@ -393,23 +403,22 @@ class TwilioWhatsAppService:
         """
         Envía recordatorio 3 horas antes de la cita con información y botones
         """
-        if not reserva.cliente.telefono:
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            logger.warning(f"Reserva {reserva.id}: sin teléfono para recordatorio 3 horas")
             return {'success': False, 'error': 'Cliente sin teléfono'}
-        
+
         fecha_formateada = reserva.fecha.strftime('%d de %B de %Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio_nombre = reserva.peluquero.nombre
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        cliente_nombre = self._get_nombre(reserva)
         servicio_nombre = reserva.servicio.servicio.nombre if reserva.servicio else "Servicio general"
-        
-        # Obtener información del negocio
+
         direccion = getattr(reserva.peluquero, 'direccion', 'Dirección no disponible')
         telefono_negocio = getattr(reserva.peluquero, 'telefono', 'Teléfono no disponible')
-        
-        # URL para editar la reserva
-        from django.urls import reverse
+
         from django.conf import settings
-        base_url = getattr(settings, 'BASE_URL', 'http://127.0.0.1:8000')
+        base_url = getattr(settings, 'BASE_URL', 'https://appo.com.co')
         editar_url = f"{base_url}/clientes/editar-reserva/{reserva.id}/"
         
         # Verificar si se puede cancelar (más de 1 hora antes)
@@ -422,18 +431,16 @@ class TwilioWhatsAppService:
             hora_cita = timezone.make_aware(hora_cita, timezone.get_current_timezone())
         tiempo_restante = hora_cita - ahora
         
-        puede_cancelar = tiempo_restante.total_seconds() > 3600  # Más de 1 hora
-        
+        puede_cancelar = tiempo_restante.total_seconds() > 3600
+
         nota_cancelacion = (
             "Puedes cancelar con más de 1 hora de anticipación"
             if puede_cancelar
             else "No se puede cancelar: falta menos de 1 hora"
         )
-        # Variables sugeridas:
-        # 1=cliente, 2=negocio, 3=servicio, 4=fecha, 5=hora, 6=dirección, 7=teléfono negocio, 8=url edición, 9=nota
         return self._send_event_template(
             template_key="recordatorio_tres_horas",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
@@ -451,20 +458,20 @@ class TwilioWhatsAppService:
         """
         Envía notificación de reserva cancelada
         """
-        if not reserva.cliente.telefono:
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            logger.warning(f"Reserva {reserva.id}: sin teléfono para notificación de cancelación")
             return {'success': False, 'error': 'Cliente sin teléfono'}
-        
+
         fecha_formateada = reserva.fecha.strftime('%d de %B de %Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio_nombre = reserva.peluquero.nombre
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        cliente_nombre = self._get_nombre(reserva)
         motivo_texto = motivo if motivo else "Sin motivo especificado"
-        
-        # Variables sugeridas:
-        # 1=cliente, 2=negocio, 3=fecha, 4=hora, 5=motivo
+
         return self._send_event_template(
             template_key="reserva_cancelada",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
@@ -478,21 +485,21 @@ class TwilioWhatsAppService:
         """
         Envía notificación de reserva reagendada
         """
-        if not reserva.cliente.telefono:
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            logger.warning(f"Reserva {reserva.id}: sin teléfono para notificación de reagendamiento")
             return {'success': False, 'error': 'Cliente sin teléfono'}
-        
+
         fecha_anterior_formateada = fecha_anterior.strftime('%d de %B de %Y')
         hora_anterior_formateada = hora_anterior.strftime('%H:%M')
         fecha_nueva_formateada = reserva.fecha.strftime('%d de %B de %Y')
         hora_nueva_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio_nombre = reserva.peluquero.nombre
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
-        
-        # Variables sugeridas:
-        # 1=cliente, 2=negocio, 3=fecha anterior, 4=hora anterior, 5=fecha nueva, 6=hora nueva
+        cliente_nombre = self._get_nombre(reserva)
+
         return self._send_event_template(
             template_key="reserva_reagendada",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
@@ -507,20 +514,20 @@ class TwilioWhatsAppService:
         """
         Envía notificación de inasistencia
         """
-        if not reserva.cliente.telefono:
+        telefono = self._get_telefono(reserva)
+        if not telefono:
+            logger.warning(f"Reserva {reserva.id}: sin teléfono para notificación de inasistencia")
             return {'success': False, 'error': 'Cliente sin teléfono'}
-        
+
         fecha_formateada = reserva.fecha.strftime('%d de %B de %Y')
         hora_formateada = reserva.hora_inicio.strftime('%H:%M')
         negocio_nombre = reserva.peluquero.nombre
-        cliente_nombre = reserva.cliente.get_full_name() or reserva.cliente.username
+        cliente_nombre = self._get_nombre(reserva)
         motivo_texto = motivo if motivo else "Sin motivo especificado"
-        
-        # Variables sugeridas:
-        # 1=cliente, 2=negocio, 3=fecha, 4=hora, 5=motivo
+
         return self._send_event_template(
             template_key="inasistencia",
-            to_phone=reserva.cliente.telefono,
+            to_phone=telefono,
             variables={
                 "1": cliente_nombre,
                 "2": negocio_nombre,
