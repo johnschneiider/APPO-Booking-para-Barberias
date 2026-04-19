@@ -257,7 +257,7 @@ def reservar_turno(request, peluquero_id):
         logger.info(f"Negocio encontrado: {negocio.nombre}")
         
         if request.method == 'POST':
-            form = ReservaForm(request.POST, negocio=negocio)
+            form = ReservaForm(request.POST, request.FILES, negocio=negocio)
             if form.is_valid():
                 try:
                     # Obtener los datos del formulario
@@ -281,9 +281,9 @@ def reservar_turno(request, peluquero_id):
                         estado='pendiente'
                     )
                     
-                    # Calcular hora_fin usando la duración del servicio
-                    if servicio and hora_inicio:
-                        duracion = servicio.duracion if servicio.duracion is not None else 30
+                    # Calcular hora_fin usando la duración del servicio (siempre requerida)
+                    if hora_inicio:
+                        duracion = servicio.duracion if servicio and servicio.duracion is not None else 30
                         from datetime import datetime, timedelta
                         hora_inicio_dt = datetime.combine(fecha, hora_inicio)
                         hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion)
@@ -345,6 +345,11 @@ def reservar_turno(request, peluquero_id):
                         }
                     )
                     messages.error(request, 'Error al guardar la reserva. Por favor, intenta nuevamente.')
+                    return render(request, 'clientes/reservar_turno.html', {
+                        'negocio': negocio,
+                        'form': form,
+                        'today': timezone.now().date()
+                    })
             else:
                 log_user_activity(
                     user=request.user,
