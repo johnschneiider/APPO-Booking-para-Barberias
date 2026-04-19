@@ -279,14 +279,14 @@ def enviar_notificacion_whatsapp(reserva, tipo_notificacion, **kwargs):
     Envía notificación por WhatsApp según el tipo
     """
     try:
-        from .whatsapp_service import whatsapp_service
+        whatsapp_service = get_whatsapp_service()
         
-        if not whatsapp_service.is_enabled():
+        if not whatsapp_service or not whatsapp_service.is_enabled():
             logger.warning("WhatsApp no está habilitado")
             return False
         
-        if not reserva.cliente.telefono:
-            logger.warning(f"Cliente {reserva.cliente.username} no tiene teléfono configurado")
+        if not reserva.get_cliente_telefono():
+            logger.warning(f"La reserva #{reserva.id} no tiene teléfono de cliente configurado")
             return False
         
         if tipo_notificacion == 'reserva_confirmada':
