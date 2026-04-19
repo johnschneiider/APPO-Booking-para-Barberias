@@ -257,7 +257,7 @@ def reservar_turno(request, peluquero_id):
         logger.info(f"Negocio encontrado: {negocio.nombre}")
         
         if request.method == 'POST':
-            form = ReservaForm(request.POST, request.FILES, negocio=negocio)
+            form = ReservaForm(request.POST, request.FILES, negocio=negocio, user=request.user)
             if form.is_valid():
                 try:
                     # Obtener los datos del formulario
@@ -331,6 +331,15 @@ def reservar_turno(request, peluquero_id):
                         # No fallar la reserva si el email falla
                     
                     messages.success(request, '¡Reserva realizada con éxito!')
+                    
+                    # Enviar WhatsApp de confirmación si el cliente tiene teléfono
+                    try:
+                        from .utils import enviar_notificacion_whatsapp
+                        if reserva.get_telefono_cliente():
+                            enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
+                    except Exception as e:
+                        logger.warning(f"No se pudo enviar WhatsApp de confirmación para reserva #{reserva.id}: {str(e)}")
+                    
                     return redirect('clientes:reserva_exitosa', reserva_id=reserva.id)
                 except Exception as e:
                     log_error(
@@ -339,9 +348,9 @@ def reservar_turno(request, peluquero_id):
                         user=request.user,
                         context={
                             "negocio_id": negocio.id,
-                            "servicio": servicio.nombre if servicio else None,
-                            "fecha": fecha,
-                            "hora_inicio": hora_inicio
+                            "servicio": servicio.servicio.nombre if servicio else None,
+                            "fecha": str(fecha),
+                            "hora_inicio": str(hora_inicio)
                         }
                     )
                     messages.error(request, 'Error al guardar la reserva. Por favor, intenta nuevamente.')
@@ -365,7 +374,7 @@ def reservar_turno(request, peluquero_id):
                     'today': timezone.now().date()
                 })
         else:
-            form = ReservaForm(negocio=negocio)
+            form = ReservaForm(negocio=negocio, user=request.user)
         
         logger.info(f"Renderizando template reservar_turno.html para negocio: {negocio.nombre}")
         logger.info("=== FIN reservar_turno ===")

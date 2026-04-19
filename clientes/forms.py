@@ -35,8 +35,11 @@ class ReservaForm(forms.ModelForm):
             'notas': forms.Textarea(attrs={'rows': 3}),
         }
 
-    def __init__(self, *args, negocio=None, **kwargs):
+    def __init__(self, *args, negocio=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # Set cliente on the instance now so model.clean() doesn't reject it
+        if user is not None:
+            self.instance.cliente = user
         if negocio:
             from negocios.models import ServicioNegocio
             # Obtener servicios del negocio con información completa
