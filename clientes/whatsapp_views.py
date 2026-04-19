@@ -2,117 +2,99 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 from django.conf import settings
-import json
 import logging
-import hmac
-import hashlib
 from .utils import get_whatsapp_service
 
 logger = logging.getLogger(__name__)
 
+
 @require_GET
 def whatsapp_webhook_verify(request):
     """
-    Endpoint para verificar el webhook de WhatsApp
+    Health-check / verificación del webhook.
+    Twilio no requiere este handshake — se conserva como endpoint de diagnóstico.
+    """
+    return HttpResponse('OK - Twilio WhatsApp webhook activo', content_type='text/plain')
+
+
+def verify_twilio_signature(request):
+    """
+    Valida la firma X-Twilio-Signature que Twilio incluye en cada POST.
+    Usa RequestValidator de la librería oficial de Twilio.
+    Si no hay AUTH_TOKEN configurado (desarrollo local) permite el paso con advertencia.
     """
     try:
-        mode = request.GET.get('hub.mode')
-        token = request.GET.get('hub.verify_token')
-        challenge = request.GET.get('hub.challenge')
-        
-        if mode == 'subscribe' and token == settings.WHATSAPP_CONFIG['VERIFY_TOKEN']:
-            logger.info("Webhook de WhatsApp verificado exitosamente")
-            return HttpResponse(challenge, content_type='text/plain')
-        else:
-            logger.warning("Verificación de webhook fallida")
-            return HttpResponse('Forbidden', status=403)
-            
+        auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
+        if not auth_token:
+            logger.warning("TWILIO_AUTH_TOKEN no configurado — omitiendo validación de firma (solo desarrollo)")
+            return True
+
+        from twilio.request_validator import RequestValidator
+        validator = RequestValidator(auth_token)
+
+        # URL completa que Twilio usó
+        url = request.build_absolute_uri()
+        post_params = request.POST.dict()
+        signature = request.headers.get('X-Twilio-Signature', '')
+
+        valid = validator.validate(url, post_params, signature)
+        if not valid:
+            logger.warning(f"X-Twilio-Signature inválida para URL: {url}")
+        return valid
+
     except Exception as e:
-        logger.error(f"Error en verificación de webhook: {str(e)}")
-        return HttpResponse('Internal Server Error', status=500)
+        logger.error(f"Error verificando firma de Twilio: {e}")
+        return False
+
 
 @csrf_exempt
 @require_POST
 def whatsapp_webhook(request):
     """
-    Endpoint para recibir mensajes de WhatsApp
+    Recibe mensajes entrantes de WhatsApp vía Twilio.
+
+    Twilio envía POST con Content-Type: application/x-www-form-urlencoded.
+    Campos principales:
+      From  → 'whatsapp:+573001234567'
+      To    → 'whatsapp:+15558371742'
+      Body  → texto del mensaje
+      MessageSid, NumMedia, etc.
+
+    URL a configurar en Twilio Console:
+      https://<tu-dominio>/clientes/whatsapp/webhook/
     """
     try:
-        # Verificar la firma del webhook (opcional pero recomendado)
-        signature = request.headers.get('X-Hub-Signature-256', '')
-        if not verify_webhook_signature(request.body, signature):
-            logger.warning("Firma de webhook inválida")
+        if not verify_twilio_signature(request):
+            logger.warning("Firma de Twilio inválida — rechazando webhook")
             return HttpResponse('Unauthorized', status=401)
-        
-        # Parsear el payload
-        payload = json.loads(request.body)
-        logger.info(f"Webhook recibido: {payload}")
-        
-        # Procesar el mensaje
-        if 'object' in payload and payload['object'] == 'whatsapp_business_account':
-            for entry in payload.get('entry', []):
-                for change in entry.get('changes', []):
-                    if change.get('value', {}).get('messages'):
-                        for message in change['value']['messages']:
-                            process_whatsapp_message(message)
-        
-        return HttpResponse('OK', status=200)
-        
+
+        # Twilio envía form-data, no JSON
+        from_raw = request.POST.get('From', '')        # ej: whatsapp:+573001234567
+        body_text = request.POST.get('Body', '').strip()
+        message_sid = request.POST.get('MessageSid', '')
+        num_media = int(request.POST.get('NumMedia', 0))
+
+        # Limpiar prefijo 'whatsapp:'
+        from_phone = from_raw.replace('whatsapp:', '').strip()
+
+        logger.info(f"Twilio webhook recibido | from={from_phone} | sid={message_sid} | body={body_text[:60]!r}")
+
+        if body_text:
+            handle_text_message(from_phone, body_text, timestamp=None)
+        elif num_media > 0:
+            logger.info(f"Mensaje multimedia recibido de {from_phone} ({num_media} archivos) — no procesado")
+        else:
+            logger.info(f"Webhook sin body ni media de {from_phone}")
+
+        # Twilio espera 200 OK con cuerpo vacío o TwiML
+        return HttpResponse('', content_type='text/plain', status=200)
+
     except Exception as e:
-        logger.error(f"Error procesando webhook de WhatsApp: {str(e)}")
+        logger.error(f"Error procesando webhook de Twilio: {e}")
         return HttpResponse('Internal Server Error', status=500)
 
-def verify_webhook_signature(body, signature):
-    """
-    Verifica la firma del webhook de WhatsApp
-    """
-    try:
-        if not signature:
-            logger.warning("Webhook recibido sin firma X-Hub-Signature-256 — rechazado")
-            return False  # Rechazar si no hay firma
-        
-        # Extraer la firma del header
-        if signature.startswith('sha256='):
-            signature = signature[7:]
-        
-        # Calcular la firma esperada
-        expected_signature = hmac.new(
-            settings.META_WHATSAPP_WEBHOOK_SECRET.encode('utf-8'),
-            body,
-            hashlib.sha256
-        ).hexdigest()
-        
-        return hmac.compare_digest(signature, expected_signature)
-        
-    except Exception as e:
-        logger.error(f"Error verificando firma: {str(e)}")
-        return False
-
-def process_whatsapp_message(message):
-    """
-    Procesa un mensaje recibido de WhatsApp
-    """
-    try:
-        message_type = message.get('type')
-        from_number = message.get('from')
-        timestamp = message.get('timestamp')
-        
-        logger.info(f"Procesando mensaje de WhatsApp: tipo={message_type}, from={from_number}")
-        
-        if message_type == 'text':
-            text = message.get('text', {}).get('body', '')
-            handle_text_message(from_number, text, timestamp)
-        elif message_type == 'button':
-            button_text = message.get('button', {}).get('text', '')
-            handle_button_message(from_number, button_text, timestamp)
-        elif message_type == 'interactive':
-            interactive = message.get('interactive', {})
-            handle_interactive_message(from_number, interactive, timestamp)
-        else:
-            logger.info(f"Tipo de mensaje no manejado: {message_type}")
-            
-    except Exception as e:
-        logger.error(f"Error procesando mensaje de WhatsApp: {str(e)}")
+# process_whatsapp_message era específico de la API de Meta (formato JSON con 'type'/'text'/'button').
+# Con Twilio el Body llega directamente en el POST — se procesa en whatsapp_webhook().
 
 def handle_text_message(from_number, text, timestamp):
     """

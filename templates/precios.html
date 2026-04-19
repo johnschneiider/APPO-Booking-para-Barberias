@@ -1,120 +1,424 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Planes | Appo{% endblock %}
+{% block title %}Empieza gratis — Appo{% endblock %}
 
 {% block content %}
-<section class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 text-center mb-4">
-      <h1 class="fw-bold">Plan único para barberías y peluquerías</h1>
-      <p class="lead mb-1">30 días gratis · Sin cobro inicial · Cancelable antes del primer cargo</p>
-      <p class="text-muted">Pago mensual automático al finalizar el trial.</p>
-    </div>
+<style>
+  .onboarding-wrap {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+  .onboarding-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .onboarding-header h1 {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #0d1b2a;
+    margin-bottom: 8px;
+  }
+  .onboarding-header p {
+    color: #64748b;
+    font-size: 0.97rem;
+  }
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #EBF1FF;
+    color: #133A7F;
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-bottom: 14px;
+  }
+  .onboarding-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 12px 40px rgba(19,58,127,0.09);
+    overflow: hidden;
+  }
+  .onboarding-card-body {
+    padding: 32px;
+  }
+  .form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1e293b;
+    margin-bottom: 5px;
+  }
+  .form-control {
+    border-radius: 10px;
+    border-color: #e2e8f0;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+  }
+  .form-control:focus {
+    border-color: #133A7F;
+    box-shadow: 0 0 0 3px rgba(19,58,127,0.1);
+  }
+  .barberos-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .barberos-option {
+    flex: 1;
+    min-width: 56px;
+    text-align: center;
+    padding: 10px 6px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #475569;
+    transition: all 0.15s;
+    background: #f8fafc;
+    user-select: none;
+  }
+  .barberos-option:hover {
+    border-color: #133A7F;
+    color: #133A7F;
+    background: #EBF1FF;
+  }
+  .barberos-option.selected {
+    border-color: #133A7F;
+    background: #133A7F;
+    color: #fff;
+  }
+  .barberos-option small {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    margin-top: 2px;
+    opacity: 0.8;
+  }
+  .barberos-custom-wrap {
+    display: none;
+    margin-top: 12px;
+    align-items: center;
+    gap: 12px;
+    background: #EBF1FF;
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .barberos-custom-wrap.visible {
+    display: flex;
+  }
+  .barberos-custom-wrap label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #133A7F;
+    white-space: nowrap;
+    margin: 0;
+  }
+  .barberos-custom-input {
+    width: 90px;
+    border: 2px solid #133A7F;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #133A7F;
+    text-align: center;
+    background: #fff;
+    outline: none;
+  }
+  .barberos-custom-input:focus {
+    box-shadow: 0 0 0 3px rgba(19,58,127,0.15);
+  }
+  .submit-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #133A7F 0%, #1E5BC6 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(19,58,127,0.22);
+    margin-top: 8px;
+  }
+  .submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(19,58,127,0.32);
+  }
+  .price-preview {
+    background: #EBF1FF;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .price-preview .label {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+  }
+  .price-preview .value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #133A7F;
+    white-space: nowrap;
+  }
+  .trust-bullets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    justify-content: center;
+  }
+  .trust-bullet {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .trust-bullet i {
+    color: #16a34a;
+  }
+</style>
+
+<div class="onboarding-wrap">
+  <div class="onboarding-header">
+    <span class="step-badge"><i class="bi bi-rocket-takeoff-fill"></i> Paso 1 de 2 — Crea tu cuenta</span>
+    <h1>Empieza gratis hoy</h1>
+    <p>{{ dias_trial }} días sin cobro. Configura tu barbería en minutos.</p>
   </div>
 
-  <div class="row justify-content-center">
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-baseline mb-3">
-            <div>
-              <h3 class="fw-bold mb-0">${{ precio_mensual|floatformat:0 }} {{ moneda }}</h3>
-              <small class="text-muted">por barbero / mes</small>
-            </div>
-            <span class="badge bg-primary">30 días gratis</span>
-          </div>
-
-          <h5 class="mb-3">Incluye</h5>
-          <ul class="list-unstyled">
-            {% for item in incluye %}
-            <li class="d-flex align-items-start mb-2">
-              <i class="bi bi-check-circle text-success me-2"></i>
-              <span>{{ item }}</span>
-            </li>
-            {% endfor %}
-          </ul>
-
-          <h6 class="mt-4">No incluye (por ahora)</h6>
-          <ul class="list-unstyled text-muted">
-            {% for item in excluye %}
-            <li class="d-flex align-items-start mb-2">
-              <i class="bi bi-dash-circle me-2"></i>
-              <span>{{ item }}</span>
-            </li>
-            {% endfor %}
-          </ul>
-
-          <hr class="my-4">
-
-          {% if messages %}
-          <div class="mb-3">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
-            {% endfor %}
-          </div>
-          {% endif %}
-
-          <form method="post" action="{% url 'cuentas:crear_trial_payu' %}" class="text-start">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label class="form-label">Nombre del negocio</label>
-              <input type="text" name="nombre_negocio" class="form-control" value="{{ nombre_negocio|default:'' }}" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Correo de contacto</label>
-              <input type="email" name="email_contacto" class="form-control" value="{{ email_contacto|default:'' }}" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">WhatsApp / Teléfono</label>
-              <input type="text" name="telefono_contacto" class="form-control" placeholder="+57..." value="{{ telefono_contacto|default:'' }}">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Número de barberos</label>
-              <input type="number" name="numero_barberos" class="form-control" min="1" value="{{ numero_barberos|default:'1' }}">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Contraseña para tu cuenta</label>
-              <input type="password" id="pass1" name="password1" class="form-control" minlength="6" placeholder="Mínimo 6 caracteres" required>
-              <small id="pass1Help" class="text-muted d-block mt-1">Mínimo 6 caracteres.</small>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Repite la contraseña</label>
-              <input type="password" id="pass2" name="password2" class="form-control" minlength="6" required>
-              <small id="pass2Help" class="text-muted d-block mt-1">Debe coincidir con la anterior.</small>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 fw-bold">Empezar prueba gratis</button>
-          </form>
-
-          <p class="small text-muted mt-3 mb-0">
-            Al continuar, aceptas el cobro automático de ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes al finalizar los {{ dias_trial }} días de prueba, salvo cancelación previa.
-          </p>
-        </div>
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-2 rounded-3">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
       </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="onboarding-card">
+    <div class="onboarding-card-body">
+      <form method="post" action="{% url 'cuentas:crear_trial_payu' %}" id="onboarding-form">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-shop me-1 text-primary"></i> ¿Cómo se llama tu barbería?</label>
+          <input type="text" name="nombre_negocio" class="form-control" placeholder="Ej: Barbería El Rey" value="{{ nombre_negocio|default:'' }}" required autocomplete="organization">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-envelope me-1 text-primary"></i> Tu correo electrónico</label>
+          <input type="email" name="email_contacto" class="form-control" placeholder="correo@ejemplo.com" value="{{ email_contacto|default:'' }}" required autocomplete="email">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-telephone me-1 text-primary"></i> Teléfono <span class="text-muted fw-normal">(opcional)</span></label>
+          <input type="text" name="telefono_contacto" class="form-control" placeholder="+57 300 000 0000" value="{{ telefono_contacto|default:'' }}" autocomplete="tel">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label"><i class="bi bi-people me-1 text-primary"></i> ¿Cuántos barberos tienes?</label>
+          <div class="barberos-selector" id="barberos-selector">
+            <div class="barberos-option selected" data-value="1">1<small>barbero</small></div>
+            <div class="barberos-option" data-value="2">2<small>barberos</small></div>
+            <div class="barberos-option" data-value="3">3<small>barberos</small></div>
+            <div class="barberos-option" data-value="4">4<small>barberos</small></div>
+            <div class="barberos-option" data-value="custom"><i class="bi bi-pencil-square" style="font-size:0.9rem;"></i><small>Otro...</small></div>
+          </div>
+          <div class="barberos-custom-wrap" id="barberos-custom-wrap">
+            <label for="barberos-custom-input">¿Cuántos exactamente?</label>
+            <input type="number" id="barberos-custom-input" class="barberos-custom-input" min="5" max="200" placeholder="Ej: 10">
+            <span style="font-size:0.82rem; color:#475569;">mín. 5</span>
+          </div>
+          <input type="hidden" name="numero_barberos" id="numero_barberos" value="{{ numero_barberos|default:'1' }}">
+        </div>
+
+        <div class="price-preview" id="price-preview">
+          <span class="label">Precio estimado después del trial:</span>
+          <span class="value" id="price-estimate">${{ precio_mensual|floatformat:0 }} {{ moneda }}/mes</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-lock me-1 text-primary"></i> Crea una contraseña</label>
+          <div class="position-relative">
+            <input type="password" id="pass1" name="password1" class="form-control pe-5" minlength="6" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+            <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent p-0" id="toggle-pass1" tabindex="-1">
+              <i class="bi bi-eye text-muted" id="eye1"></i>
+            </button>
+          </div>
+          <small id="pass1Help" class="text-muted d-block mt-1">Mínimo 6 caracteres.</small>
+        </div>
+        <div class="mb-4">
+          <label class="form-label"><i class="bi bi-lock-fill me-1 text-primary"></i> Confirma tu contraseña</label>
+          <div class="position-relative">
+            <input type="password" id="pass2" name="password2" class="form-control pe-5" minlength="6" required autocomplete="new-password">
+            <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent p-0" id="toggle-pass2" tabindex="-1">
+              <i class="bi bi-eye text-muted" id="eye2"></i>
+            </button>
+          </div>
+          <small id="pass2Help" class="text-muted d-block mt-1">Debe coincidir con la anterior.</small>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="bi bi-rocket-takeoff-fill me-2"></i> Crear cuenta y empezar gratis
+        </button>
+      </form>
+
+      <div class="trust-bullets">
+        <span class="trust-bullet"><i class="bi bi-check-circle-fill"></i> Sin cobro inicial</span>
+        <span class="trust-bullet"><i class="bi bi-check-circle-fill"></i> Cancela en cualquier momento</span>
+        <span class="trust-bullet"><i class="bi bi-check-circle-fill"></i> {{ dias_trial }} días gratis</span>
+        <span class="trust-bullet"><i class="bi bi-check-circle-fill"></i> Sin tarjeta de crédito</span>
+      </div>
+
+      <p class="text-center small text-muted mt-3 mb-0" style="font-size:0.75rem;">
+        Al continuar, aceptas el cobro de ${{ precio_mensual|floatformat:0 }} {{ moneda }} por barbero/mes al finalizar el trial, salvo cancelación previa.
+      </p>
     </div>
   </div>
-</section>
+
+  <p class="text-center mt-3" style="font-size:0.88rem; color:#64748b;">
+    ¿Ya tienes cuenta? <a href="{% url 'account_login' %}" class="fw-semibold" style="color:#133A7F;">Inicia sesión</a>
+  </p>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Password validation ──
   const pass1 = document.getElementById('pass1');
   const pass2 = document.getElementById('pass2');
   const help1 = document.getElementById('pass1Help');
   const help2 = document.getElementById('pass2Help');
+
   function validatePass() {
     const v1 = pass1.value;
     const v2 = pass2.value;
     const okLength = v1.length >= 6;
     const matches = v1 === v2 && v1.length > 0;
-    help1.textContent = okLength ? 'Contraseña válida.' : 'Mínimo 6 caracteres.';
-    help1.classList.toggle('text-success', okLength);
-    help1.classList.toggle('text-danger', !okLength && v1.length > 0);
-    help2.textContent = matches ? 'Coinciden.' : 'Debe coincidir con la anterior.';
-    help2.classList.toggle('text-success', matches);
-    help2.classList.toggle('text-danger', !matches && v2.length > 0);
+    help1.textContent = okLength ? '✓ Contraseña válida.' : 'Mínimo 6 caracteres.';
+    help1.className = 'd-block mt-1 small ' + (okLength ? 'text-success' : (v1.length > 0 ? 'text-danger' : 'text-muted'));
+    help2.textContent = matches ? '✓ Coinciden.' : 'Debe coincidir con la anterior.';
+    help2.className = 'd-block mt-1 small ' + (matches ? 'text-success' : (v2.length > 0 ? 'text-danger' : 'text-muted'));
   }
   if (pass1 && pass2) {
     pass1.addEventListener('input', validatePass);
     pass2.addEventListener('input', validatePass);
+  }
+
+  // ── Show/hide password ──
+  function togglePass(inputId, eyeId) {
+    const inp = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
+    if (!inp || !eye) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    eye.className = inp.type === 'password' ? 'bi bi-eye text-muted' : 'bi bi-eye-slash text-muted';
+  }
+  document.getElementById('toggle-pass1')?.addEventListener('click', () => togglePass('pass1', 'eye1'));
+  document.getElementById('toggle-pass2')?.addEventListener('click', () => togglePass('pass2', 'eye2'));
+
+  // ── Barberos selector ──
+  const PRECIO = {{ precio_mensual }};
+  const MONEDA = '{{ moneda }}';
+  const priceEl = document.getElementById('price-estimate');
+  const hiddenInput = document.getElementById('numero_barberos');
+  const options = document.querySelectorAll('.barberos-option');
+  const customWrap = document.getElementById('barberos-custom-wrap');
+  const customInput = document.getElementById('barberos-custom-input');
+
+  function formatPrice(n) {
+    return '$' + (PRECIO * n).toLocaleString('es-CO') + ' ' + MONEDA + '/mes';
+  }
+
+  function updatePrice(n) {
+    if (priceEl) priceEl.textContent = formatPrice(n);
+    hiddenInput.value = n;
+  }
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      options.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+
+      if (opt.dataset.value === 'custom') {
+        customWrap.classList.add('visible');
+        customInput.focus();
+        // Usa el valor actual del input si ya tiene uno, si no deja en blanco
+        const cur = parseInt(customInput.value);
+        if (cur >= 5) {
+          updatePrice(cur);
+        } else {
+          if (priceEl) priceEl.textContent = 'Ingresa la cantidad exacta';
+          hiddenInput.value = '';
+        }
+      } else {
+        customWrap.classList.remove('visible');
+        const val = parseInt(opt.dataset.value) || 1;
+        updatePrice(val);
+      }
+    });
+  });
+
+  customInput.addEventListener('input', () => {
+    const val = parseInt(customInput.value);
+    if (val >= 5 && val <= 200) {
+      updatePrice(val);
+      customInput.style.borderColor = '#133A7F';
+    } else if (customInput.value === '') {
+      if (priceEl) priceEl.textContent = 'Ingresa la cantidad exacta';
+      hiddenInput.value = '';
+      customInput.style.borderColor = '#e2e8f0';
+    } else {
+      if (priceEl) priceEl.textContent = val < 5 ? 'Mínimo 5 barberos en esta opción' : 'Máximo 200';
+      hiddenInput.value = '';
+      customInput.style.borderColor = '#dc2626';
+    }
+  });
+
+  // Validar antes de enviar
+  document.getElementById('onboarding-form').addEventListener('submit', function(e) {
+    const selectedOpt = document.querySelector('.barberos-option.selected');
+    if (selectedOpt && selectedOpt.dataset.value === 'custom') {
+      const val = parseInt(customInput.value);
+      if (!val || val < 5 || val > 200) {
+        e.preventDefault();
+        customInput.style.borderColor = '#dc2626';
+        customInput.focus();
+        customWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      hiddenInput.value = val;
+    }
+  });
+
+  // Pre-select si viene prefilled
+  const prefilled = parseInt(hiddenInput.value) || 1;
+  if (prefilled >= 5) {
+    options.forEach(o => o.classList.remove('selected'));
+    const customOpt = document.querySelector('.barberos-option[data-value="custom"]');
+    if (customOpt) customOpt.classList.add('selected');
+    customWrap.classList.add('visible');
+    customInput.value = prefilled;
+    updatePrice(prefilled);
+  } else {
+    options.forEach(opt => {
+      opt.classList.toggle('selected', parseInt(opt.dataset.value) === prefilled);
+    });
+    updatePrice(prefilled);
   }
 });
 </script>

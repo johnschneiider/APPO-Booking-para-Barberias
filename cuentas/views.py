@@ -1439,6 +1439,10 @@ def crear_trial_payu(request):
             nombre=nombre_negocio or "Mi barbería",
             direccion="Sin dirección"
         )
+        # Agregar todos los servicios disponibles al negocio (igual que crear_negocio)
+        from negocios.models import Servicio, ServicioNegocio
+        for servicio in Servicio.objects.all():
+            ServicioNegocio.objects.get_or_create(negocio=negocio_creado, servicio=servicio)
 
     trial_inicio = timezone.now()
     trial_fin = trial_inicio + timedelta(days=30)
@@ -1468,6 +1472,7 @@ def crear_trial_payu(request):
         else:
             login(request, user, backend='cuentas.backends.CaseInsensitiveAuthBackend')
         request.session.save()
+        messages.success(request, f'¡Bienvenido a Appo! Tu barbería "{nombre_negocio}" está lista. Ahora configúrala y empieza a recibir reservas.')
         return redirect('negocios:mis_negocios')
 
     messages.error(request, "No se pudo crear o autenticar la cuenta. Intenta nuevamente.")
