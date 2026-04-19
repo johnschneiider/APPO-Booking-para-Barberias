@@ -335,14 +335,17 @@ def reservar_turno(request, peluquero_id):
                         telefono = reserva.get_cliente_telefono()
                         if telefono:
                             resultado_wa = enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
-                            if resultado_wa:
-                                logger.info(f"WhatsApp de confirmación enviado para reserva #{reserva.id} a {telefono}")
+                            # resultado_wa puede ser dict {'success': True/False} o bool
+                            wa_ok = resultado_wa.get('success') if isinstance(resultado_wa, dict) else bool(resultado_wa)
+                            if wa_ok:
+                                logger.warning(f"WhatsApp OK para reserva #{reserva.id} enviado a {telefono}")
                             else:
-                                logger.warning(f"WhatsApp no enviado para reserva #{reserva.id} (servicio retornó False)")
+                                error_detail = resultado_wa.get('error', '') if isinstance(resultado_wa, dict) else ''
+                                logger.warning(f"WhatsApp FALLÓ para reserva #{reserva.id} a {telefono}: {error_detail}")
                         else:
-                            logger.warning(f"WhatsApp omitido para reserva #{reserva.id}: el cliente no tiene número de teléfono registrado en su perfil")
+                            logger.warning(f"WhatsApp omitido para reserva #{reserva.id}: el cliente no tiene teléfono en su perfil")
                     except Exception as e_wa:
-                        logger.warning(f"WhatsApp fallido para reserva #{reserva.id}: {e_wa}")
+                        logger.warning(f"WhatsApp excepción para reserva #{reserva.id}: {e_wa}")
                     
                     return redirect('clientes:reserva_exitosa', reserva_id=reserva.id)
                 except Exception as e:
