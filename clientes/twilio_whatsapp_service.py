@@ -129,10 +129,13 @@ class TwilioWhatsAppService:
 
             # Formatear número de teléfono
             formatted_phone = self.format_phone_number(to_phone)
-            
+            wa_from = self.whatsapp_number.lstrip('whatsapp:').strip()
+            if not wa_from.startswith('+'):
+                wa_from = '+' + wa_from
+
             # Enviar mensaje de WhatsApp
             message_obj = self.client.messages.create(
-                from_=f'whatsapp:{self.whatsapp_number}',
+                from_=f'whatsapp:{wa_from}',
                 body=message,
                 to=f'whatsapp:{formatted_phone}'
             )
@@ -192,7 +195,11 @@ class TwilioWhatsAppService:
         try:
             # Formatear número de teléfono
             formatted_phone = self.format_phone_number(to_phone)
-            
+            # Asegurar que whatsapp_number no tenga ya el prefijo
+            wa_from = self.whatsapp_number.lstrip('whatsapp:').strip()
+            if not wa_from.startswith('+'):
+                wa_from = '+' + wa_from
+
             # Preparar variables para la plantilla
             content_variables = '{}'
             if variables:
@@ -202,7 +209,7 @@ class TwilioWhatsAppService:
             
             # Enviar mensaje de plantilla
             message_obj = self.client.messages.create(
-                from_=f'whatsapp:{self.whatsapp_number}',
+                from_=f'whatsapp:{wa_from}',
                 content_sid=template_name,
                 content_variables=content_variables,
                 to=f'whatsapp:{formatted_phone}'
