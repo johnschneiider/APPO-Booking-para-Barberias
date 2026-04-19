@@ -335,7 +335,7 @@ def reservar_turno(request, peluquero_id):
                     # Enviar WhatsApp de confirmación si el cliente tiene teléfono
                     try:
                         from .utils import enviar_notificacion_whatsapp
-                        if reserva.get_telefono_cliente():
+                        if reserva.get_cliente_telefono():
                             enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
                     except Exception as e:
                         logger.warning(f"No se pudo enviar WhatsApp de confirmación para reserva #{reserva.id}: {str(e)}")
@@ -647,64 +647,81 @@ def mis_reservas(request):
 
 @login_required
 def dashboard_cliente(request):
-    """Dashboard principal del cliente"""
-    query = request.GET.get('q', '')
-    
-    # Obtener negocios con información adicional
-    negocios = Negocio.objects.filter(activo=True)
+    """Dashboard principal del cliente — optimizado para escala (O(1) queries)"""
+    from django.core.paginator import Paginator
+
+    query = request.GET.get('q', '').strip()
+    page_number = request.GET.get('page', 1)
+    PER_PAGE = 16
+
+    # Una sola query con anotaciones: evita el bucle N+1
+    negocios_qs = (
+        Negocio.objects
+        .filter(activo=True)
+        .annotate(
+            cal_promedio=models.Avg('calificaciones__puntaje'),
+            cal_cantidad=Count('calificaciones', distinct=True),
+        )
+        .only('id', 'nombre', 'direccion', 'ciudad', 'barrio', 'logo', 'portada')
+        .order_by('-cal_cantidad', 'nombre')
+    )
+
     if query:
-        negocios = negocios.filter(
-            models.Q(nombre__icontains=query) |
-            models.Q(direccion__icontains=query) |
-            models.Q(
-                id__in=Matriculacion.objects.filter(
-                    estado='aprobada',
-                    profesional__nombre_completo__icontains=query
-                ).values('negocio_id')
+        negocios_qs = negocios_qs.filter(
+            Q(nombre__icontains=query) |
+            Q(direccion__icontains=query) |
+            Q(
+                id__in=Matriculacion.objects
+                .filter(estado='aprobada', profesional__nombre_completo__icontains=query)
+                .values('negocio_id')
             )
         ).distinct()
-    
-    negocios_info = []
-    for negocio in negocios:
-        # Obtener profesionales del negocio
-        profesionales = Profesional.objects.filter(
-            matriculaciones__negocio=negocio,
-            matriculaciones__estado='aprobada'
-        ).distinct()
-        
-        # Calcular calificación promedio
-        calificaciones = Calificacion.objects.filter(negocio=negocio)
-        calificacion_promedio = calificaciones.aggregate(avg=models.Avg('puntaje'))['avg'] or 0
-        calificacion_cantidad = calificaciones.count()
-        
-        negocios_info.append({
-            'negocio': negocio,
-            'profesionales': profesionales,
-            'calificacion_promedio': round(calificacion_promedio, 1),
-            'calificacion_cantidad': calificacion_cantidad,
-        })
-    
-    # Obtener reservas del usuario
-    reservas_usuario = Reserva.objects.filter(cliente=request.user).order_by('-creado_en')[:5]
-    
-    # Obtener calificaciones del usuario
-    calificaciones_usuario = Calificacion.objects.filter(cliente=request.user).order_by('-fecha_calificacion')[:5]
-    
-    # Estadísticas del usuario
-    total_reservas = Reserva.objects.filter(cliente=request.user).count()
-    reservas_pendientes = Reserva.objects.filter(cliente=request.user, estado='pendiente').count()
-    reservas_completadas = Reserva.objects.filter(cliente=request.user, estado='completado').count()
-    
+
+    paginator = Paginator(negocios_qs, PER_PAGE)
+    page_obj = paginator.get_page(page_number)
+
+    negocios_info = [
+        {
+            'negocio': n,
+            'calificacion_promedio': round(n.cal_promedio or 0, 1),
+            'calificacion_cantidad': n.cal_cantidad or 0,
+        }
+        for n in page_obj
+    ]
+
+    # Sidebar — usuario específico, queries acotadas
+    reservas_usuario = (
+        Reserva.objects
+        .filter(cliente=request.user)
+        .select_related('peluquero')
+        .order_by('-creado_en')[:5]
+    )
+    calificaciones_usuario = (
+        Calificacion.objects
+        .filter(cliente=request.user)
+        .select_related('profesional', 'negocio')
+        .order_by('-fecha_calificacion')[:5]
+    )
+
+    # Stats del usuario en una sola query agregada
+    stats = Reserva.objects.filter(cliente=request.user).aggregate(
+        total=Count('id'),
+        pendientes=Count('id', filter=Q(estado='pendiente')),
+        completadas=Count('id', filter=Q(estado='completado')),
+    )
+
     context = {
         'negocios_info': negocios_info,
+        'page_obj': page_obj,
+        'paginator': paginator,
         'reservas_usuario': reservas_usuario,
         'calificaciones_usuario': calificaciones_usuario,
         'query': query,
-        'total_reservas': total_reservas,
-        'reservas_pendientes': reservas_pendientes,
-        'reservas_completadas': reservas_completadas,
+        'total_reservas': stats['total'],
+        'reservas_pendientes': stats['pendientes'],
+        'reservas_completadas': stats['completadas'],
     }
-    
+
     return render(request, 'clientes/dashboard.html', context)
 
 @login_required
