@@ -208,122 +208,100 @@
   background: #fff;
   border: 1px solid var(--appo-neutral-border);
   border-radius: var(--appo-radius);
-  padding: 1.2rem;
+  overflow: hidden;
   transition: var(--appo-transition);
   height: 100%;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 .negocio-card:hover {
   box-shadow: var(--appo-shadow-hover);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
-.negocio-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.8rem;
-}
-.negocio-logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--appo-neutral-border);
-  background: #fff;
+
+/* Foto portada */
+.negocio-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e8edf5 0%, #c9d6ea 100%);
   flex-shrink: 0;
 }
-.negocio-logo-placeholder {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--appo-primary-soft);
+.negocio-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.negocio-card:hover .negocio-cover img {
+  transform: scale(1.04);
+}
+.negocio-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--appo-primary-soft) 0%, #d4e1f7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   color: var(--appo-primary);
-  font-size: 1.2rem;
+  font-size: 3rem;
+  opacity: 0.55;
 }
-.negocio-meta { flex: 1; min-width: 0; }
+
+/* Cuerpo de la tarjeta */
+.negocio-body {
+  padding: 0.85rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.negocio-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
 .negocio-name {
   font-weight: 700;
   font-size: 0.95rem;
   color: #1e293b !important;
-  margin-bottom: 0.15rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
 }
 .negocio-name a {
   color: #1e293b !important;
   text-decoration: none;
 }
 .negocio-name a:hover { color: var(--appo-primary) !important; }
+.negocio-rating-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.negocio-rating-inline .star { color: #f59e0b; font-size: 0.78rem; }
+.negocio-rating-inline strong { color: #1e293b; font-weight: 600; }
+.negocio-rating-inline .count { color: #94a3b8; }
 .negocio-addr {
-  font-size: 0.8rem;
-  color: #64748b !important;
-  margin-bottom: 0.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-.negocio-rating {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-}
-.negocio-rating .stars { color: #f59e0b; }
-.negocio-rating .count { color: #94a3b8; }
-
-/* Profesionales */
-.pros-row {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.8rem;
-}
-.pro-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--appo-neutral-bg);
-  border: 1px solid var(--appo-neutral-border);
-  border-radius: 20px;
-  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
   font-size: 0.78rem;
-  color: #334155 !important;
-}
-.pro-chip img {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.pro-chip .pro-placeholder {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--appo-primary-soft);
+  color: #64748b !important;
+  margin-bottom: 0.15rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--appo-primary);
-  font-size: 0.65rem;
+  align-items: flex-start;
+  gap: 0.28rem;
+  line-height: 1.4;
 }
-.pro-chip-more {
-  background: var(--appo-primary-soft);
-  color: var(--appo-primary) !important;
-  font-weight: 600;
-  border: none;
-  padding: 0.25rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-}
+.negocio-addr i { margin-top: 0.08rem; flex-shrink: 0; }
 
 .negocio-card .btn-reservar {
   margin-top: auto;
+  padding-top: 0.75rem;
   background: var(--appo-primary);
   color: #fff !important;
   border: none;
@@ -335,6 +313,7 @@
   text-decoration: none;
   transition: var(--appo-transition);
   display: block;
+  margin-top: 0.85rem;
 }
 .negocio-card .btn-reservar:hover {
   background: var(--appo-primary-hover);
@@ -477,7 +456,8 @@
   .dash-stat-num { font-size: 1.1rem; }
   .search-wrap { margin-bottom: 1.5rem; }
   .search-wrap .search-input { font-size: 0.9rem; padding: 0.75rem 1rem 0.75rem 2.5rem; }
-  .negocio-card { padding: 1rem; }
+  .negocio-card { border-radius: 8px; }
+  .negocio-cover { aspect-ratio: 4/3; }
   .negocio-logo, .negocio-logo-placeholder { width: 44px; height: 44px; }
 }
 </style>
@@ -539,54 +519,42 @@
       <div class="row g-3" id="negociosGrid">
         {% for info in negocios_info %}
         <div class="col-sm-6 negocio-col">
-          <div class="negocio-card">
-            <div class="negocio-header">
-              <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">
-                {% if info.negocio.logo %}
-                  <img src="{{ info.negocio.logo.url }}" class="negocio-logo" alt="{{ info.negocio.nombre }}">
+        <div class="negocio-card">
+            <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" style="text-decoration:none;">
+              <div class="negocio-cover">
+                {% if info.negocio.portada %}
+                  <img src="{{ info.negocio.portada.url }}" alt="{{ info.negocio.nombre }}" loading="lazy">
+                {% elif info.negocio.logo %}
+                  <img src="{{ info.negocio.logo.url }}" alt="{{ info.negocio.nombre }}" loading="lazy">
                 {% else %}
-                  <div class="negocio-logo-placeholder"><i class="bi bi-shop"></i></div>
+                  <div class="negocio-cover-placeholder"><i class="bi bi-shop"></i></div>
                 {% endif %}
-              </a>
-              <div class="negocio-meta">
+              </div>
+            </a>
+
+            <div class="negocio-body">
+              <div class="negocio-name-row">
                 <div class="negocio-name">
                   <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">{{ info.negocio.nombre }}</a>
                 </div>
-                <div class="negocio-addr">
-                  <i class="bi bi-geo-alt"></i>
-                  {{ info.negocio.direccion|truncatechars:40 }}
-                </div>
-                <div class="negocio-rating">
-                  <span class="stars">
-                    {% if info.calificacion_promedio >= 1 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 0.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 2 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 1.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 3 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 2.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 4 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 3.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 5 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 4.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
-                  </span>
+                {% if info.calificacion_cantidad > 0 %}
+                <div class="negocio-rating-inline">
+                  <i class="bi bi-star-fill star"></i>
                   <strong>{{ info.calificacion_promedio }}</strong>
                   <span class="count">({{ info.calificacion_cantidad }})</span>
                 </div>
-              </div>
-            </div>
-
-            {% if info.profesionales %}
-            <div class="pros-row">
-              {% for pro in info.profesionales|slice:":3" %}
-              <div class="pro-chip">
-                {% if pro.foto_perfil %}
-                  <img src="{{ pro.foto_perfil.url }}" alt="{{ pro.nombre_completo }}">
-                {% else %}
-                  <span class="pro-placeholder"><i class="bi bi-person-fill"></i></span>
                 {% endif %}
-                {{ pro.nombre_completo|truncatechars:16 }}
               </div>
-              {% endfor %}
-              {% if info.profesionales|length > 3 %}
-              <span class="pro-chip-more">+{{ info.profesionales|length|add:"-3" }}</span>
-              {% endif %}
-            </div>
-            {% endif %}
 
-            <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn-reservar">
-              <i class="bi bi-calendar-plus me-1"></i> Ver y reservar
-            </a>
+              <div class="negocio-addr">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ info.negocio.direccion|truncatechars:50 }}</span>
+              </div>
+
+              <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn-reservar">
+                <i class="bi bi-calendar-plus me-1"></i> Ver y reservar
+              </a>
+            </div>
           </div>
         </div>
         {% endfor %}
