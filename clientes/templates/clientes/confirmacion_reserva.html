@@ -1,129 +1,150 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+.confirm-container { max-width: 620px; margin: 0 auto; }
+.confirm-card {
+  background: #fff;
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: var(--appo-radius);
+  box-shadow: var(--appo-shadow-md);
+  overflow: hidden;
+}
+.confirm-header {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #fff;
+}
+.confirm-header .check-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 2rem; margin-bottom: 0.8rem;
+}
+.confirm-header h2 { color: #fff !important; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.2rem; }
+.confirm-header p { color: rgba(255,255,255,0.85) !important; font-size: 0.88rem; margin: 0; }
+.confirm-body { padding: 1.5rem; }
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+@media (max-width: 576px) { .detail-grid { grid-template-columns: 1fr; } }
+.detail-box {
+  background: var(--appo-neutral-bg);
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+.detail-box .label {
+  font-size: 0.72rem; font-weight: 600;
+  color: #64748b !important; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 0.2rem;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.detail-box .value {
+  font-size: 0.92rem; font-weight: 600; color: #1e293b !important;
+}
+.detail-box .sub {
+  font-size: 0.78rem; color: #64748b !important;
+}
+.info-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+}
+.info-banner h6 { font-size: 0.82rem; font-weight: 700; color: #92400e !important; margin-bottom: 0.4rem; }
+.info-banner ul { margin: 0; padding-left: 1.2rem; font-size: 0.8rem; color: #78350f !important; }
+.info-banner li { margin-bottom: 0.15rem; }
+.confirm-actions {
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+}
+.confirm-actions .btn-action {
+  flex: 1; min-width: 140px; padding: 0.6rem 0.8rem;
+  border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+  text-align: center; text-decoration: none;
+  transition: var(--appo-transition);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+}
+.btn-action.primary { background: var(--appo-primary); color: #fff !important; border: none; }
+.btn-action.primary:hover { background: var(--appo-primary-hover); transform: translateY(-1px); }
+.btn-action.outline { background: #fff; color: var(--appo-primary) !important; border: 2px solid var(--appo-primary); }
+.btn-action.outline:hover { background: var(--appo-primary-soft); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="card shadow-sm" style="border-color: #133A7F;">
-            <div class="card-header" style="background: #133A7F; color: #FFFFFF;">
-                <h3 class="card-title mb-0">
-                    <i class="bi bi-check-circle" style="color: #FFFFFF;"></i> Reserva confirmada
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <i class="bi bi-check2-circle" style="font-size: 5rem; color: #133A7F;"></i>
-                    <h2 class="mt-3" style="color: #133A7F;">¡Reserva realizada con éxito!</h2>
-                </div>
-                
-                <div class="alert" style="background: #F4F3F1; border-color: #133A7F; color: #0D0D0D;">
-                    <h4 class="alert-heading" style="color: #133A7F;">
-                        <i class="bi bi-info-circle me-2" style="color: #133A7F;"></i>Detalles de tu reserva
-                    </h4>
-                    <hr>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <h6 class="fw-bold" style="color: #133A7F;">
-                                    <i class="bi bi-shop me-1" style="color: #133A7F;"></i>Negocio
-                                </h6>
-                                <p class="mb-1"><strong>{{ reserva.peluquero.nombre }}</strong></p>
-                                <p class="text-muted small mb-0">
-                                    <i class="bi bi-geo-alt me-1"></i>{{ reserva.peluquero.direccion }}
-                                </p>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <h6 class="fw-bold" style="color: #133A7F;">
-                                    <i class="bi bi-calendar-event me-1" style="color: #133A7F;"></i>Fecha y Hora
-                                </h6>
-                                <p class="mb-1">
-                                    <strong>{{ reserva.fecha|date:"l, d F Y" }}</strong>
-                                </p>
-                                <p class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>{{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            {% if reserva.profesional %}
-                            <div class="mb-3">
-                                <h6 class="fw-bold" style="color: #133A7F;">
-                                    <i class="bi bi-person-badge me-1" style="color: #133A7F;"></i>Profesional
-                                </h6>
-                                <p class="mb-1"><strong>{{ reserva.profesional.nombre_completo }}</strong></p>
-                                {% if reserva.profesional.especialidad %}
-                                <p class="text-muted small mb-0">{{ reserva.profesional.especialidad }}</p>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            
-                            {% if reserva.servicio %}
-                            <div class="mb-3">
-                                <h6 class="fw-bold" style="color: #133A7F;">
-                                    <i class="bi bi-scissors me-1" style="color: #133A7F;"></i>Servicio
-                                </h6>
-                                <p class="mb-1"><strong>{{ reserva.servicio.servicio.nombre }}</strong></p>
-                                <p class="text-muted small mb-0">
-                                    Duración: {{ reserva.servicio.duracion }} min
-                                </p>
-                            </div>
-                            {% endif %}
-                            
-                            <div class="mb-3">
-                                <h6 class="fw-bold" style="color: #133A7F;">
-                                    <i class="bi bi-hash me-1" style="color: #133A7F;"></i>Número de Reserva
-                                </h6>
-                                <p class="mb-0"><strong>#{{ reserva.id }}</strong></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if reserva.notas %}
-                    <div class="mt-3">
-                        <h6 class="fw-bold" style="color: #133A7F;">
-                            <i class="bi bi-chat-text me-1" style="color: #133A7F;"></i>Notas
-                        </h6>
-                        <p class="mb-0">{{ reserva.notas }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Información adicional -->
-                <div class="alert mt-4" style="background: #F4F3F1; border-color: #133A7F; color: #0D0D0D;">
-                    <h6 class="alert-heading" style="color: #133A7F;">
-                        <i class="bi bi-lightbulb me-2" style="color: #133A7F;"></i>Información importante
-                    </h6>
-                    <ul class="mb-0">
-                        <li>Recibirás un recordatorio 1 día antes de tu cita</li>
-                        <li>Recibirás otro recordatorio 3 horas antes</li>
-                        <li>Llega 10 minutos antes de tu hora programada</li>
-                        <li>Si necesitas cancelar, hazlo con al menos 24 horas de anticipación</li>
-                    </ul>
-                </div>
-                
-                                 <!-- Botones de acción -->
-                 <div class="d-flex justify-content-between mt-4">
-                     <div>
-                         <a href="{% url 'clientes:detalle_peluquero' reserva.peluquero.id %}" class="btn btn-outline-secondary me-2" style="color: #0D0D0D !important; font-weight: 600 !important;">
-                             <i class="bi bi-arrow-left" style="color: #0D0D0D;"></i> Volver al negocio
-                         </a>
-                         <a href="{% url 'clientes:mis_reservas' %}" class="btn btn-outline-primary" style="color: #0D0D0D !important; font-weight: 600 !important;">
-                             <i class="bi bi-calendar-check" style="color: #0D0D0D;"></i> Ver mis reservas
-                         </a>
-                     </div>
-                     <div>
-                         <a href="{% url 'clientes:reservar_negocio' reserva.peluquero.id %}" class="btn btn-primary me-2" style="color: #FFFFFF !important; font-weight: 600 !important;">
-                             <i class="bi bi-calendar-plus" style="color: #FFFFFF;"></i> Reservar ahora
-                         </a>
-                         <a href="#" class="btn btn-primary" style="color: #FFFFFF !important; font-weight: 600 !important;">
-                             <i class="bi bi-calendar-plus" style="color: #FFFFFF;"></i> Agregar a mi calendario
-                         </a>
-                     </div>
-                 </div>
-            </div>
+<div class="container py-3 py-md-4">
+  <div class="confirm-container">
+    <div class="confirm-card">
+      <div class="confirm-header">
+        <div class="check-icon"><i class="bi bi-check-lg"></i></div>
+        <h2>¡Reserva confirmada!</h2>
+        <p>Reserva #{{ reserva.id }} registrada correctamente</p>
+      </div>
+
+      <div class="confirm-body">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="label"><i class="bi bi-shop"></i> Negocio</div>
+            <div class="value">{{ reserva.peluquero.nombre }}</div>
+            <div class="sub"><i class="bi bi-geo-alt"></i> {{ reserva.peluquero.direccion }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="label"><i class="bi bi-calendar3"></i> Fecha y hora</div>
+            <div class="value">{{ reserva.fecha|date:"d M Y" }}</div>
+            <div class="sub"><i class="bi bi-clock"></i> {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}</div>
+          </div>
+          {% if reserva.profesional %}
+          <div class="detail-box">
+            <div class="label"><i class="bi bi-person-badge"></i> Profesional</div>
+            <div class="value">{{ reserva.profesional.nombre_completo }}</div>
+            {% if reserva.profesional.especialidad %}
+            <div class="sub">{{ reserva.profesional.especialidad }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% if reserva.servicio %}
+          <div class="detail-box">
+            <div class="label"><i class="bi bi-scissors"></i> Servicio</div>
+            <div class="value">{{ reserva.servicio.servicio.nombre }}</div>
+            <div class="sub">{{ reserva.servicio.duracion }} min</div>
+          </div>
+          {% endif %}
         </div>
+
+        {% if reserva.notas %}
+        <div class="detail-box mb-3">
+          <div class="label"><i class="bi bi-chat-text"></i> Notas</div>
+          <div class="sub">{{ reserva.notas }}</div>
+        </div>
+        {% endif %}
+
+        <div class="info-banner">
+          <h6><i class="bi bi-lightbulb me-1"></i> Información importante</h6>
+          <ul>
+            <li>Recibirás un recordatorio 1 día antes de tu cita</li>
+            <li>Recibirás otro recordatorio 3 horas antes</li>
+            <li>Llega 10 minutos antes de tu hora programada</li>
+            <li>Si necesitas cancelar, hazlo con al menos 24 horas de anticipación</li>
+          </ul>
+        </div>
+
+        <div class="confirm-actions">
+          <a href="{% url 'clientes:mis_reservas' %}" class="btn-action primary">
+            <i class="bi bi-calendar-check"></i> Ver mis reservas
+          </a>
+          <a href="{% url 'clientes:detalle_peluquero' reserva.peluquero.id %}" class="btn-action outline">
+            <i class="bi bi-arrow-left"></i> Volver al negocio
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

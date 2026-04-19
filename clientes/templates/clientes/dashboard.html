@@ -1,346 +1,791 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard Cliente - Appo{% endblock %}
+{% block title %}Explorar negocios - Appo{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/clientes/dashboard.css' %}" rel="stylesheet">
 <style>
-.dashboard-stats-row {
-  display: flex;
-  flex-direction: row;
-  gap: 1.2rem;
-  justify-content: flex-end;
-  align-items: flex-start;
-}
-.dashboard-stats .stat-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  text-align: center;
-}
-.dashboard-stats .stat-pill {
-  display: inline-block;
-  min-width: 44px;
-  padding: 0.4em 1.2rem;
-  font-size: 1.15rem;
-  font-weight: 700;
+/* ── Dashboard Cliente ── */
+.dash-hero {
+  background: linear-gradient(135deg, var(--appo-primary) 0%, #1E5BC6 100%);
   border-radius: var(--appo-radius);
+  padding: 2.2rem 2rem 2rem;
+  margin-bottom: 1.8rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.dash-hero::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+.dash-hero h1 {
+  color: #fff !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-ui);
+}
+.dash-hero p {
+  color: rgba(255,255,255,0.85) !important;
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+.dash-stats {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+.dash-stat {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  min-width: 80px;
+}
+.dash-stat-num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff !important;
+  line-height: 1.2;
+}
+.dash-stat-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.8) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Buscador ── */
+.search-wrap {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto 2rem;
+}
+.search-wrap .search-input {
+  width: 100%;
+  padding: 0.85rem 1rem 0.85rem 2.8rem;
+  border: 2px solid var(--appo-neutral-border);
+  border-radius: var(--appo-radius);
+  font-size: 0.95rem;
+  font-family: var(--font-ui);
+  background: #fff;
+  color: #222;
+  transition: var(--appo-transition);
+  box-shadow: var(--appo-shadow-sm);
+}
+.search-wrap .search-input:focus {
+  outline: none;
+  border-color: var(--appo-primary);
+  box-shadow: var(--appo-shadow-md);
+}
+.search-wrap .search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+.search-wrap .search-clear {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1rem;
+  display: none;
+  padding: 0;
+}
+
+/* ── Autocompletado ── */
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: var(--appo-radius);
+  box-shadow: var(--appo-shadow-hover);
+  z-index: 100;
+  max-height: 360px;
+  overflow-y: auto;
+  display: none;
+}
+.autocomplete-list.show { display: block; }
+.ac-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  text-decoration: none !important;
+  color: #222 !important;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f1f5f9;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.active {
+  background: var(--appo-primary-soft);
+}
+.ac-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
   background: var(--appo-neutral-bg);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
   color: var(--appo-primary);
-  margin-bottom: 0.3em;
   border: 1px solid var(--appo-neutral-border);
 }
-.dashboard-stats .stat-pill.total {
-  background: var(--appo-primary-soft);
-  color: var(--appo-primary);
+.ac-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
-.dashboard-stats .stat-pill.pendientes {
-  background: #fef2f2;
-  color: #dc2626;
-}
-.dashboard-stats .stat-pill.completadas {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-.dashboard-stats .stat-desc {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin-bottom: 0.7em;
-  max-width: 140px;
-}
-.dashboard-stats-title {
-  font-size: 1rem;
-  color: #1e293b;
+.ac-info { flex: 1; min-width: 0; }
+.ac-name {
   font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ac-addr {
+  font-size: 0.78rem;
+  color: #64748b !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ac-rating {
+  font-size: 0.78rem;
+  color: var(--appo-primary) !important;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ac-empty {
+  padding: 1.2rem 1rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+/* ── Sección ── */
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  font-family: var(--font-ui);
+}
+.section-title .badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ── Tarjetas negocio ── */
+.negocio-card {
+  background: #fff;
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: var(--appo-radius);
+  padding: 1.2rem;
+  transition: var(--appo-transition);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.negocio-card:hover {
+  box-shadow: var(--appo-shadow-hover);
+  transform: translateY(-2px);
+}
+.negocio-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+.negocio-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--appo-neutral-border);
+  background: #fff;
+  flex-shrink: 0;
+}
+.negocio-logo-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--appo-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--appo-primary);
+  font-size: 1.2rem;
+}
+.negocio-meta { flex: 1; min-width: 0; }
+.negocio-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b !important;
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.negocio-name a {
+  color: #1e293b !important;
+  text-decoration: none;
+}
+.negocio-name a:hover { color: var(--appo-primary) !important; }
+.negocio-addr {
+  font-size: 0.8rem;
+  color: #64748b !important;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.negocio-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+.negocio-rating .stars { color: #f59e0b; }
+.negocio-rating .count { color: #94a3b8; }
+
+/* Profesionales */
+.pros-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+.pro-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--appo-neutral-bg);
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+  font-size: 0.78rem;
+  color: #334155 !important;
+}
+.pro-chip img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.pro-chip .pro-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--appo-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--appo-primary);
+  font-size: 0.65rem;
+}
+.pro-chip-more {
+  background: var(--appo-primary-soft);
+  color: var(--appo-primary) !important;
+  font-weight: 600;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+}
+
+.negocio-card .btn-reservar {
+  margin-top: auto;
+  background: var(--appo-primary);
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: var(--appo-transition);
+  display: block;
+}
+.negocio-card .btn-reservar:hover {
+  background: var(--appo-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(19,58,127,0.25);
+}
+
+/* ── Sidebar ── */
+.sidebar-card {
+  background: #fff;
+  border: 1px solid var(--appo-neutral-border);
+  border-radius: var(--appo-radius);
+  overflow: hidden;
+  margin-bottom: 1.2rem;
+}
+.sidebar-card-header {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--appo-neutral-border);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.sidebar-card-body { padding: 0.8rem 1rem; }
+
+.reserva-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.reserva-item:last-child { border-bottom: none; }
+.reserva-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--appo-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--appo-primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.reserva-meta { flex: 1; min-width: 0; }
+.reserva-negocio {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1e293b !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reserva-fecha {
+  font-size: 0.75rem;
+  color: #64748b !important;
+}
+.estado-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.estado-pendiente { background: #fef3c7; color: #92400e !important; }
+.estado-confirmado { background: #d1fae5; color: #065f46 !important; }
+.estado-completado { background: #dbeafe; color: #1e40af !important; }
+.estado-cancelado { background: #fee2e2; color: #991b1b !important; }
+
+/* Calificaciones sidebar */
+.calif-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.calif-item:last-child { border-bottom: none; }
+.calif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+.calif-pro {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1e293b !important;
+}
+.calif-stars { color: #f59e0b; font-size: 0.78rem; }
+.calif-negocio {
+  font-size: 0.75rem;
+  color: #64748b !important;
+}
+.calif-comment {
+  font-size: 0.78rem;
+  color: #94a3b8 !important;
+  margin-top: 0.15rem;
+}
+.calif-actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.calif-actions a {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* ── Empty states ── */
+.empty-state {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+.empty-state i {
+  font-size: 2.2rem;
+  color: #cbd5e1;
   margin-bottom: 0.5rem;
-  text-align: right;
+  display: block;
+}
+.empty-state p {
+  color: #94a3b8 !important;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 991px) {
+  .dash-hero { padding: 1.5rem 1.2rem; }
+  .dash-hero h1 { font-size: 1.3rem; }
+  .sidebar-col { margin-top: 1.5rem; }
+}
+@media (max-width: 576px) {
+  .dash-hero { padding: 1.2rem 1rem; border-radius: 8px; }
+  .dash-hero h1 { font-size: 1.15rem; }
+  .dash-hero p { font-size: 0.85rem; }
+  .dash-stats { flex-wrap: wrap; gap: 0.5rem; }
+  .dash-stat { min-width: 70px; padding: 0.5rem 0.7rem; }
+  .dash-stat-num { font-size: 1.1rem; }
+  .search-wrap { margin-bottom: 1.5rem; }
+  .search-wrap .search-input { font-size: 0.9rem; padding: 0.75rem 1rem 0.75rem 2.5rem; }
+  .negocio-card { padding: 1rem; }
+  .negocio-logo, .negocio-logo-placeholder { width: 44px; height: 44px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid dashboard-main">
-    <!-- Header del Dashboard -->
-    <div class="row dashboard-hero mb-4 pb-2 border-bottom" style="background:#fff;border-radius:1.2rem;">
-        <div class="col-md-8 dashboard-hero-content py-4 ps-4">
-            <h1 class="display-5 fw-bold mb-2">¡Hola, {{ user.username }}!</h1>
-            <p class="mb-0 opacity-75 fs-5" style="color:var(--text-primary);">Encuentra los mejores servicios de peluquería cerca de ti</p>
+<div class="container py-3">
+
+  <!-- Hero -->
+  <div class="dash-hero">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+      <div>
+        <h1>¡Hola, {{ user.first_name|default:user.username }}!</h1>
+        <p>Encuentra tu barbería y reserva en segundos</p>
+      </div>
+      <div class="dash-stats">
+        <div class="dash-stat">
+          <div class="dash-stat-num">{{ total_reservas }}</div>
+          <div class="dash-stat-label">Reservas</div>
         </div>
-        <div class="col-md-4 d-flex flex-column align-items-end justify-content-center pe-4">
-            <div class="dashboard-stats-title">Tus reservas</div>
-            <div class="dashboard-stats-row dashboard-stats">
-                <div class="stat-box">
-                    <span class="stat-pill total">{{ total_reservas_app_mkt }}</span>
-                    <div class="stat-desc">Citas reservadas en Appo</div>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-pill pendientes">{{ reservas_pendientes }}</span>
-                    <div class="stat-desc">Reservas que aún están pendientes de realizarse</div>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-pill completadas">{{ reservas_completadas }}</span>
-                    <div class="stat-desc">Reservas que ya han sido completadas</div>
-                </div>
-            </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num">{{ reservas_pendientes }}</div>
+          <div class="dash-stat-label">Pendientes</div>
         </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num">{{ reservas_completadas }}</div>
+          <div class="dash-stat-label">Completadas</div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Barra de búsqueda -->
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <form method="GET" class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold">Buscar servicios</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-end-0">
-                                        <i class="bi bi-search text-muted"></i>
-                                    </span>
-                                    <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" 
-                                           placeholder="Buscar por nombre de negocio, peluquero o ubicación...">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary w-100 py-3">
-                                    <i class="bi bi-search me-2"></i>Buscar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+  <!-- Buscador con autocompletado -->
+  <div class="search-wrap" id="searchWrap">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text"
+           id="searchInput"
+           class="search-input"
+           placeholder="Buscar por negocio, servicio o dirección..."
+           value="{{ query|default:'' }}"
+           autocomplete="off">
+    <button class="search-clear" id="searchClear" type="button" aria-label="Limpiar búsqueda">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="autocomplete-list" id="acList"></div>
+  </div>
 
-    <!-- Contenido principal -->
-    <div class="container mt-5">
-        <div class="row">
-            <!-- Lista de negocios -->
-            <div class="col-lg-8">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold">Negocios disponibles</h2>
-                    <span class="badge bg-primary fs-6">{{ negocios_info.count }} encontrados</span>
-                </div>
+  <div class="row">
+    <!-- Lista de negocios -->
+    <div class="col-lg-8">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="section-title mb-0">
+          Negocios disponibles
+          <span class="badge bg-primary ms-1">{{ negocios_info|length }}</span>
+        </h2>
+      </div>
 
-                {% if negocios_info %}
-                    <div class="row g-4">
-                        {% for info in negocios_info %}
-                        <div class="col-md-6">
-                            <div class="card h-100 shadow-sm border-0 hover-shadow p-2" style="border-radius:1.2rem;background:#fff;border:1px solid var(--border-color);">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-start mb-3">
-                                        <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">
-                                        {% if info.negocio.logo %}
-                                            <img src="{{ info.negocio.logo.url }}" class="rounded-circle me-3 border border-2" style="width: 60px; height: 60px; object-fit: cover;">
-                                        {% else %}
-                                            <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center border border-2" style="width: 60px; height: 60px;">
-                                                <i class="bi bi-shop fs-4 text-muted"></i>
-                                            </div>
-                                        {% endif %}
-                                        </a>
-                                        <div class="flex-grow-1">
-                                            <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="text-decoration-none text-dark">
-                                                <h5 class="fw-bold mb-1">{{ info.negocio.nombre }}</h5>
-                                            </a>
-                                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ info.negocio.direccion }}</p>
-                                            <div class="d-flex align-items-center mb-1">
-                                                <div class="text-warning me-2">
-                                                    {% for i in "12345" %}
-                                                        {% if info.calificacion_promedio >= i %}
-                                                            <i class="bi bi-star-fill"></i>
-                                                        {% elif info.calificacion_promedio > i|add:"-1" %}
-                                                            <i class="bi bi-star-half"></i>
-                                                        {% else %}
-                                                            <i class="bi bi-star"></i>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </div>
-                                                <small class="text-muted">({{ info.calificacion_promedio }})
-                                                    {% if info.calificacion_cantidad > 0 %}- {{ info.calificacion_cantidad }} calificaciones{% else %}- 0 calificaciones{% endif %}
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold mb-2">Profesionales disponibles:</h6>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            {% for profesional in info.profesionales|slice:":3" %}
-                                                <div class="d-flex align-items-center bg-white rounded-3 shadow-sm px-2 py-1" style="min-width:0;">
-                                                    {% if profesional.foto_perfil %}
-                                                        <img src="{{ profesional.foto_perfil.url }}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
-                                                    {% else %}
-                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
-                                                            <i class="bi bi-person text-white"></i>
-                                                        </div>
-                                                    {% endif %}
-                                                    <div class="lh-1">
-                                                        <span class="fw-semibold" style="font-size:1rem;">{{ profesional.nombre_completo }}</span><br>
-                                                        <span class="text-muted small">{{ profesional.especialidad|default:"Profesional" }}</span>
-                                                    </div>
-                                                    <a href="{% url 'profesionales:panel' %}?id={{ profesional.id }}" class="btn btn-link btn-sm ms-2 p-0" title="Ver perfil"><i class="bi bi-eye"></i></a>
-                                                    <a href="{% url 'clientes:crear_calificacion' info.negocio.id profesional.id %}" class="btn btn-link btn-sm ms-1 p-0" title="Calificar"><i class="bi bi-star"></i></a>
-                                                </div>
-                                            {% endfor %}
-                                            {% if info.profesionales|length > 3 %}
-                                                <span class="badge bg-secondary">+{{ info.profesionales|length|add:"-3" }} más</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    
-                                    <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn btn-primary w-100 mt-2">Reservar</a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+      {% if negocios_info %}
+      <div class="row g-3" id="negociosGrid">
+        {% for info in negocios_info %}
+        <div class="col-sm-6 negocio-col">
+          <div class="negocio-card">
+            <div class="negocio-header">
+              <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">
+                {% if info.negocio.logo %}
+                  <img src="{{ info.negocio.logo.url }}" class="negocio-logo" alt="{{ info.negocio.nombre }}">
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-search display-1 text-muted mb-3"></i>
-                        <h3 class="text-muted">No se encontraron negocios</h3>
-                        <p class="text-muted">Intenta con otros términos de búsqueda</p>
-                    </div>
+                  <div class="negocio-logo-placeholder"><i class="bi bi-shop"></i></div>
                 {% endif %}
+              </a>
+              <div class="negocio-meta">
+                <div class="negocio-name">
+                  <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}">{{ info.negocio.nombre }}</a>
+                </div>
+                <div class="negocio-addr">
+                  <i class="bi bi-geo-alt"></i>
+                  {{ info.negocio.direccion|truncatechars:40 }}
+                </div>
+                <div class="negocio-rating">
+                  <span class="stars">
+                    {% if info.calificacion_promedio >= 1 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 0.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 2 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 1.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 3 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 2.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 4 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 3.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% if info.calificacion_promedio >= 5 %}<i class="bi bi-star-fill"></i>{% elif info.calificacion_promedio >= 4.5 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                  </span>
+                  <strong>{{ info.calificacion_promedio }}</strong>
+                  <span class="count">({{ info.calificacion_cantidad }})</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Sidebar con reservas recientes -->
-            <div class="col-lg-4">
-                <!-- Reservas recientes -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-transparent border-0">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-calendar-check me-2"></i>Mis reservas recientes
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if reservas_usuario %}
-                            {% for reserva in reservas_usuario %}
-                            <div class="d-flex align-items-center mb-3 p-3 bg-light rounded-3">
-                                <div class="flex-shrink-0">
-                                    {% if reserva.peluquero.avatar %}
-                                        <img src="{{ reserva.peluquero.avatar.url }}" class="rounded-circle" 
-                                             style="width: 50px; height: 50px; object-fit: cover;">
-                                    {% else %}
-                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
-                                             style="width: 50px; height: 50px;">
-                                            <i class="bi bi-person text-white"></i>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="fw-bold mb-1">{{ reserva.peluquero.nombre }}</h6>
-                                    <p class="text-muted small mb-1">{{ reserva.fecha|date:"d/m/Y" }} - {{ reserva.hora_inicio|time:"H:i" }}</p>
-                                    <span class="badge bg-{% if reserva.estado == 'pendiente' %}warning{% elif reserva.estado == 'confirmado' %}success{% else %}secondary{% endif %}">
-                                        {{ reserva.get_estado_display }}
-                                    </span>
-                                </div>
-                            </div>
-                            {% endfor %}
-                            <div class="text-center mt-3">
-                                <a href="{% url 'clientes:mis_reservas' %}" class="btn btn-outline-primary btn-sm">
-                                    Ver todas mis reservas
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-4">
-                                <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
-                                <p class="text-muted">No tienes reservas aún</p>
-                                <a href="{% url 'clientes:lista_negocios' %}" class="btn btn-primary btn-sm">
-                                    Hacer mi primera reserva
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Mis calificaciones -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-transparent border-0">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-star me-2"></i>Mis calificaciones
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if calificaciones_usuario %}
-                            {% for calificacion in calificaciones_usuario %}
-                            <div class="d-flex align-items-start mb-3 p-3 bg-light rounded-3">
-                                <div class="flex-shrink-0">
-                                    {% if calificacion.profesional.avatar %}
-                                        <img src="{{ calificacion.profesional.avatar.url }}" class="rounded-circle" 
-                                             style="width: 50px; height: 50px; object-fit: cover;">
-                                    {% else %}
-                                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" 
-                                             style="width: 50px; height: 50px;">
-                                            <i class="bi bi-star text-white"></i>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="fw-bold mb-1">{{ calificacion.profesional.nombre_completo }}</h6>
-                                    <p class="text-muted small mb-1">{{ calificacion.negocio.nombre }}</p>
-                                    <div class="mb-2">
-                                        <span class="text-warning">
-                                            {% for i in "12345" %}
-                                                {% if calificacion.puntaje >= i %}
-                                                    <i class="bi bi-star-fill"></i>
-                                                {% elif calificacion.puntaje > i|add:"-1" %}
-                                                    <i class="bi bi-star-half"></i>
-                                                {% else %}
-                                                    <i class="bi bi-star"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </span>
-                                        <span class="ms-2 text-muted small">{{ calificacion.puntaje }}/5</span>
-                                    </div>
-                                    {% if calificacion.comentario %}
-                                        <p class="text-muted small mb-1">{{ calificacion.comentario|truncatechars:50 }}</p>
-                                    {% endif %}
-                                    <div class="d-flex gap-1">
-                                        <a href="{% url 'clientes:editar_calificacion' calificacion.id %}" class="btn btn-outline-warning btn-sm">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{% url 'clientes:eliminar_calificacion' calificacion.id %}" class="btn btn-outline-danger btn-sm">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                            <div class="text-center mt-3">
-                                <small class="text-muted">Mostrando las 5 calificaciones más recientes</small>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-4">
-                                <i class="bi bi-star display-4 text-muted mb-3"></i>
-                                <p class="text-muted">No has calificado ningún servicio aún</p>
-                                <small class="text-muted">Las calificaciones aparecerán aquí después de completar reservas</small>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+            {% if info.profesionales %}
+            <div class="pros-row">
+              {% for pro in info.profesionales|slice:":3" %}
+              <div class="pro-chip">
+                {% if pro.foto_perfil %}
+                  <img src="{{ pro.foto_perfil.url }}" alt="{{ pro.nombre_completo }}">
+                {% else %}
+                  <span class="pro-placeholder"><i class="bi bi-person-fill"></i></span>
+                {% endif %}
+                {{ pro.nombre_completo|truncatechars:16 }}
+              </div>
+              {% endfor %}
+              {% if info.profesionales|length > 3 %}
+              <span class="pro-chip-more">+{{ info.profesionales|length|add:"-3" }}</span>
+              {% endif %}
             </div>
+            {% endif %}
+
+            <a href="{% url 'clientes:detalle_peluquero' info.negocio.id %}" class="btn-reservar">
+              <i class="bi bi-calendar-plus me-1"></i> Ver y reservar
+            </a>
+          </div>
         </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-search"></i>
+        <p>No se encontraron negocios{% if query %} para «{{ query }}»{% endif %}</p>
+        {% if query %}
+        <a href="{% url 'clientes:dashboard' %}" class="btn btn-sm" style="background:var(--appo-primary);color:#fff;">Ver todos</a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 sidebar-col">
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <i class="bi bi-calendar-check" style="color:var(--appo-primary);"></i>
+          Mis reservas recientes
+        </div>
+        <div class="sidebar-card-body">
+          {% if reservas_usuario %}
+            {% for reserva in reservas_usuario %}
+            <div class="reserva-item">
+              <div class="reserva-icon"><i class="bi bi-scissors"></i></div>
+              <div class="reserva-meta">
+                <div class="reserva-negocio">{{ reserva.peluquero.nombre }}</div>
+                <div class="reserva-fecha">{{ reserva.fecha|date:"d M Y" }} · {{ reserva.hora_inicio|time:"H:i" }}</div>
+              </div>
+              <span class="estado-badge estado-{{ reserva.estado }}">{{ reserva.get_estado_display }}</span>
+            </div>
+            {% endfor %}
+            <div class="text-center mt-2">
+              <a href="{% url 'clientes:mis_reservas' %}" class="btn btn-sm" style="color:var(--appo-primary);font-weight:600;font-size:0.8rem;">
+                Ver todas <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="bi bi-calendar-x"></i>
+              <p>Aún no tienes reservas</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <i class="bi bi-star" style="color:#f59e0b;"></i>
+          Mis calificaciones
+        </div>
+        <div class="sidebar-card-body">
+          {% if calificaciones_usuario %}
+            {% for cal in calificaciones_usuario %}
+            <div class="calif-item">
+              <div class="calif-header">
+                <span class="calif-pro">{{ cal.profesional.nombre_completo }}</span>
+                <span class="calif-stars">
+                  {% for i in "12345" %}
+                    {% if cal.puntaje >= forloop.counter %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                  {% endfor %}
+                </span>
+              </div>
+              <div class="calif-negocio">{{ cal.negocio.nombre }}</div>
+              {% if cal.comentario %}
+                <div class="calif-comment">{{ cal.comentario|truncatechars:60 }}</div>
+              {% endif %}
+              <div class="calif-actions">
+                <a href="{% url 'clientes:editar_calificacion' cal.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'clientes:eliminar_calificacion' cal.id %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></a>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <i class="bi bi-star"></i>
+              <p>Sin calificaciones aún</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<style>
-.dashboard-hero {
-  background: white !important;
-  border-radius: var(--appo-radius);
-  padding: 2.5rem 2rem;
-  margin-bottom: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--appo-neutral-border);
-}
-</style>
+<script>
+(function() {
+  var input = document.getElementById('searchInput');
+  var acList = document.getElementById('acList');
+  var clearBtn = document.getElementById('searchClear');
+  var apiUrl = '{% url "clientes:autocompletar_negocios" %}';
+  var detalleBase = '/clientes/peluquero/';
+  var debounceTimer = null;
+  var activeIdx = -1;
+
+  function toggleClear() {
+    clearBtn.style.display = input.value.length > 0 ? 'block' : 'none';
+  }
+
+  clearBtn.addEventListener('click', function() {
+    input.value = '';
+    acList.classList.remove('show');
+    acList.innerHTML = '';
+    toggleClear();
+    input.focus();
+    window.location.href = '{% url "clientes:dashboard" %}';
+  });
+
+  input.addEventListener('input', function() {
+    toggleClear();
+    clearTimeout(debounceTimer);
+    var q = input.value.trim();
+    if (q.length < 2) {
+      acList.classList.remove('show');
+      acList.innerHTML = '';
+      return;
+    }
+    debounceTimer = setTimeout(function() {
+      fetch(apiUrl + '?q=' + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          activeIdx = -1;
+          if (!data.sugerencias || data.sugerencias.length === 0) {
+            acList.innerHTML = '<div class="ac-empty">No se encontraron negocios</div>';
+            acList.classList.add('show');
+            return;
+          }
+          var html = '';
+          data.sugerencias.forEach(function(s) {
+            var avatar = s.logo_url
+              ? '<div class="ac-avatar"><img src="' + s.logo_url + '" alt=""></div>'
+              : '<div class="ac-avatar"><i class="bi bi-shop"></i></div>';
+            var stars = s.calificacion > 0
+              ? '<span class="ac-rating"><i class="bi bi-star-fill" style="color:#f59e0b;"></i> ' + s.calificacion + '</span>'
+              : '';
+            html += '<a href="' + detalleBase + s.id + '/" class="ac-item">'
+              + avatar
+              + '<div class="ac-info">'
+              + '<div class="ac-name">' + escapeHtml(s.nombre) + '</div>'
+              + '<div class="ac-addr"><i class="bi bi-geo-alt"></i> ' + escapeHtml(s.direccion || '') + '</div>'
+              + '</div>'
+              + stars
+              + '</a>';
+          });
+          acList.innerHTML = html;
+          acList.classList.add('show');
+        })
+        .catch(function() {
+          acList.classList.remove('show');
+        });
+    }, 250);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    var items = acList.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown' && items.length) {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      updateActive(items);
+    } else if (e.key === 'ArrowUp' && items.length) {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      updateActive(items);
+    } else if (e.key === 'Enter' && activeIdx >= 0 && items.length) {
+      e.preventDefault();
+      items[activeIdx].click();
+    } else if (e.key === 'Enter' && activeIdx < 0) {
+      e.preventDefault();
+      var q = input.value.trim();
+      if (q.length > 0) {
+        window.location.href = '{% url "clientes:dashboard" %}?q=' + encodeURIComponent(q);
+      }
+    } else if (e.key === 'Escape') {
+      acList.classList.remove('show');
+    }
+  });
+
+  function updateActive(items) {
+    items.forEach(function(it, i) {
+      it.classList.toggle('active', i === activeIdx);
+    });
+    if (items[activeIdx]) items[activeIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('searchWrap').contains(e.target)) {
+      acList.classList.remove('show');
+    }
+  });
+
+  function escapeHtml(text) {
+    var d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  toggleClear();
+})();
+</script>
 {% endblock %} 

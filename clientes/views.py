@@ -1472,31 +1472,29 @@ def autocompletar_negocios(request):
         if len(query) < 2:
             return JsonResponse({'sugerencias': []})
         
-        # Buscar negocios por nombre (máximo 6 resultados)
+        # Buscar negocios por nombre, dirección o servicio (máximo 6 resultados)
         negocios = Negocio.objects.filter(
             Q(nombre__icontains=query) | 
-            Q(direccion__icontains=query),
+            Q(direccion__icontains=query) |
+            Q(servicios_negocio__servicio__nombre__icontains=query),
             activo=True
-        )[:6]
-        
-        def haversine(lat1, lon1, lat2, lon2):
-            # Radio de la tierra en km
-            R = 6371
-            lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-            dlat = lat2 - lat1
-            dlon = lon2 - lon1
-            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-            c = 2 * asin(sqrt(a))
-            return R * c
+        ).distinct()[:6]
         
         sugerencias = []
         for negocio in negocios:
+            calificaciones = Calificacion.objects.filter(negocio=negocio)
+            promedio = calificaciones.aggregate(avg=models.Avg('puntaje'))['avg'] or 0
+            cantidad = calificaciones.count()
+            logo_url = negocio.logo.url if negocio.logo else ''
             sugerencias.append({
                 'id': negocio.id,
                 'nombre': negocio.nombre,
                 'direccion': negocio.direccion,
                 'ciudad': negocio.ciudad,
-                'barrio': negocio.barrio
+                'barrio': negocio.barrio,
+                'logo_url': logo_url,
+                'calificacion': round(promedio, 1),
+                'calificacion_cantidad': cantidad,
             })
         
         return JsonResponse({'sugerencias': sugerencias})

@@ -7,13 +7,13 @@
 {% block extra_css %}
 <style>
 :root {
-  --primary-color: #133A7F;
-  --primary-hover: #133A7F;
-  --secondary-color: #F4F3F1;
-  --accent-color: #133A7F;
+  --primary-color: var(--appo-primary, #133A7F);
+  --primary-hover: var(--appo-primary-hover, #0A1F45);
+  --secondary-color: var(--appo-primary-soft, #EBF1FF);
+  --accent-color: var(--appo-primary, #133A7F);
   --text-primary: #0D0D0D;
   --text-secondary: #666666;
-  --border-color: #DDE6E8;
+  --border-color: var(--appo-neutral-border, #DDE6E8);
   --neutral-text: #0D0D0D;
   --neutral-muted: #666666;
 }

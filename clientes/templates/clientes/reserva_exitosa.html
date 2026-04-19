@@ -5,16 +5,16 @@
 
 <style>
 :root {
-  --color-primary: #133A7F;
+  --color-primary: var(--appo-primary, #133A7F);
   --color-secondary: #10B981;
-  --color-background: #F3F4F6;
+  --color-background: var(--appo-neutral-bg, #F3F4F6);
   --color-smoke-white: #6B7280;
-  --color-dark: #133A7F;
-  --color-light: #F3F4F6;
+  --color-dark: var(--appo-primary, #133A7F);
+  --color-light: var(--appo-neutral-bg, #F3F4F6);
   --color-white: #FFFFFF;
   --color-text-dark: #181818;
   --color-text-light: #FFFFFF;
-  --color-border: #E5E7EB;
+  --color-border: var(--appo-neutral-border, #E5E7EB);
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
@@ -23,7 +23,7 @@
 body {
   background: var(--color-background) !important;
   color: var(--color-text-dark) !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-ui, 'Century Gothic'), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .success-container {
@@ -251,10 +251,10 @@ body {
 }
 
 .btn-primary:hover {
-  background: #1E3A8A;
+  background: var(--appo-primary-hover, #0A1F45);
   color: var(--color-white) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  box-shadow: 0 4px 12px rgba(19, 58, 127, 0.3);
 }
 
 .btn-outline {
