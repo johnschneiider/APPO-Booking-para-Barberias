@@ -340,7 +340,7 @@ def reservar_turno(request, peluquero_id):
                             else:
                                 logger.warning(f"WhatsApp no enviado para reserva #{reserva.id} (servicio retornó False)")
                         else:
-                            logger.info(f"WhatsApp omitido para reserva #{reserva.id}: cliente sin teléfono registrado")
+                            logger.warning(f"WhatsApp omitido para reserva #{reserva.id}: el cliente no tiene número de teléfono registrado en su perfil")
                     except Exception as e_wa:
                         logger.warning(f"WhatsApp fallido para reserva #{reserva.id}: {e_wa}")
                     
