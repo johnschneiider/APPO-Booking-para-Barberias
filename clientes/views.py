@@ -313,32 +313,36 @@ def reservar_turno(request, peluquero_id):
                             url_relacionada='/profesionales/panel/'
                         )
                     
-                    # Enviar email de confirmación (WhatsApp se envía por señales de recordatorios)
+                    # Enviar email de confirmación
                     try:
                         resultado = enviar_email_reserva_confirmada(reserva)
                         if resultado:
                             logger.info(f"Email de confirmación enviado para reserva #{reserva.id}")
                         else:
                             logger.warning(f"No se pudo enviar email de confirmación para reserva #{reserva.id}")
-                    except Exception as e:
-                        logger.error(f"Error enviando notificación de reserva #{reserva.id}: {str(e)}")
-                        log_error(
-                            error_type="email_confirmacion_fallido",
-                            error_message=str(e),
-                            user=request.user,
-                            context={"reserva_id": reserva.id}
-                        )
-                        # No fallar la reserva si el email falla
-                    
+                    except Exception as e_email:
+                        logger.warning(f"Email fallido para reserva #{reserva.id}: {e_email}")
+                        try:
+                            log_error(error_type="email_confirmacion_fallido", error_message=str(e_email), user=request.user, context={"reserva_id": reserva.id})
+                        except Exception:
+                            pass
+
                     messages.success(request, '¡Reserva realizada con éxito!')
-                    
-                    # Enviar WhatsApp de confirmación si el cliente tiene teléfono
+
+                    # Enviar WhatsApp de confirmación (independiente del email)
                     try:
                         from .utils import enviar_notificacion_whatsapp
-                        if reserva.get_cliente_telefono():
-                            enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
-                    except Exception as e:
-                        logger.warning(f"No se pudo enviar WhatsApp de confirmación para reserva #{reserva.id}: {str(e)}")
+                        telefono = reserva.get_cliente_telefono()
+                        if telefono:
+                            resultado_wa = enviar_notificacion_whatsapp(reserva, 'reserva_confirmada')
+                            if resultado_wa:
+                                logger.info(f"WhatsApp de confirmación enviado para reserva #{reserva.id} a {telefono}")
+                            else:
+                                logger.warning(f"WhatsApp no enviado para reserva #{reserva.id} (servicio retornó False)")
+                        else:
+                            logger.info(f"WhatsApp omitido para reserva #{reserva.id}: cliente sin teléfono registrado")
+                    except Exception as e_wa:
+                        logger.warning(f"WhatsApp fallido para reserva #{reserva.id}: {e_wa}")
                     
                     return redirect('clientes:reserva_exitosa', reserva_id=reserva.id)
                 except Exception as e:
